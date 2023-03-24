@@ -73,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   break;
                 // Printing Page
                 case SampleItem.itemTwo:
+                  debugPrint("open Printing Page");
                   break;
 
                 // Settings Page
