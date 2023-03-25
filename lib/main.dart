@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'person.dart';
@@ -97,7 +98,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+          style: GoogleFonts.ibmPlexSansArabic(),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -108,15 +113,15 @@ class _MyHomePageState extends State<MyHomePage> {
               );
 
               //Add Person
-              box.add(Person(
-                  name: "ahmd",
-                  idNumber: "123456",
-                  phoneNumber: 05679959,
-                  aidAmount: 100,
-                  aidDates: [DateTime(2023, 1, 2), DateTime(2023, 1, 12)],
-                  aidType: "School",
-                  isContinuousAid: true,
-                  notes: ""));
+              // box.add(Person(
+              //     name: "ahmd",
+              //     idNumber: "123456",
+              //     phoneNumber: 05679959,
+              //     aidAmount: 100,
+              //     aidDates: [DateTime(2023, 1, 2), DateTime(2023, 1, 12)],
+              //     aidType: "School",
+              //     isContinuousAid: true,
+              //     notes: ""));
             },
           ),
         ],
@@ -162,14 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     onChanged: (bool value) =>
                                         themeChange.darkTheme = value)
                               ],
-                            )
-                                //     Switch(
-                                //   value: themeChange.darkTheme,
-                                //   onChanged: (bool value) {
-                                //     themeChange.darkTheme = value;
-                                //   },
-                                // )
-                                ),
+                            )),
                           ),
                         );
                       });
@@ -234,33 +232,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => Scaffold(
-                                  appBar: AppBar(title: Text(person.name)),
-                                  body: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        Card(
-                                            elevation: 0.5,
-                                            child: ListTile(
-                                              title: Text(
-                                                  "hello,\n my name is ${person.name},\n my phone number is ${person.phoneNumber}, i need ${person.aidAmount} \$ and i need it from ${person.aidDates[0]} to ${person.aidDates[1]} "),
-                                            ))
-                                      ],
-                                    ),
-                                  )),
+                            builder: (context) => DetailsPage(
+                                  person: person,
                                 )),
                       );
                     },
                   );
                 });
-
-            // ListView.builder(
-            //     itemCount: box.length,
-            //     itemBuilder: (_, index) {
-            //       return Text(box.getAt(index)!.name);
-            //     });
           },
         ),
       ),
@@ -271,12 +249,149 @@ class _MyHomePageState extends State<MyHomePage> {
               context,
               MaterialPageRoute(
                   fullscreenDialog: true,
-                  builder: (context) => Scaffold(
-                        appBar: AppBar(title: const Text("إنشاء مساعدة جديدة")),
-                        body: const Center(child: Text("Create")),
+                  builder: (context) => const Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: RegisterPage(),
                       )),
             );
           }),
+    );
+  }
+}
+
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _idNumberController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
+  final box = Hive.box<Person>('personList');
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          title: const Text("إنشاء مساعدة جديدة"),
+          centerTitle: true,
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    // If the form is valid, display a snackbar. In the real world,
+                    // you'd often call a server or save the information in a database.
+                    box.add(Person(
+                        name: _nameController.text,
+                        idNumber: _idNumberController.text,
+                        phoneNumber: int.parse(_phoneController.text),
+                        aidDates: [],
+                        aidType: "الزواج",
+                        aidAmount: 100,
+                        isContinuousAid: true,
+                        notes: ""));
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Saved ${_nameController.text}')),
+                    );
+                  }
+                })
+          ],
+          leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context))),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                decoration: const InputDecoration(
+                    hintText: "الاسم الكامل",
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _nameController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                decoration: const InputDecoration(
+                    hintText: "رقم الهوية",
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _idNumberController,
+                keyboardType: TextInputType.number,
+                maxLength: 10,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    hintText: "رقم الهاتف",
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DetailsPage extends StatefulWidget {
+  final Person person;
+  const DetailsPage({super.key, required this.person});
+
+  @override
+  State<DetailsPage> createState() => _DetailsPageState();
+}
+
+class _DetailsPageState extends State<DetailsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.person.name)),
+      body: Center(
+          child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Card(
+                elevation: 0.5,
+                child: ListTile(
+                  title: Text(
+                      "hello,\n my name is ${widget.person.name},\n my phone number is ${widget.person.phoneNumber}, i need ${widget.person.aidAmount} \$ and i need it from ${widget.person.aidDates.isNotEmpty ? widget.person.aidDates[0] : "anyDate"} to ${widget.person.aidDates.isNotEmpty ? widget.person.aidDates[1] : "anyDate + 10 days"} "),
+                ))
+          ],
+        ),
+      )),
     );
   }
 }

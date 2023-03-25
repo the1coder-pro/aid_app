@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'main.dart';
 import 'person.dart';
 
 class SearchWidget extends SearchDelegate<Person> {
@@ -24,17 +25,7 @@ class SearchWidget extends SearchDelegate<Person> {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
-        close(
-            context,
-            Person(
-                name: "mhmd",
-                idNumber: "123456",
-                phoneNumber: 05679959,
-                aidAmount: 100,
-                aidDates: [DateTime(2023, 1, 2), DateTime(2023, 1, 12)],
-                aidType: "School",
-                isContinuousAid: true,
-                notes: "")); // for closing the search page and going back
+        Navigator.pop(context);
       },
     );
   }
@@ -63,7 +54,18 @@ class SearchFinder extends StatelessWidget {
         var results = query.isEmpty
             ? contactsBox.values.toList() // whole list
             : contactsBox.values
-                .where((c) => c.name.toLowerCase().contains(query))
+                .where((c) =>
+                    c.name.toLowerCase().contains(query) ||
+                    c.idNumber.toLowerCase().contains(query) ||
+                    c.phoneNumber.toString().contains(query) ||
+                    c.aidAmount.toString().contains(query) ||
+                    c.aidType.toLowerCase().contains(query) ||
+                    c.notes.toLowerCase().contains(query))
+
+                // .where((c) => c.aidDates.toLowerCase().contains(query))
+
+                // .where((c) => c.isContinuousAid.toLowerCase().contains(query))
+
                 .toList();
 
         return results.isEmpty
@@ -76,7 +78,7 @@ class SearchFinder extends StatelessWidget {
                 ),
               )
             : ListView.builder(
-                physics: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 itemCount: results.length,
                 itemBuilder: (context, index) {
                   // passing as a custom list
@@ -84,8 +86,11 @@ class SearchFinder extends StatelessWidget {
 
                   return ListTile(
                     onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Scaffold()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailsPage(person: results[index])));
                     },
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
