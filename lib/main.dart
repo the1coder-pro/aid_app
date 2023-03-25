@@ -1,24 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:dynamic_color/dynamic_color.dart';
+import 'package:provider/provider.dart';
+import 'themes.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  TheThemeProvider themeChangeProvider = TheThemeProvider();
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentAppTheme();
+  }
+
+  void getCurrentAppTheme() async {
+    themeChangeProvider.darkTheme =
+        await themeChangeProvider.darkThemePreference.getTheme();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Aid App',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+    return ChangeNotifierProvider(
+      create: (_) {
+        return themeChangeProvider;
+      },
+      child: Consumer<TheThemeProvider>(
+        builder: (BuildContext context, value, child) => DynamicColorBuilder(
+          builder: (lightColorScheme, darkColorScheme) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Aid App',
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: lightColorScheme ??
+                  ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+            ),
+            darkTheme: ThemeData(
+                useMaterial3: true,
+                colorScheme: darkColorScheme ??
+                    ColorScheme.fromSeed(seedColor: Colors.lightBlue)),
+            themeMode: themeChangeProvider.darkTheme
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            home: const Directionality(
+                textDirection: TextDirection.rtl,
+                child: MyHomePage(title: 'المساعدات')),
+          ),
+        ),
       ),
-      home: const Directionality(
-          textDirection: TextDirection.rtl,
-          child: MyHomePage(title: 'المساعدات')),
     );
   }
 }
@@ -46,6 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeChange = Provider.of<TheThemeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -56,7 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
         leading: PopupMenuButton<SampleItem>(
-          initialValue: selectedMenu,
           // Callback that sets the selected popup menu item.
           onSelected: (SampleItem item) {
             setState(() {
@@ -70,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           builder: ((context) => const Scaffold(
                                 body: Center(child: Text("hi")),
                               ))));
+
                   break;
                 // Printing Page
                 case SampleItem.itemTwo:
@@ -78,6 +118,36 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 // Settings Page
                 case SampleItem.itemThree:
+                  showModalBottomSheet<void>(
+                      context: context,
+                      elevation: 1,
+                      builder: (BuildContext context) {
+                        return Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: Scaffold(
+                            appBar: AppBar(
+                              title: const Text("الإعدادات"),
+                            ),
+                            body: Center(
+                                child: ListView(
+                              children: [
+                                SwitchListTile(
+                                    title: const Text("الوضع الليلي"),
+                                    value: themeChange.darkTheme,
+                                    onChanged: (bool value) =>
+                                        themeChange.darkTheme = value)
+                              ],
+                            )
+                                //     Switch(
+                                //   value: themeChange.darkTheme,
+                                //   onChanged: (bool value) {
+                                //     themeChange.darkTheme = value;
+                                //   },
+                                // )
+                                ),
+                          ),
+                        );
+                      });
                   break;
               }
             });

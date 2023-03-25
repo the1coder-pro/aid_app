@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dynamic_color: ^1.6.2
+  shared_preferences: ^2.0.20
+  provider: ^6.0.5
 
 
   # The following adds the Cupertino Icons font to your application.
