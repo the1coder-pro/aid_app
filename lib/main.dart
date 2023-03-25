@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'person.dart';
+import 'searchWidget.dart';
 import 'themes.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(PersonAdapter());
+  await Hive.openBox<Person>('personList');
+
   runApp(const MyApp());
 }
 
@@ -81,6 +89,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int currentPageIndex = 0;
   SampleItem? selectedMenu;
+  final box = Hive.box<Person>('personList');
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +101,23 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: SearchWidget(),
+              );
+
+              //Add Person
+              box.add(Person(
+                  name: "ahmd",
+                  idNumber: "123456",
+                  phoneNumber: 05679959,
+                  aidAmount: 100,
+                  aidDates: [DateTime(2023, 1, 2), DateTime(2023, 1, 12)],
+                  aidType: "School",
+                  isContinuousAid: true,
+                  notes: ""));
+            },
           ),
         ],
         leading: PopupMenuButton<SampleItem>(
@@ -192,40 +217,52 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: Center(
-        child: ListView.builder(
-            itemCount: users.length,
-            itemBuilder: (context, i) {
-              return ListTile(
-                leading: CircleAvatar(
-                  child: Text((users[i]["name"]).toString().substring(0, 2)),
-                ),
-                title: Text(users[i]["name"]),
-                subtitle: Text(users[i]["job"]),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Scaffold(
-                              appBar: AppBar(title: Text(users[i]["name"])),
-                              body: Center(
-                                  child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    Card(
-                                        elevation: 0.5,
-                                        child: ListTile(
-                                          title: Text(
-                                              "hello,\n my name is ${users[i]["name"]},\n i'm a ${users[i]["age"]} year old."),
-                                        ))
-                                  ],
-                                ),
-                              )),
-                            )),
+        child: ValueListenableBuilder(
+          valueListenable: box.listenable(),
+          builder: (context, Box<Person> box, _) {
+            return ListView.builder(
+                itemCount: box.length,
+                itemBuilder: (context, i) {
+                  var person = box.getAt(i);
+                  return ListTile(
+                    leading: CircleAvatar(
+                      child: Text((person!.name).toString().substring(0, 2)),
+                    ),
+                    title: Text(person.name),
+                    subtitle: Text(person.idNumber),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                                  appBar: AppBar(title: Text(person.name)),
+                                  body: Center(
+                                      child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        Card(
+                                            elevation: 0.5,
+                                            child: ListTile(
+                                              title: Text(
+                                                  "hello,\n my name is ${person.name},\n my phone number is ${person.phoneNumber}, i need ${person.aidAmount} \$ and i need it from ${person.aidDates[0]} to ${person.aidDates[1]} "),
+                                            ))
+                                      ],
+                                    ),
+                                  )),
+                                )),
+                      );
+                    },
                   );
-                },
-              );
-            }),
+                });
+
+            // ListView.builder(
+            //     itemCount: box.length,
+            //     itemBuilder: (_, index) {
+            //       return Text(box.getAt(index)!.name);
+            //     });
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
