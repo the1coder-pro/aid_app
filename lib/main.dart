@@ -232,8 +232,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => DetailsPage(
-                                  person: person,
+                            builder: (context) => Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: DetailsPage(
+                                    person: person,
+                                  ),
                                 )),
                       );
                     },
@@ -259,6 +262,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+enum AidDuration { continuous, interrupted }
+
+const List<String> aidTypes = <String>[
+  'صدقة',
+  'زواج',
+  'مؤونة',
+  'اجار',
+  'بناء',
+  'أخرى'
+];
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -269,10 +283,17 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _idNumberController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
 
   final box = Hive.box<Person>('personList');
+
+  AidDuration? _duration = AidDuration.continuous;
+
+  String? aidType = 'غير محددة';
 
   @override
   Widget build(BuildContext context) {
@@ -292,13 +313,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         idNumber: _idNumberController.text,
                         phoneNumber: int.parse(_phoneController.text),
                         aidDates: [],
-                        aidType: "الزواج",
-                        aidAmount: 100,
-                        isContinuousAid: true,
-                        notes: ""));
-
+                        aidType: aidType == 'أخرى'
+                            ? _typeController.text
+                            : (aidType ?? 'غير محددة'),
+                        aidAmount: int.parse(_amountController.text),
+                        isContinuousAid:
+                            _duration == AidDuration.continuous ? true : false,
+                        notes: _notesController.text));
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Saved ${_nameController.text}')),
+                      SnackBar(
+                          content:
+                              Text('تم حفظ "${_nameController.text}" بنجاح')),
                     );
                   }
                 })
@@ -310,52 +336,99 @@ class _RegisterPageState extends State<RegisterPage> {
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: <Widget>[
+              const SizedBox(height: 10),
               TextFormField(
                 decoration: const InputDecoration(
-                    hintText: "الاسم الكامل",
+                    label: Text("الأسم الكامل"),
                     border: OutlineInputBorder(),
                     isDense: true),
                 controller: _nameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 10),
               TextFormField(
                 decoration: const InputDecoration(
-                    hintText: "رقم الهوية",
-                    border: OutlineInputBorder(),
-                    isDense: true),
-                controller: _idNumberController,
-                keyboardType: TextInputType.number,
-                maxLength: 10,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                decoration: const InputDecoration(
-                    hintText: "رقم الهاتف",
+                    label: Text("رقم الهاتف"),
                     border: OutlineInputBorder(),
                     isDense: true),
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                decoration: const InputDecoration(
+                    label: Text("رقم الهوية"),
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _idNumberController,
+                keyboardType: TextInputType.number,
+                maxLength: 10,
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField(
+                  decoration: const InputDecoration(
+                      label: Text("نوع المساعدة"),
+                      border: OutlineInputBorder(),
+                      isDense: true),
+                  items: aidTypes
+                      .map((e) => DropdownMenuItem(
+                          value: e,
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Text(e)))
+                      .toList(),
+                  onChanged: (value) => setState(() => aidType = value)),
+              const SizedBox(height: 5),
+              if (aidType == 'أخرى')
+                TextFormField(
+                  decoration: const InputDecoration(
+                      label: Text("نوع اخر"),
+                      border: OutlineInputBorder(),
+                      isDense: true),
+                  controller: _typeController,
+                ),
+              const SizedBox(height: 15),
+              TextFormField(
+                decoration: const InputDecoration(
+                    label: Text("مقدار المساعدة"),
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(child: Text("مدة المساعدة")),
+              ),
+              RadioListTile<AidDuration>(
+                title: const Text('مستمرة'),
+                value: AidDuration.continuous,
+                groupValue: _duration,
+                onChanged: (AidDuration? value) {
+                  setState(() {
+                    _duration = value;
+                  });
                 },
+              ),
+              RadioListTile<AidDuration>(
+                title: const Text('منقطعة'),
+                value: AidDuration.interrupted,
+                groupValue: _duration,
+                onChanged: (AidDuration? value) {
+                  setState(() {
+                    _duration = value;
+                  });
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    label: Text("الملاحظات"),
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: _notesController,
+                keyboardType: TextInputType.multiline,
+                maxLines: 10,
               ),
             ],
           ),
@@ -384,11 +457,53 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           children: [
             Card(
-                elevation: 0.5,
                 child: ListTile(
-                  title: Text(
-                      "hello,\n my name is ${widget.person.name},\n my phone number is ${widget.person.phoneNumber}, i need ${widget.person.aidAmount} \$ and i need it from ${widget.person.aidDates.isNotEmpty ? widget.person.aidDates[0] : "anyDate"} to ${widget.person.aidDates.isNotEmpty ? widget.person.aidDates[1] : "anyDate + 10 days"} "),
-                ))
+              title: Text(widget.person.name),
+              subtitle: Text("الأسم"),
+            )),
+
+            Card(
+                child: ListTile(
+              title: Text("${widget.person.phoneNumber}"),
+              subtitle: Text("رقم الهاتف"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text(widget.person.idNumber),
+              subtitle: Text("رقم الهوية"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text(widget.person.aidDates.length >= 2
+                  ? "${widget.person.aidDates[0]} - ${widget.person.aidDates[1]}"
+                  : "لا يوجد"),
+              subtitle: const Text("تاريخ المساعدة"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text(widget.person.aidType),
+              subtitle: Text("نوع المساعدة"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text("${widget.person.aidAmount} ريال"),
+              subtitle: Text("مقدار المساعدة"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text(widget.person.isContinuousAid ? "مستمرة" : "منقطعة"),
+              subtitle: Text("مدة المساعدة"),
+            )),
+            Card(
+                child: ListTile(
+              title: Text(widget.person.notes),
+              subtitle: Text("الملاحظات"),
+            )),
+            //  Card(
+            //     child: ListTile(
+            //   title: Text(widget.person.name),
+            //   subtitle: Text("مشاركة"),
+            // )),
           ],
         ),
       )),
