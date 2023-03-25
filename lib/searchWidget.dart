@@ -32,7 +32,7 @@ class SearchWidget extends SearchDelegate<Person> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return SearchFinder(query: query);
+    return SearchFinderResults(query: query);
   }
 
   @override
@@ -47,72 +47,172 @@ class SearchFinder extends StatelessWidget {
   const SearchFinder({Key? key, required this.query}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: Hive.box<Person>('personList').listenable(),
-      builder: (context, Box<Person> contactsBox, _) {
-        ///* this is where we filter data
-        var results = query.isEmpty
-            ? contactsBox.values.toList() // whole list
-            : contactsBox.values
-                .where((c) =>
-                    c.name.toLowerCase().contains(query) ||
-                    c.idNumber.toLowerCase().contains(query) ||
-                    c.phoneNumber.toString().contains(query) ||
-                    c.aidAmount.toString().contains(query) ||
-                    c.aidType.toLowerCase().contains(query) ||
-                    c.notes.toLowerCase().contains(query))
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: ValueListenableBuilder(
+        valueListenable: Hive.box<Person>('personList').listenable(),
+        builder: (context, Box<Person> contactsBox, _) {
+          ///* this is where we filter data
+          var results = query.isEmpty
+              ? contactsBox.values.toList() // whole list
+              : contactsBox.values
+                  .where((c) =>
+                      c.name.toLowerCase().contains(query) ||
+                      c.idNumber.toLowerCase().contains(query) ||
+                      c.phoneNumber.toString().contains(query) ||
+                      c.aidAmount.toString().contains(query) ||
+                      c.aidType.toLowerCase().contains(query) ||
+                      (c.isContinuousAid ? "مستمرة" : "منقطعة")
+                          .contains(query) ||
+                      c.notes.toLowerCase().contains(query))
 
-                // .where((c) => c.aidDates.toLowerCase().contains(query))
+                  // .where((c) => c.isContinuousAid.toLowerCase().contains(query))
 
-                // .where((c) => c.isContinuousAid.toLowerCase().contains(query))
+                  .toList();
 
-                .toList();
+          return results.isEmpty
+              ? Center(
+                  child: Text(
+                    'لا توجد مساعدات',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                )
+              : ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: results.length,
+                  itemBuilder: (context, index) {
+                    // passing as a custom list
+                    final Person personListItem = results[index];
 
-        return results.isEmpty
-            ? Center(
-                child: Text(
-                  'No results found !',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.black,
-                      ),
-                ),
-              )
-            : ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                itemCount: results.length,
-                itemBuilder: (context, index) {
-                  // passing as a custom list
-                  final Person contactListItem = results[index];
-
-                  return ListTile(
-                    onTap: () {
-                      Navigator.push(
+                    return ListTile(
+                      onTap: () {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailsPage(person: results[index])));
-                    },
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          contactListItem.name,
+                              builder: (context) => Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: DetailsPage(
+                                      person: personListItem,
+                                    ),
+                                  )),
+                        );
+                      },
+                      title: Text(
+                        personListItem.name,
+                      ),
+                    );
+                  },
+                );
+        },
+      ),
+    );
+  }
+}
+
+class SearchFinderResults extends StatelessWidget {
+  final String query;
+
+  const SearchFinderResults({Key? key, required this.query}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: ValueListenableBuilder(
+        valueListenable: Hive.box<Person>('personList').listenable(),
+        builder: (context, Box<Person> contactsBox, _) {
+          ///* this is where we filter data
+          var results = query.isEmpty
+              ? contactsBox.values.toList() // whole list
+              : contactsBox.values
+                  .where((c) =>
+                      c.name.toLowerCase().contains(query) ||
+                      c.idNumber.toLowerCase().contains(query) ||
+                      c.phoneNumber.toString().contains(query) ||
+                      c.aidAmount.toString().contains(query) ||
+                      c.aidType.toLowerCase().contains(query) ||
+                      (c.isContinuousAid ? "مستمرة" : "منقطعة")
+                          .contains(query) ||
+                      c.notes.toLowerCase().contains(query))
+
+                  // .where((c) => c.aidDates.toLowerCase().contains(query))
+
+                  .toList();
+
+          return results.isEmpty
+              ? Center(
+                  child: Text(
+                    'لا توجد مساعدات',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                )
+              : ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: results.length,
+                  itemBuilder: (context, index) {
+                    // passing as a custom list
+                    final Person personListItem = results[index];
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          (personListItem.name).toString().substring(0, 1),
+                          style: const TextStyle(fontSize: 20),
                         ),
-                        SizedBox(height: 4.0),
-                        Text(
-                          results[index].name,
-                          textScaleFactor: 1.0,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .copyWith(color: Colors.black),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-      },
+                      ),
+                      title: Text(
+                        personListItem.name,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      subtitle: RichText(
+                          text: TextSpan(
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              children: [
+                            TextSpan(
+                                text: "${personListItem.aidAmount} ريال",
+                                style: TextStyle(
+                                    fontWeight: personListItem.aidAmount
+                                            .toString()
+                                            .contains(query)
+                                        ? FontWeight.bold
+                                        : FontWeight.normal)),
+                            const TextSpan(text: " لأجل "),
+                            TextSpan(
+                                text: personListItem.aidType,
+                                style: TextStyle(
+                                    fontWeight:
+                                        personListItem.aidType.contains(query)
+                                            ? FontWeight.bold
+                                            : FontWeight.normal)),
+                            const TextSpan(text: " لفترة "),
+                            TextSpan(
+                                text: personListItem.isContinuousAid
+                                    ? "مستمرة"
+                                    : "منقطعة",
+                                style: TextStyle(
+                                    fontWeight: (personListItem.isContinuousAid
+                                                ? "مستمرة"
+                                                : "منقطعة")
+                                            .contains(query)
+                                        ? FontWeight.bold
+                                        : FontWeight.normal)),
+                          ])),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: DetailsPage(
+                                      person: personListItem,
+                                    ),
+                                  )),
+                        );
+                      },
+                    );
+                  },
+                );
+        },
+      ),
     );
   }
 }

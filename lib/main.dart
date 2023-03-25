@@ -72,12 +72,6 @@ class _MyAppState extends State<MyApp> {
 
 enum SampleItem { itemOne, itemTwo, itemThree }
 
-List users = [
-  {"name": "Mohammed", "age": 18, "job": "Developer"},
-  {"name": "Ahmed Hassan", "age": 20, "job": "Marketing"},
-  {"name": "Ali", "age": 25, "job": "Manager"},
-];
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -100,7 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          style: GoogleFonts.ibmPlexSansArabic(),
+          style: GoogleFonts.scheherazadeNew(),
+          // style: GoogleFonts.ibmPlexSansArabic(),
         ),
         centerTitle: true,
         actions: [
@@ -111,17 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 context: context,
                 delegate: SearchWidget(),
               );
-
-              //Add Person
-              // box.add(Person(
-              //     name: "ahmd",
-              //     idNumber: "123456",
-              //     phoneNumber: 05679959,
-              //     aidAmount: 100,
-              //     aidDates: [DateTime(2023, 1, 2), DateTime(2023, 1, 12)],
-              //     aidType: "School",
-              //     isContinuousAid: true,
-              //     notes: ""));
             },
           ),
         ],
@@ -224,10 +208,39 @@ class _MyHomePageState extends State<MyHomePage> {
                   var person = box.getAt(i);
                   return ListTile(
                     leading: CircleAvatar(
-                      child: Text((person!.name).toString().substring(0, 2)),
+                      child: Text(
+                        (person!.name).toString().substring(0, 1),
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
-                    title: Text(person.name),
-                    subtitle: Text(person.idNumber),
+                    title: Text(
+                      person.name,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    subtitle: RichText(
+                        text: TextSpan(
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            children: [
+                          TextSpan(
+                              text: "${person.phoneNumber}\n",
+                              style: TextStyle(fontSize: 15)),
+                          TextSpan(
+                              text: "${person.aidAmount} ريال",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          const TextSpan(text: " لأجل "),
+                          TextSpan(
+                              text: person.aidType,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          const TextSpan(text: " لفترة "),
+                          TextSpan(
+                              text:
+                                  person.isContinuousAid ? "مستمرة" : "منقطعة",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                        ])),
+                    isThreeLine: true,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -454,7 +467,7 @@ class _DetailsPageState extends State<DetailsPage> {
       body: Center(
           child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
+        child: ListView(
           children: [
             Card(
                 child: ListTile(
