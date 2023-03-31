@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'person.dart';
-import 'searchWidget.dart';
+import 'search_widget.dart';
 import 'themes.dart';
 
 void main() async {
@@ -94,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          style: GoogleFonts.scheherazadeNew(),
+          // style: GoogleFonts.scheherazadeNew(),
           // style: GoogleFonts.ibmPlexSansArabic(),
         ),
         centerTitle: true,
@@ -223,7 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                           TextSpan(
                               text: "${person.phoneNumber}\n",
-                              style: TextStyle(fontSize: 15)),
+                              style: const TextStyle(fontSize: 15)),
                           TextSpan(
                               text: "${person.aidAmount} ريال",
                               style:
@@ -472,18 +472,18 @@ class _DetailsPageState extends State<DetailsPage> {
             Card(
                 child: ListTile(
               title: Text(widget.person.name),
-              subtitle: Text("الأسم"),
+              subtitle: const Text("الأسم"),
             )),
 
             Card(
                 child: ListTile(
               title: Text("${widget.person.phoneNumber}"),
-              subtitle: Text("رقم الهاتف"),
+              subtitle: const Text("رقم الهاتف"),
             )),
             Card(
                 child: ListTile(
               title: Text(widget.person.idNumber),
-              subtitle: Text("رقم الهوية"),
+              subtitle: const Text("رقم الهوية"),
             )),
             Card(
                 child: ListTile(
@@ -495,22 +495,22 @@ class _DetailsPageState extends State<DetailsPage> {
             Card(
                 child: ListTile(
               title: Text(widget.person.aidType),
-              subtitle: Text("نوع المساعدة"),
+              subtitle: const Text("نوع المساعدة"),
             )),
             Card(
                 child: ListTile(
               title: Text("${widget.person.aidAmount} ريال"),
-              subtitle: Text("مقدار المساعدة"),
+              subtitle: const Text("مقدار المساعدة"),
             )),
             Card(
                 child: ListTile(
               title: Text(widget.person.isContinuousAid ? "مستمرة" : "منقطعة"),
-              subtitle: Text("مدة المساعدة"),
+              subtitle: const Text("مدة المساعدة"),
             )),
             Card(
                 child: ListTile(
               title: Text(widget.person.notes),
-              subtitle: Text("الملاحظات"),
+              subtitle: const Text("الملاحظات"),
             )),
             //  Card(
             //     child: ListTile(
