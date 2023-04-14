@@ -1,8 +1,6 @@
 // import 'package:contacts_app/screens/contact_details_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'main.dart';
 import 'person.dart';
@@ -92,6 +90,7 @@ class SearchFinder extends StatelessWidget {
                               builder: (context) => Directionality(
                                     textDirection: TextDirection.rtl,
                                     child: DetailsPage(
+                                      id: index,
                                       person: personListItem,
                                     ),
                                   )),
@@ -165,6 +164,7 @@ class SearchFinderResults extends StatelessWidget {
                       ),
                       subtitle: RichText(
                           text: TextSpan(
+                              // TODO: Fix the style to look alike the main one
                               style: Theme.of(context).textTheme.bodyMedium,
                               children: [
                             TextSpan(
@@ -203,6 +203,7 @@ class SearchFinderResults extends StatelessWidget {
                               builder: (context) => Directionality(
                                     textDirection: TextDirection.rtl,
                                     child: DetailsPage(
+                                      id: index,
                                       person: personListItem,
                                     ),
                                   )),

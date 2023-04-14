@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'person.dart';
 import 'search_widget.dart';
 import 'themes.dart';
+import 'color_schemes.g.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -50,19 +52,20 @@ class _MyAppState extends State<MyApp> {
             title: 'Aid App',
             theme: ThemeData(
               useMaterial3: true,
-              colorScheme: lightColorScheme ??
-                  ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+              textTheme: textThemeDefault,
+              colorScheme: lightColorScheme ?? lightColorSchemeDefault,
             ),
             darkTheme: ThemeData(
-                useMaterial3: true,
-                colorScheme: darkColorScheme ??
-                    ColorScheme.fromSeed(seedColor: Colors.lightBlue)),
+              useMaterial3: true,
+              textTheme: textThemeDefault,
+              colorScheme: darkColorScheme ?? darkColorSchemeDefault,
+            ),
             themeMode: themeChangeProvider.darkTheme
                 ? ThemeMode.dark
                 : ThemeMode.light,
             home: const Directionality(
                 textDirection: TextDirection.rtl,
-                child: MyHomePage(title: 'المساعدات')),
+                child: MyHomePage(title: 'الْمُسَاعَدَات')),
           ),
         ),
       ),
@@ -94,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          // style: GoogleFonts.scheherazadeNew(),
+          style: GoogleFonts.scheherazadeNew(),
           // style: GoogleFonts.ibmPlexSansArabic(),
         ),
         centerTitle: true,
@@ -140,13 +143,19 @@ class _MyHomePageState extends State<MyHomePage> {
                           textDirection: TextDirection.rtl,
                           child: Scaffold(
                             appBar: AppBar(
-                              title: const Text("الإعدادات"),
+                              title: Text(
+                                "الإعدادات",
+                                style: GoogleFonts.scheherazadeNew(),
+                              ),
                             ),
                             body: Center(
                                 child: ListView(
                               children: [
                                 SwitchListTile(
-                                    title: const Text("الوضع الليلي"),
+                                    title: Text(
+                                      "الوضع الليلي",
+                                      style: GoogleFonts.ibmPlexSansArabic(),
+                                    ),
                                     value: themeChange.darkTheme,
                                     onChanged: (bool value) =>
                                         themeChange.darkTheme = value)
@@ -202,59 +211,79 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ValueListenableBuilder(
           valueListenable: box.listenable(),
           builder: (context, Box<Person> box, _) {
-            return ListView.builder(
-                itemCount: box.length,
-                itemBuilder: (context, i) {
-                  var person = box.getAt(i);
-                  return ListTile(
-                    leading: CircleAvatar(
-                      child: Text(
-                        (person!.name).toString().substring(0, 1),
-                        style: const TextStyle(fontSize: 20),
+            if (box.isNotEmpty) {
+              return ListView.builder(
+                  itemCount: box.length,
+                  itemBuilder: (context, i) {
+                    var person = box.getAt(i);
+                    return ListTile(
+                      onLongPress: () => box
+                          .delete(i)
+                          .then((value) => debugPrint('deleted $i')),
+                      leading: CircleAvatar(
+                        child: Text(
+                          (person!.name).toString().substring(0, 1),
+                          style: const TextStyle(fontSize: 20),
+                        ),
                       ),
-                    ),
-                    title: Text(
-                      person.name,
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                    subtitle: RichText(
-                        text: TextSpan(
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            children: [
-                          TextSpan(
-                              text: "${person.phoneNumber}\n",
-                              style: const TextStyle(fontSize: 15)),
-                          TextSpan(
-                              text: "${person.aidAmount} ريال",
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          const TextSpan(text: " لأجل "),
-                          TextSpan(
-                              text: person.aidType,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          const TextSpan(text: " لفترة "),
-                          TextSpan(
-                              text:
-                                  person.isContinuousAid ? "مستمرة" : "منقطعة",
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                        ])),
-                    isThreeLine: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: DetailsPage(
-                                    person: person,
-                                  ),
-                                )),
-                      );
-                    },
-                  );
-                });
+                      title: Text(
+                        person.name,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      subtitle: RichText(
+                          text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                            TextSpan(
+                                text: "${person.phoneNumber}\n",
+                                style: const TextStyle(fontSize: 15)),
+                            TextSpan(
+                                text: "${person.aidAmount} ريال",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            const TextSpan(text: " لأجل "),
+                            TextSpan(
+                                text: person.aidType,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            const TextSpan(text: " لفترة "),
+                            TextSpan(
+                                text: person.isContinuousAid
+                                    ? "مستمرة"
+                                    : "منقطعة",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                          ])),
+                      isThreeLine: true,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: DetailsPage(
+                                      id: i,
+                                      person: person,
+                                    ),
+                                  )),
+                        );
+                      },
+                    );
+                  });
+            } else {
+              return Center(
+                  child: Column(
+                children: [
+                  SizedBox(
+                      height: 450,
+                      width: 450,
+                      child: Image.asset(themeChange.darkTheme
+                          ? 'openBook-dark.png'
+                          : 'openBook-light.png')),
+                  Text("لا يوجد شيء"),
+                ],
+              ));
+            }
           },
         ),
       ),
@@ -318,28 +347,30 @@ class _RegisterPageState extends State<RegisterPage> {
             IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // If the form is valid, display a snackbar. In the real world,
-                    // you'd often call a server or save the information in a database.
-                    box.add(Person(
-                        name: _nameController.text,
-                        idNumber: _idNumberController.text,
-                        phoneNumber: int.parse(_phoneController.text),
-                        aidDates: [],
-                        aidType: aidType == 'أخرى'
-                            ? _typeController.text
-                            : (aidType ?? 'غير محددة'),
-                        aidAmount: int.parse(_amountController.text),
-                        isContinuousAid:
-                            _duration == AidDuration.continuous ? true : false,
-                        notes: _notesController.text));
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content:
-                              Text('تم حفظ "${_nameController.text}" بنجاح')),
-                    );
-                  }
+                  // If the form is valid, display a snackbar. In the real world,
+                  // you'd often call a server or save the information in a database.
+                  box.add(Person(
+                      name: _nameController.text,
+                      idNumber: _idNumberController.text,
+                      phoneNumber: _phoneController.text.isNotEmpty
+                          ? int.parse(_phoneController.text)
+                          : 0,
+                      aidDates: [],
+                      aidType: aidType == 'أخرى'
+                          ? _typeController.text
+                          : (aidType ?? 'غير محددة'),
+                      aidAmount: _amountController.text.isNotEmpty
+                          ? int.parse(_amountController.text)
+                          : 0,
+                      isContinuousAid:
+                          _duration == AidDuration.continuous ? true : false,
+                      notes: _notesController.text));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text('تم حفظ "${_nameController.text}" بنجاح')),
+                  );
                 })
           ],
           leading: IconButton(
@@ -354,6 +385,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 10),
               TextFormField(
                 decoration: const InputDecoration(
+                    suffixIcon: Icon(Icons.clear),
                     label: Text("الأسم الكامل"),
                     border: OutlineInputBorder(),
                     isDense: true),
@@ -382,9 +414,9 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 10),
               DropdownButtonFormField(
                   decoration: const InputDecoration(
-                      label: Text("نوع المساعدة"),
-                      border: OutlineInputBorder(),
-                      isDense: true),
+                    label: Text("نوع المساعدة"),
+                    border: OutlineInputBorder(),
+                  ),
                   items: aidTypes
                       .map((e) => DropdownMenuItem(
                           value: e,
@@ -434,6 +466,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
+              const SizedBox(height: 10),
               TextFormField(
                 decoration: const InputDecoration(
                     label: Text("الملاحظات"),
@@ -452,18 +485,28 @@ class _RegisterPageState extends State<RegisterPage> {
 }
 
 class DetailsPage extends StatefulWidget {
+  final int id;
   final Person person;
-  const DetailsPage({super.key, required this.person});
+  const DetailsPage({super.key, required this.id, required this.person});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
 }
 
 class _DetailsPageState extends State<DetailsPage> {
+  final box = Hive.box<Person>('personList');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.person.name)),
+      appBar: AppBar(title: Text(widget.person.name), actions: [
+        IconButton(
+          icon: const Icon(Icons.delete_outline),
+          onPressed: () {
+            box.delete(widget.id).then((value) => Navigator.pop(context));
+          },
+        )
+      ]),
       body: Center(
           child: Padding(
         padding: const EdgeInsets.all(8.0),
