@@ -1,45 +1,70 @@
 import 'package:flutter/material.dart';
 // import 'package:google_fonts/google_fonts.dart';
 
-const TextTheme textThemeDefault = TextTheme(
+const textThemeDefault = TextTheme(
   displayLarge: TextStyle(
-      fontFamily: "NotoNaskhArabic",
-      fontSize: 126,
-      fontWeight: FontWeight.w300),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 100,
+    fontWeight: FontWeight.w300,
+  ),
   displayMedium: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 79, fontWeight: FontWeight.w300),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 62,
+    fontWeight: FontWeight.w300,
+  ),
   displaySmall: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 63, fontWeight: FontWeight.w400),
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 50,
+      fontWeight: FontWeight.w400),
   headlineMedium: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 45, fontWeight: FontWeight.w400),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 35,
+    fontWeight: FontWeight.w400,
+  ),
   headlineSmall: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 32, fontWeight: FontWeight.w400),
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 25,
+      fontWeight: FontWeight.w400),
   titleLarge: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 26, fontWeight: FontWeight.w500),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 21,
+    fontWeight: FontWeight.w500,
+  ),
   titleMedium: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 21, fontWeight: FontWeight.w400),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 17,
+    fontWeight: FontWeight.w400,
+  ),
   titleSmall: TextStyle(
-      fontFamily: "NotoNaskhArabic", fontSize: 18, fontWeight: FontWeight.w500),
+    fontFamily: "ibmPlexSansArabic",
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  ),
   bodyLarge: TextStyle(
-      fontFamily: "ibmPlexSansArabic",
-      fontSize: 17,
-      fontWeight: FontWeight.w400),
+    fontFamily: "NotoNaskhArabic",
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+  ),
   bodyMedium: TextStyle(
-      fontFamily: "ibmPlexSansArabic",
-      fontSize: 15,
-      fontWeight: FontWeight.w400),
+    fontFamily: "NotoNaskhArabic",
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+  ),
   labelLarge: TextStyle(
-      fontFamily: "ibmPlexSansArabic",
-      fontSize: 15,
-      fontWeight: FontWeight.w500),
+    fontFamily: "NotoNaskhArabic",
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  ),
   bodySmall: TextStyle(
-      fontFamily: "ibmPlexSansArabic",
-      fontSize: 12,
-      fontWeight: FontWeight.w400),
+    fontFamily: "NotoNaskhArabic",
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+  ),
   labelSmall: TextStyle(
-      fontFamily: "ibmPlexSansArabic",
-      fontSize: 10,
-      fontWeight: FontWeight.w400),
+    fontFamily: "NotoNaskhArabic",
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+  ),
 );
 
 // Default (Blue)

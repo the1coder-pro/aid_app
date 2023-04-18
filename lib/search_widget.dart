@@ -87,9 +87,7 @@ class SearchFinder extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => DetailsPage(
-                                    id: index,
-                                  )),
+                              builder: (context) => DetailsPage(id: index)),
                         );
                       },
                       title: Text(
@@ -196,9 +194,7 @@ class SearchFinderResults extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => DetailsPage(
-                                    id: index,
-                                  )),
+                              builder: (context) => DetailsPage(id: index)),
                         );
                       },
                     );
