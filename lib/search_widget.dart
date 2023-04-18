@@ -87,11 +87,8 @@ class SearchFinder extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Directionality(
-                                    textDirection: TextDirection.rtl,
-                                    child: DetailsPage(
-                                      id: index,
-                                    ),
+                              builder: (context) => DetailsPage(
+                                    id: index,
                                   )),
                         );
                       },
@@ -199,11 +196,8 @@ class SearchFinderResults extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Directionality(
-                                    textDirection: TextDirection.rtl,
-                                    child: DetailsPage(
-                                      id: index,
-                                    ),
+                              builder: (context) => DetailsPage(
+                                    id: index,
                                   )),
                         );
                       },

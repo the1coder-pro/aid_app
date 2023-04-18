@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +18,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-final colorSchemes = ["Default", "Red", "Device"];
+final colorSchemes = ["Default", "Red", "Yellow", "Device"];
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -48,19 +48,21 @@ class _MyAppState extends State<MyApp> {
         await colorChangeProvider.colorThemePreference.getThemeColor();
   }
 
-  ColorScheme colorSchemeChooser(String color, bool darkMode,
+  ColorScheme colorSchemeChooser(int color, bool darkMode,
       {ColorScheme? deviceLightColorTheme, ColorScheme? deviceDarkColorTheme}) {
-    if (color == colorSchemes[0]) {
-      return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
-    } else if (color == colorSchemes[1]) {
-      return darkMode ? redDarkColorScheme : redLightColorScheme;
-    } else if (color == colorSchemes[2]) {
-      return darkMode
-          ? (deviceDarkColorTheme ?? defaultDarkColorScheme)
-          : (deviceLightColorTheme ?? defaultLightColorScheme);
-    } else {
-      return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+    switch (colorSchemes[color]) {
+      case "Default":
+        return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+      case "Red":
+        return darkMode ? redDarkColorScheme : redLightColorScheme;
+      case "Yellow":
+        return darkMode ? yellowDarkColorScheme : yellowLightColorScheme;
+      case "Device":
+        return darkMode
+            ? (deviceDarkColorTheme ?? defaultDarkColorScheme)
+            : (deviceLightColorTheme ?? defaultLightColorScheme);
     }
+    return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
   }
 
   // convert the colorChangeProvider.colorTheme to Numbers like this => colorSchemes[colorChangeProvider.colorTheme]
@@ -136,8 +138,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<bool> isSelected = [];
   List<bool> getIsSelected(ThemeColorProvider colorProvider) {
     isSelected = [];
-    for (String color in ["Default", "Red", "Device"]) {
-      isSelected.add(colorProvider.colorTheme == color ? true : false);
+    for (String color in colorSchemes) {
+      isSelected
+          .add(colorSchemes[colorProvider.colorTheme] == color ? true : false);
     }
     return isSelected;
   }
@@ -152,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          style: GoogleFonts.scheherazadeNew(),
+          style: const TextStyle(fontFamily: "ScheherazadeNew"),
           // style: GoogleFonts.ibmPlexSansArabic(),
         ),
         centerTitle: true,
@@ -178,14 +181,22 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: ((context) => const Scaffold(
-                                body: Center(child: Text("hi")),
+                          builder: ((context) => Scaffold(
+                                appBar:
+                                    AppBar(title: const Text('الرسم البياني')),
+                                body: const Center(child: Text("hi")),
                               ))));
 
                   break;
                 // Printing Page
                 case SampleItem.itemTwo:
-                  debugPrint("open Printing Page");
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) => Scaffold(
+                                appBar: AppBar(title: const Text('الطباعة')),
+                                body: const Center(child: Text("hi")),
+                              ))));
                   break;
 
                 // Settings Page
@@ -198,75 +209,57 @@ class _MyHomePageState extends State<MyHomePage> {
                           textDirection: TextDirection.rtl,
                           child: Scaffold(
                             appBar: AppBar(
-                              title: Text(
+                              title: const Text(
                                 "الإعدادات",
-                                style: GoogleFonts.scheherazadeNew(),
+                                style: TextStyle(fontFamily: "ScheherazadeNew"),
                               ),
                             ),
                             body: Center(
                                 child: ListView(
                               children: [
                                 SwitchListTile(
-                                    title: Text(
+                                    title: const Text(
                                       "الوضع الداكن",
-                                      style: GoogleFonts.ibmPlexSansArabic(),
+                                      style: TextStyle(
+                                          fontFamily: "ibmPlexSansArabic"),
                                     ),
                                     value: themeChange.darkTheme,
                                     onChanged: (bool value) =>
                                         themeChange.darkTheme = value),
                                 SwitchListTile(
-                                    title: Text(
+                                    title: const Text(
                                       "اللغة الإنقليزية",
-                                      style: GoogleFonts.ibmPlexSansArabic(),
+                                      style: TextStyle(
+                                          fontFamily: "ibmPlexSansArabic"),
                                     ),
                                     value: themeChange.darkTheme,
                                     onChanged: (bool value) =>
                                         themeChange.darkTheme = value),
-
-                                // ListTile(
-                                //   title: Text(
-                                //     color,
-                                //     style: GoogleFonts.ibmPlexSansArabic(),
-                                //   ),
-                                //   onTap: () {
-                                //     colorThemeChange.colorTheme = "Red";
-                                //   },
-
-                                // )
-                                ToggleButtons(
-                                  isSelected: isSelected,
-                                  onPressed: (int index) {
-                                    setState(() {
-                                      for (int buttonIndex = 0;
-                                          buttonIndex < isSelected.length;
-                                          buttonIndex++) {
-                                        if (buttonIndex == index) {
-                                          isSelected[buttonIndex] = true;
-                                          switch (buttonIndex) {
-                                            case 0:
-                                              colorThemeChange.colorTheme =
-                                                  colorSchemes[0];
-                                              break;
-                                            case 1:
-                                              colorThemeChange.colorTheme =
-                                                  colorSchemes[1];
-                                              break;
-                                            case 2:
-                                              colorThemeChange.colorTheme =
-                                                  colorSchemes[2];
-                                              break;
+                                Center(
+                                  child: ToggleButtons(
+                                    isSelected: isSelected,
+                                    onPressed: (int index) {
+                                      setState(() {
+                                        for (int buttonIndex = 0;
+                                            buttonIndex < isSelected.length;
+                                            buttonIndex++) {
+                                          if (buttonIndex == index) {
+                                            isSelected[buttonIndex] = true;
+                                            colorThemeChange.colorTheme =
+                                                buttonIndex;
+                                          } else {
+                                            isSelected[buttonIndex] = false;
                                           }
-                                        } else {
-                                          isSelected[buttonIndex] = false;
                                         }
-                                      }
-                                    });
-                                  },
-                                  children: const <Widget>[
-                                    Icon(Icons.ac_unit),
-                                    Icon(Icons.call),
-                                    Icon(Icons.cake),
-                                  ],
+                                      });
+                                    },
+                                    children: const <Widget>[
+                                      Icon(Icons.ac_unit),
+                                      Icon(Icons.call),
+                                      Icon(Icons.cake),
+                                      Icon(Icons.phone_android),
+                                    ],
+                                  ),
                                 ),
                               ],
                             )),
@@ -368,11 +361,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Directionality(
-                                    textDirection: TextDirection.rtl,
-                                    child: DetailsPage(
-                                      id: i,
-                                    ),
+                              builder: (context) => DetailsPage(
+                                    id: i,
                                   )),
                         );
                       },
@@ -385,9 +375,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(
                       height: 450,
                       width: 450,
-                      child: Image.asset(themeChange.darkTheme
-                          ? 'openBook-dark.png'
-                          : 'openBook-light.png')),
+                      child:
+                          // Image.asset(themeChange.darkTheme
+                          //     ? 'openBook-dark.png'
+                          //     : 'openBook-light.png')
+                          Image(
+                              image: AssetImage(themeChange.darkTheme
+                                  ? 'assets/openBook-dark.png'
+                                  : 'assets/openBook-light.png'))),
                   const Text("لا يوجد شيء", style: TextStyle(fontSize: 30)),
                 ],
               ));
@@ -420,9 +415,11 @@ const List<String> aidTypes = <String>[
   'مؤونة',
   'اجار',
   'بناء',
+  'غير محددة',
   'أخرى'
 ];
 
+// ignore: must_be_immutable
 class RegisterPage extends StatefulWidget {
   int? id;
   RegisterPage({super.key, this.id});
@@ -451,7 +448,9 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
+    Person? loadPerson = box.get(widget.id);
 
+    loadData(loadPerson);
     myFocusNode = FocusNode();
   }
 
@@ -463,20 +462,24 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  loadData(Person loadPerson) {
-    _nameController.text = loadPerson.name;
-    _phoneController.text = loadPerson.phoneNumber.toString();
-    _idNumberController.text = loadPerson.idNumber.toString();
-    _amountController.text = loadPerson.aidAmount.toString();
-    if (aidTypes.contains(loadPerson.aidType)) {
-      aidType = loadPerson.aidType;
-    } else {
-      _typeController.text = loadPerson.aidType;
+  loadData(Person? loadPerson) {
+    if (loadPerson != null) {
+      _nameController.text = loadPerson.name;
+      _phoneController.text = loadPerson.phoneNumber.toString();
+      _idNumberController.text = loadPerson.idNumber.toString();
+      _amountController.text = loadPerson.aidAmount.toString();
+      if (aidTypes.contains(loadPerson.aidType)) {
+        aidType = loadPerson.aidType;
+        debugPrint(aidTypes.contains(loadPerson.aidType).toString());
+      } else {
+        aidType = aidTypes.last;
+        _typeController.text = loadPerson.aidType;
+      }
+      _duration = loadPerson.isContinuousAid
+          ? AidDuration.continuous
+          : AidDuration.interrupted;
+      _notesController.text = loadPerson.notes;
     }
-    _duration = loadPerson.isContinuousAid
-        ? AidDuration.continuous
-        : AidDuration.interrupted;
-    _notesController.text = loadPerson.notes;
   }
 
   @override
@@ -484,7 +487,6 @@ class _RegisterPageState extends State<RegisterPage> {
     Person? loadPerson = box.get(widget.id);
 
     if (widget.id != null && loadPerson!.isInBox) {
-      loadData(loadPerson);
       return scaffoldRegisterPage(context, id: widget.id);
     } else {
       return scaffoldRegisterPage(context);
@@ -513,9 +515,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         Person(
                             name: _nameController.text,
                             idNumber: _idNumberController.text,
-                            phoneNumber: 3,
+                            phoneNumber: _phoneController.text.isNotEmpty
+                                ? int.parse(_phoneController.text)
+                                : 0,
                             aidDates: [],
-                            aidType: aidType == 'أخرى'
+                            aidType: aidType == aidTypes.last
                                 ? _typeController.text
                                 : (aidType ?? 'غير محددة'),
                             aidAmount: _amountController.text.isNotEmpty
@@ -535,7 +539,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? int.parse(_phoneController.text)
                             : 0,
                         aidDates: [],
-                        aidType: aidType == 'أخرى'
+                        aidType: aidType == aidTypes.last
                             ? _typeController.text
                             : (aidType ?? 'غير محددة'),
                         aidAmount: _amountController.text.isNotEmpty
@@ -597,6 +601,10 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField(
+                value: (aidTypes.contains(loadPerson?.aidType) ||
+                        aidType == 'غير محددة')
+                    ? aidType
+                    : aidTypes.last,
                 decoration: const InputDecoration(
                   label: Text("نوع المساعدة"),
                   border: OutlineInputBorder(),
@@ -613,7 +621,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onTap: () => TextInputAction.next,
               ),
               const SizedBox(height: 5),
-              if (aidType == 'أخرى')
+              if (aidType == aidTypes.last)
                 TextFormField(
                   decoration: const InputDecoration(
                       label: Text("نوع اخر"),
@@ -689,83 +697,94 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     Person? person = box.get(widget.id);
-    return Scaffold(
-      appBar: AppBar(title: Text(person!.name), actions: [
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () {
-            box.delete(widget.id).then((value) => Navigator.pop(context));
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => Directionality(
-                          textDirection: TextDirection.rtl,
-                          child: RegisterPage(id: widget.id),
-                        )));
-          },
-        )
-      ]),
-      body: Center(
-          child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView(
-          children: [
-            Card(
-                child: ListTile(
-              title: Text(person.name),
-              subtitle: const Text("الأسم"),
-            )),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(title: Text(person!.name), actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              box.delete(widget.id).then((value) => Navigator.pop(context));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: RegisterPage(id: widget.id),
+                          )));
+            },
+          )
+        ]),
+        body: Center(
+            child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ListView(
+            children: [
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.person_outlined),
+                title: Text(person.name),
+                subtitle: const Text("الأسم"),
+              )),
 
-            Card(
-                child: ListTile(
-              title: Text("${person.phoneNumber}"),
-              subtitle: const Text("رقم الهاتف"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text(person.idNumber),
-              subtitle: const Text("رقم الهوية"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text(person.aidDates.length >= 2
-                  ? "${person.aidDates[0]} - ${person.aidDates[1]}"
-                  : "لا يوجد"),
-              subtitle: const Text("تاريخ المساعدة"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text(person.aidType),
-              subtitle: const Text("نوع المساعدة"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text("${person.aidAmount} ريال"),
-              subtitle: const Text("مقدار المساعدة"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
-              subtitle: const Text("مدة المساعدة"),
-            )),
-            Card(
-                child: ListTile(
-              title: Text(person.notes),
-              subtitle: const Text("الملاحظات"),
-            )),
-            //  Card(
-            //     child: ListTile(
-            //   title: Text(widget.person.name),
-            //   subtitle: Text("مشاركة"),
-            // )),
-          ],
-        ),
-      )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.phone_outlined),
+                title: Text("${person.phoneNumber}"),
+                subtitle: const Text("رقم الهاتف"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: Text(person.idNumber),
+                subtitle: const Text("رقم الهوية"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.date_range_outlined),
+                title: Text(person.aidDates.length >= 2
+                    ? "${person.aidDates[0]} - ${person.aidDates[1]}"
+                    : "لا يوجد"),
+                subtitle: const Text("تاريخ المساعدة"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.request_quote_outlined),
+                title: Text(person.aidType),
+                subtitle: const Text("نوع المساعدة"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.attach_money_outlined),
+                title: Text("${person.aidAmount} ريال"),
+                subtitle: const Text("مقدار المساعدة"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.update_outlined),
+                title: Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
+                subtitle: const Text("مدة المساعدة"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: Text(person.notes),
+                subtitle: const Text("الملاحظات"),
+              )),
+              //  Card(
+              //     child: ListTile(
+              //   title: Text(widget.person.name),
+              //   subtitle: Text("مشاركة"),
+              // )),
+            ],
+          ),
+        )),
+      ),
     );
   }
 }

@@ -37,24 +37,24 @@ class TheColorThemePreference {
   // ignore: constant_identifier_names
   static const THEME_COLOR = "THEMECOLOR";
 
-  setThemeColor(String color) async {
+  setThemeColor(int color) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString(THEME_COLOR, color);
+    prefs.setInt(THEME_COLOR, color);
   }
 
-  Future<String> getThemeColor() async {
+  Future<int> getThemeColor() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(THEME_COLOR) ?? "Default";
+    return prefs.getInt(THEME_COLOR) ?? 0;
   }
 }
 
 class ThemeColorProvider with ChangeNotifier {
   TheColorThemePreference colorThemePreference = TheColorThemePreference();
-  String _colorTheme = "Default";
+  int _colorTheme = 0;
 
-  String get colorTheme => _colorTheme;
+  int get colorTheme => _colorTheme;
 
-  set colorTheme(String color) {
+  set colorTheme(int color) {
     _colorTheme = color;
     colorThemePreference.setThemeColor(color);
     notifyListeners();

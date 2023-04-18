@@ -1,34 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 
-TextTheme textThemeDefault = TextTheme(
-  displayLarge:
-      GoogleFonts.notoNaskhArabic(fontSize: 126, fontWeight: FontWeight.w300),
-  displayMedium:
-      GoogleFonts.notoNaskhArabic(fontSize: 79, fontWeight: FontWeight.w300),
-  displaySmall:
-      GoogleFonts.notoNaskhArabic(fontSize: 63, fontWeight: FontWeight.w400),
-  headlineMedium:
-      GoogleFonts.notoNaskhArabic(fontSize: 45, fontWeight: FontWeight.w400),
-  headlineSmall:
-      GoogleFonts.notoNaskhArabic(fontSize: 32, fontWeight: FontWeight.w400),
-  titleLarge:
-      GoogleFonts.notoNaskhArabic(fontSize: 26, fontWeight: FontWeight.w500),
-  titleMedium:
-      GoogleFonts.notoNaskhArabic(fontSize: 21, fontWeight: FontWeight.w400),
-  titleSmall:
-      GoogleFonts.notoNaskhArabic(fontSize: 18, fontWeight: FontWeight.w500),
-  bodyLarge:
-      GoogleFonts.ibmPlexSansArabic(fontSize: 17, fontWeight: FontWeight.w400),
-  bodyMedium:
-      GoogleFonts.ibmPlexSansArabic(fontSize: 15, fontWeight: FontWeight.w400),
-  labelLarge:
-      GoogleFonts.ibmPlexSansArabic(fontSize: 15, fontWeight: FontWeight.w500),
-  bodySmall:
-      GoogleFonts.ibmPlexSansArabic(fontSize: 12, fontWeight: FontWeight.w400),
-  labelSmall:
-      GoogleFonts.ibmPlexSansArabic(fontSize: 10, fontWeight: FontWeight.w400),
+const TextTheme textThemeDefault = TextTheme(
+  displayLarge: TextStyle(
+      fontFamily: "NotoNaskhArabic",
+      fontSize: 126,
+      fontWeight: FontWeight.w300),
+  displayMedium: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 79, fontWeight: FontWeight.w300),
+  displaySmall: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 63, fontWeight: FontWeight.w400),
+  headlineMedium: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 45, fontWeight: FontWeight.w400),
+  headlineSmall: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 32, fontWeight: FontWeight.w400),
+  titleLarge: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 26, fontWeight: FontWeight.w500),
+  titleMedium: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 21, fontWeight: FontWeight.w400),
+  titleSmall: TextStyle(
+      fontFamily: "NotoNaskhArabic", fontSize: 18, fontWeight: FontWeight.w500),
+  bodyLarge: TextStyle(
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 17,
+      fontWeight: FontWeight.w400),
+  bodyMedium: TextStyle(
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 15,
+      fontWeight: FontWeight.w400),
+  labelLarge: TextStyle(
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 15,
+      fontWeight: FontWeight.w500),
+  bodySmall: TextStyle(
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 12,
+      fontWeight: FontWeight.w400),
+  labelSmall: TextStyle(
+      fontFamily: "ibmPlexSansArabic",
+      fontSize: 10,
+      fontWeight: FontWeight.w400),
 );
+
+// Default (Blue)
 
 const defaultLightColorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -98,6 +112,8 @@ const defaultDarkColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
+// Red
+
 const redLightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF984061),
@@ -163,5 +179,75 @@ const redDarkColorScheme = ColorScheme(
   shadow: Color(0xFF000000),
   surfaceTint: Color(0xFFFFB0C8),
   outlineVariant: Color(0xFF514347),
+  scrim: Color(0xFF000000),
+);
+
+// Yellow
+
+const yellowLightColorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: Color(0xFF755B00),
+  onPrimary: Color(0xFFFFFFFF),
+  primaryContainer: Color(0xFFFFDF90),
+  onPrimaryContainer: Color(0xFF241A00),
+  secondary: Color(0xFF695D3F),
+  onSecondary: Color(0xFFFFFFFF),
+  secondaryContainer: Color(0xFFF2E1BB),
+  onSecondaryContainer: Color(0xFF231B04),
+  tertiary: Color(0xFF7B5800),
+  onTertiary: Color(0xFFFFFFFF),
+  tertiaryContainer: Color(0xFFFFDEA4),
+  onTertiaryContainer: Color(0xFF261900),
+  error: Color(0xFFBA1A1A),
+  errorContainer: Color(0xFFFFDAD6),
+  onError: Color(0xFFFFFFFF),
+  onErrorContainer: Color(0xFF410002),
+  background: Color(0xFFFFFBFF),
+  onBackground: Color(0xFF1E1B16),
+  surface: Color(0xFFFFFBFF),
+  onSurface: Color(0xFF1E1B16),
+  surfaceVariant: Color(0xFFECE1CF),
+  onSurfaceVariant: Color(0xFF4C4639),
+  outline: Color(0xFF7E7667),
+  onInverseSurface: Color(0xFFF7F0E7),
+  inverseSurface: Color(0xFF33302A),
+  inversePrimary: Color(0xFFECC248),
+  shadow: Color(0xFF000000),
+  surfaceTint: Color(0xFF755B00),
+  outlineVariant: Color(0xFFCFC5B4),
+  scrim: Color(0xFF000000),
+);
+
+const yellowDarkColorScheme = ColorScheme(
+  brightness: Brightness.dark,
+  primary: Color(0xFFECC248),
+  onPrimary: Color(0xFF3D2E00),
+  primaryContainer: Color(0xFF584400),
+  onPrimaryContainer: Color(0xFFFFDF90),
+  secondary: Color(0xFFD5C5A0),
+  onSecondary: Color(0xFF392F15),
+  secondaryContainer: Color(0xFF51462A),
+  onSecondaryContainer: Color(0xFFF2E1BB),
+  tertiary: Color(0xFFF6BE48),
+  onTertiary: Color(0xFF412D00),
+  tertiaryContainer: Color(0xFF5D4200),
+  onTertiaryContainer: Color(0xFFFFDEA4),
+  error: Color(0xFFFFB4AB),
+  errorContainer: Color(0xFF93000A),
+  onError: Color(0xFF690005),
+  onErrorContainer: Color(0xFFFFDAD6),
+  background: Color(0xFF1E1B16),
+  onBackground: Color(0xFFE8E1D9),
+  surface: Color(0xFF1E1B16),
+  onSurface: Color(0xFFE8E1D9),
+  surfaceVariant: Color(0xFF4C4639),
+  onSurfaceVariant: Color(0xFFCFC5B4),
+  outline: Color(0xFF989080),
+  onInverseSurface: Color(0xFF1E1B16),
+  inverseSurface: Color(0xFFE8E1D9),
+  inversePrimary: Color(0xFF755B00),
+  shadow: Color(0xFF000000),
+  surfaceTint: Color(0xFFECC248),
+  outlineVariant: Color(0xFF4C4639),
   scrim: Color(0xFF000000),
 );
