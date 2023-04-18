@@ -18,6 +18,8 @@ void main() async {
   runApp(const MyApp());
 }
 
+final colorSchemes = ["Default", "Red", "Device"];
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -27,17 +29,42 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   TheThemeProvider themeChangeProvider = TheThemeProvider();
+  ThemeColorProvider colorChangeProvider = ThemeColorProvider();
 
   @override
   void initState() {
     super.initState();
     getCurrentAppTheme();
+    getCurrentColorTheme();
   }
 
   void getCurrentAppTheme() async {
     themeChangeProvider.darkTheme =
         await themeChangeProvider.darkThemePreference.getTheme();
   }
+
+  void getCurrentColorTheme() async {
+    colorChangeProvider.colorTheme =
+        await colorChangeProvider.colorThemePreference.getThemeColor();
+  }
+
+  ColorScheme colorSchemeChooser(String color, bool darkMode,
+      {ColorScheme? deviceLightColorTheme, ColorScheme? deviceDarkColorTheme}) {
+    if (color == colorSchemes[0]) {
+      return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+    } else if (color == colorSchemes[1]) {
+      return darkMode ? redDarkColorScheme : redLightColorScheme;
+    } else if (color == colorSchemes[2]) {
+      return darkMode
+          ? (deviceDarkColorTheme ?? defaultDarkColorScheme)
+          : (deviceLightColorTheme ?? defaultLightColorScheme);
+    } else {
+      return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+    }
+  }
+
+  // convert the colorChangeProvider.colorTheme to Numbers like this => colorSchemes[colorChangeProvider.colorTheme]
+  // so it will be more easier and faster than making Ifs/Elses Or Switchs
 
   @override
   Widget build(BuildContext context) {
@@ -47,25 +74,42 @@ class _MyAppState extends State<MyApp> {
       },
       child: Consumer<TheThemeProvider>(
         builder: (BuildContext context, value, child) => DynamicColorBuilder(
-          builder: (lightColorScheme, darkColorScheme) => MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Aid App',
-            theme: ThemeData(
-              useMaterial3: true,
-              textTheme: textThemeDefault,
-              colorScheme: lightColorScheme ?? lightColorSchemeDefault,
+          builder: (deviceLightColorScheme, deviceDarkColorScheme) =>
+              ChangeNotifierProvider(
+            create: (_) {
+              return colorChangeProvider;
+            },
+            child: Consumer<ThemeColorProvider>(
+              builder: (BuildContext context, value, change) => MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'Aid App',
+                theme: ThemeData(
+                  useMaterial3: true,
+                  textTheme: textThemeDefault,
+                  colorScheme: colorSchemeChooser(
+                      colorChangeProvider.colorTheme, false,
+                      deviceLightColorTheme: deviceLightColorScheme,
+                      deviceDarkColorTheme: deviceDarkColorScheme),
+                ),
+                darkTheme: ThemeData(
+                  useMaterial3: true,
+                  textTheme: textThemeDefault,
+                  colorScheme: colorSchemeChooser(
+                      colorChangeProvider.colorTheme, true,
+                      deviceLightColorTheme: deviceLightColorScheme,
+                      deviceDarkColorTheme: deviceDarkColorScheme),
+                ),
+                themeMode: themeChangeProvider.darkTheme
+                    ? ThemeMode.dark
+                    : ThemeMode.light,
+                routes: {
+                  '/': (context) => const Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: MyHomePage(title: 'الْمُسَاعَدَات')),
+                },
+                initialRoute: '/',
+              ),
             ),
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              textTheme: textThemeDefault,
-              colorScheme: darkColorScheme ?? darkColorSchemeDefault,
-            ),
-            themeMode: themeChangeProvider.darkTheme
-                ? ThemeMode.dark
-                : ThemeMode.light,
-            home: const Directionality(
-                textDirection: TextDirection.rtl,
-                child: MyHomePage(title: 'الْمُسَاعَدَات')),
           ),
         ),
       ),
@@ -89,9 +133,20 @@ class _MyHomePageState extends State<MyHomePage> {
   SampleItem? selectedMenu;
   final box = Hive.box<Person>('personList');
 
+  List<bool> isSelected = [];
+  List<bool> getIsSelected(ThemeColorProvider colorProvider) {
+    isSelected = [];
+    for (String color in ["Default", "Red", "Device"]) {
+      isSelected.add(colorProvider.colorTheme == color ? true : false);
+    }
+    return isSelected;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeChange = Provider.of<TheThemeProvider>(context);
+    final colorThemeChange = Provider.of<ThemeColorProvider>(context);
+    isSelected = getIsSelected(colorThemeChange);
 
     return Scaffold(
       appBar: AppBar(
@@ -153,12 +208,66 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: [
                                 SwitchListTile(
                                     title: Text(
-                                      "الوضع الليلي",
+                                      "الوضع الداكن",
                                       style: GoogleFonts.ibmPlexSansArabic(),
                                     ),
                                     value: themeChange.darkTheme,
                                     onChanged: (bool value) =>
-                                        themeChange.darkTheme = value)
+                                        themeChange.darkTheme = value),
+                                SwitchListTile(
+                                    title: Text(
+                                      "اللغة الإنقليزية",
+                                      style: GoogleFonts.ibmPlexSansArabic(),
+                                    ),
+                                    value: themeChange.darkTheme,
+                                    onChanged: (bool value) =>
+                                        themeChange.darkTheme = value),
+
+                                // ListTile(
+                                //   title: Text(
+                                //     color,
+                                //     style: GoogleFonts.ibmPlexSansArabic(),
+                                //   ),
+                                //   onTap: () {
+                                //     colorThemeChange.colorTheme = "Red";
+                                //   },
+
+                                // )
+                                ToggleButtons(
+                                  isSelected: isSelected,
+                                  onPressed: (int index) {
+                                    setState(() {
+                                      for (int buttonIndex = 0;
+                                          buttonIndex < isSelected.length;
+                                          buttonIndex++) {
+                                        if (buttonIndex == index) {
+                                          isSelected[buttonIndex] = true;
+                                          switch (buttonIndex) {
+                                            case 0:
+                                              colorThemeChange.colorTheme =
+                                                  colorSchemes[0];
+                                              break;
+                                            case 1:
+                                              colorThemeChange.colorTheme =
+                                                  colorSchemes[1];
+                                              break;
+                                            case 2:
+                                              colorThemeChange.colorTheme =
+                                                  colorSchemes[2];
+                                              break;
+                                          }
+                                        } else {
+                                          isSelected[buttonIndex] = false;
+                                        }
+                                      }
+                                    });
+                                  },
+                                  children: const <Widget>[
+                                    Icon(Icons.ac_unit),
+                                    Icon(Icons.call),
+                                    Icon(Icons.cake),
+                                  ],
+                                ),
                               ],
                             )),
                           ),
@@ -263,7 +372,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     textDirection: TextDirection.rtl,
                                     child: DetailsPage(
                                       id: i,
-                                      person: person,
                                     ),
                                   )),
                         );
@@ -280,7 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Image.asset(themeChange.darkTheme
                           ? 'openBook-dark.png'
                           : 'openBook-light.png')),
-                  Text("لا يوجد شيء"),
+                  const Text("لا يوجد شيء", style: TextStyle(fontSize: 30)),
                 ],
               ));
             }
@@ -294,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
               context,
               MaterialPageRoute(
                   fullscreenDialog: true,
-                  builder: (context) => const Directionality(
+                  builder: (context) => Directionality(
                         textDirection: TextDirection.rtl,
                         child: RegisterPage(),
                       )),
@@ -316,7 +424,8 @@ const List<String> aidTypes = <String>[
 ];
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  int? id;
+  RegisterPage({super.key, this.id});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -337,35 +446,106 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? aidType = 'غير محددة';
 
+  late FocusNode myFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+
+    myFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the focus node when the Form is disposed.
+    myFocusNode.dispose();
+
+    super.dispose();
+  }
+
+  loadData(Person loadPerson) {
+    _nameController.text = loadPerson.name;
+    _phoneController.text = loadPerson.phoneNumber.toString();
+    _idNumberController.text = loadPerson.idNumber.toString();
+    _amountController.text = loadPerson.aidAmount.toString();
+    if (aidTypes.contains(loadPerson.aidType)) {
+      aidType = loadPerson.aidType;
+    } else {
+      _typeController.text = loadPerson.aidType;
+    }
+    _duration = loadPerson.isContinuousAid
+        ? AidDuration.continuous
+        : AidDuration.interrupted;
+    _notesController.text = loadPerson.notes;
+  }
+
   @override
   Widget build(BuildContext context) {
+    Person? loadPerson = box.get(widget.id);
+
+    if (widget.id != null && loadPerson!.isInBox) {
+      loadData(loadPerson);
+      return scaffoldRegisterPage(context, id: widget.id);
+    } else {
+      return scaffoldRegisterPage(context);
+    }
+  }
+
+  Scaffold scaffoldRegisterPage(BuildContext context, {int? id}) {
+    bool savedPersonId = id != null;
+    Person? loadPerson = savedPersonId ? box.get(id) : null;
+
     return Scaffold(
       appBar: AppBar(
-          title: const Text("إنشاء مساعدة جديدة"),
+          title: Text(savedPersonId ? "تعديل المساعدة" : "إنشاء مساعدة جديدة"),
           centerTitle: true,
           actions: [
             IconButton(
-                icon: const Icon(Icons.check),
+                icon: Icon(savedPersonId ? Icons.edit : Icons.check),
                 onPressed: () {
                   // If the form is valid, display a snackbar. In the real world,
                   // you'd often call a server or save the information in a database.
-                  box.add(Person(
-                      name: _nameController.text,
-                      idNumber: _idNumberController.text,
-                      phoneNumber: _phoneController.text.isNotEmpty
-                          ? int.parse(_phoneController.text)
-                          : 0,
-                      aidDates: [],
-                      aidType: aidType == 'أخرى'
-                          ? _typeController.text
-                          : (aidType ?? 'غير محددة'),
-                      aidAmount: _amountController.text.isNotEmpty
-                          ? int.parse(_amountController.text)
-                          : 0,
-                      isContinuousAid:
-                          _duration == AidDuration.continuous ? true : false,
-                      notes: _notesController.text));
-                  Navigator.pop(context);
+                  if (savedPersonId) {
+                    // don't save empty fields by default
+
+                    box.put(
+                        id,
+                        Person(
+                            name: _nameController.text,
+                            idNumber: _idNumberController.text,
+                            phoneNumber: 3,
+                            aidDates: [],
+                            aidType: aidType == 'أخرى'
+                                ? _typeController.text
+                                : (aidType ?? 'غير محددة'),
+                            aidAmount: _amountController.text.isNotEmpty
+                                ? int.parse(_amountController.text)
+                                : 0,
+                            isContinuousAid: _duration == AidDuration.continuous
+                                ? true
+                                : false,
+                            notes: _notesController.text));
+                    debugPrint(
+                        "${loadPerson!.name} is now ${_nameController.text}");
+                  } else {
+                    box.add(Person(
+                        name: _nameController.text,
+                        idNumber: _idNumberController.text,
+                        phoneNumber: _phoneController.text.isNotEmpty
+                            ? int.parse(_phoneController.text)
+                            : 0,
+                        aidDates: [],
+                        aidType: aidType == 'أخرى'
+                            ? _typeController.text
+                            : (aidType ?? 'غير محددة'),
+                        aidAmount: _amountController.text.isNotEmpty
+                            ? int.parse(_amountController.text)
+                            : 0,
+                        isContinuousAid:
+                            _duration == AidDuration.continuous ? true : false,
+                        notes: _notesController.text));
+                  }
+                  Navigator.pushReplacementNamed(context, '/');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content:
@@ -390,6 +570,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     border: OutlineInputBorder(),
                     isDense: true),
                 controller: _nameController,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -400,6 +582,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -410,20 +593,25 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _idNumberController,
                 keyboardType: TextInputType.number,
                 maxLength: 10,
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField(
-                  decoration: const InputDecoration(
-                    label: Text("نوع المساعدة"),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: aidTypes
-                      .map((e) => DropdownMenuItem(
-                          value: e,
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: Text(e)))
-                      .toList(),
-                  onChanged: (value) => setState(() => aidType = value)),
+                decoration: const InputDecoration(
+                  label: Text("نوع المساعدة"),
+                  border: OutlineInputBorder(),
+                  // contentPadding:
+                  //     EdgeInsets.symmetric(vertical: -40.0, horizontal: 10.0),
+                ),
+                items: aidTypes
+                    .map((e) => DropdownMenuItem(
+                        value: e,
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(e)))
+                    .toList(),
+                onChanged: (value) => setState(() => aidType = value),
+                onTap: () => TextInputAction.next,
+              ),
               const SizedBox(height: 5),
               if (aidType == 'أخرى')
                 TextFormField(
@@ -432,6 +620,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: OutlineInputBorder(),
                       isDense: true),
                   controller: _typeController,
+                  textInputAction: TextInputAction.next,
                 ),
               const SizedBox(height: 15),
               TextFormField(
@@ -441,6 +630,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     isDense: true),
                 controller: _amountController,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
               ),
               const Padding(
                 padding: EdgeInsets.all(8.0),
@@ -468,6 +658,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 10),
               TextFormField(
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                     label: Text("الملاحظات"),
                     border: OutlineInputBorder(),
@@ -486,8 +677,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 class DetailsPage extends StatefulWidget {
   final int id;
-  final Person person;
-  const DetailsPage({super.key, required this.id, required this.person});
+  const DetailsPage({super.key, required this.id});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -498,12 +688,25 @@ class _DetailsPageState extends State<DetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    Person? person = box.get(widget.id);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.person.name), actions: [
+      appBar: AppBar(title: Text(person!.name), actions: [
         IconButton(
           icon: const Icon(Icons.delete_outline),
           onPressed: () {
             box.delete(widget.id).then((value) => Navigator.pop(context));
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: RegisterPage(id: widget.id),
+                        )));
           },
         )
       ]),
@@ -514,45 +717,45 @@ class _DetailsPageState extends State<DetailsPage> {
           children: [
             Card(
                 child: ListTile(
-              title: Text(widget.person.name),
+              title: Text(person.name),
               subtitle: const Text("الأسم"),
             )),
 
             Card(
                 child: ListTile(
-              title: Text("${widget.person.phoneNumber}"),
+              title: Text("${person.phoneNumber}"),
               subtitle: const Text("رقم الهاتف"),
             )),
             Card(
                 child: ListTile(
-              title: Text(widget.person.idNumber),
+              title: Text(person.idNumber),
               subtitle: const Text("رقم الهوية"),
             )),
             Card(
                 child: ListTile(
-              title: Text(widget.person.aidDates.length >= 2
-                  ? "${widget.person.aidDates[0]} - ${widget.person.aidDates[1]}"
+              title: Text(person.aidDates.length >= 2
+                  ? "${person.aidDates[0]} - ${person.aidDates[1]}"
                   : "لا يوجد"),
               subtitle: const Text("تاريخ المساعدة"),
             )),
             Card(
                 child: ListTile(
-              title: Text(widget.person.aidType),
+              title: Text(person.aidType),
               subtitle: const Text("نوع المساعدة"),
             )),
             Card(
                 child: ListTile(
-              title: Text("${widget.person.aidAmount} ريال"),
+              title: Text("${person.aidAmount} ريال"),
               subtitle: const Text("مقدار المساعدة"),
             )),
             Card(
                 child: ListTile(
-              title: Text(widget.person.isContinuousAid ? "مستمرة" : "منقطعة"),
+              title: Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
               subtitle: const Text("مدة المساعدة"),
             )),
             Card(
                 child: ListTile(
-              title: Text(widget.person.notes),
+              title: Text(person.notes),
               subtitle: const Text("الملاحظات"),
             )),
             //  Card(

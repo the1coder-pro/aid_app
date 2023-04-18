@@ -91,7 +91,6 @@ class SearchFinder extends StatelessWidget {
                                     textDirection: TextDirection.rtl,
                                     child: DetailsPage(
                                       id: index,
-                                      person: personListItem,
                                     ),
                                   )),
                         );
@@ -204,7 +203,6 @@ class SearchFinderResults extends StatelessWidget {
                                     textDirection: TextDirection.rtl,
                                     child: DetailsPage(
                                       id: index,
-                                      person: personListItem,
                                     ),
                                   )),
                         );
