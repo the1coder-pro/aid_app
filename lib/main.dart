@@ -9,6 +9,9 @@ import 'search_widget.dart';
 import 'themes.dart';
 import 'color_schemes.g.dart';
 
+// ignore: non_constant_identifier_names
+String VERSION_NUMBER = "0.61";
+
 void main() async {
   await Hive.initFlutter();
 
@@ -278,6 +281,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                             ],
                                           ),
                                         ),
+                                        const SizedBox(height: 15),
+                                        Center(
+                                            child: Text(
+                                                "إصدار رقم $VERSION_NUMBER",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall!
+                                                    .copyWith(fontSize: 15)))
                                       ],
                                     )),
                                   ),
