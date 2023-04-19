@@ -156,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.title,
+            "${widget.title} - $selectedId",
             style: const TextStyle(fontFamily: "ScheherazadeNew"),
             // style: GoogleFonts.ibmPlexSansArabic(),
           ),
@@ -397,7 +397,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     isThreeLine: true,
                                     onTap: () {
                                       if (isLargeScreen) {
-                                        selectedId = i;
+                                        selectedId = (box.length > i ? i : -1);
                                         setState(() {});
                                       } else {
                                         Navigator.push(context,
@@ -414,7 +414,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    isLargeScreen && selectedId >= 0
+                    (isLargeScreen &&
+                            (box.length > selectedId && selectedId != -1
+                                ? true
+                                : false) &&
+                            box.getAt(selectedId)!.isInBox)
+                        // i || selectedId || person.key
                         ? Expanded(flex: 2, child: DetailsPage(id: selectedId))
                         : Container(),
                   ]),
@@ -509,16 +514,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   AidDuration? _duration = AidDuration.continuous;
 
-  String? aidType = 'غير محددة';
+  String? aidType = aidTypes[5];
 
   late FocusNode myFocusNode;
 
   @override
   void initState() {
     super.initState();
-    Person? loadPerson = box.get(widget.id);
 
+    Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
     loadData(loadPerson);
+
     myFocusNode = FocusNode();
   }
 
@@ -555,7 +561,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    Person? loadPerson = box.get(widget.id);
+    Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
 
     if (widget.id != null && loadPerson!.isInBox) {
       return scaffoldRegisterPage(context, id: widget.id);
@@ -589,7 +595,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     if (savedPersonId) {
                       // don't save empty fields by default
 
-                      box.put(
+                      box.putAt(
                           id,
                           Person(
                               name:
@@ -625,7 +631,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           aidDates: [],
                           aidType: aidType == aidTypes.last
                               ? _typeController.text
-                              : (aidType ?? 'غير محددة'),
+                              : (aidType ?? aidTypes[5]),
                           aidAmount: _amountController.text.isNotEmpty
                               ? int.parse(_amountController.text)
                               : 0,
@@ -701,7 +707,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 10),
                 DropdownButtonFormField(
                   value: (aidTypes.contains(loadPerson?.aidType) ||
-                          aidType == 'غير محددة')
+                          aidTypes.contains(aidType))
                       ? aidType
                       : aidTypes.last,
                   decoration: const InputDecoration(
@@ -720,7 +726,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   onTap: () => TextInputAction.next,
                 ),
                 const SizedBox(height: 5),
-                if (aidType == aidTypes.last)
+                if (!(aidTypes.contains(loadPerson?.aidType)) &&
+                    aidType == aidTypes.last)
                   TextFormField(
                     decoration: InputDecoration(
                         suffixIcon: clearButton(_typeController),
@@ -800,110 +807,126 @@ class _DetailsPageState extends State<DetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Person? person = box.get(widget.id);
+    Person? person = widget.id >= 0 && box.getAt(widget.id)!.isInBox
+        ? box.getAt(widget.id)
+        : null;
     if (MediaQuery.of(context).size.width > 600) {
       isLargeScreen = true;
     } else {
       isLargeScreen = false;
     }
     return Directionality(
-      textDirection: TextDirection.rtl,
-      child: person == null
-          ? Scaffold(
-              appBar: AppBar(),
-              body: const Center(child: Text("لا توجد مساعدة محددة")))
-          : Scaffold(
-              appBar: AppBar(
-                  title: Text(person.name),
-                  leading: isLargeScreen ? Container() : const BackButton(),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () {
-                        // TODO: Fix the Deleting Issue
-                        box.deleteAt(widget.id).then((value) {
-                          isLargeScreen
-                              ? setState(() {})
-                              : Navigator.pop(context);
-                        });
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    RegisterPage(id: widget.id)));
-                      },
-                    )
-                  ]),
-              body: Center(
-                  child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListView(
-                  children: [
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.person_outlined),
-                      title: Text(person.name),
-                      subtitle: const Text("الأسم"),
-                    )),
+        textDirection: TextDirection.rtl,
+        child: !(person != null)
+            ? const NoSelectedRecord()
+            : Scaffold(
+                appBar: AppBar(
+                    title: Text("${person.name} - ${widget.id}"),
+                    leading: isLargeScreen ? Container() : const BackButton(),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () {
+                          // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
+                          // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes
+                          box.deleteAt(widget.id).then((value) {
+                            if (isLargeScreen) {
+                              setState(() {});
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      RegisterPage(id: person.key)));
+                        },
+                      )
+                    ]),
+                body: Center(
+                    child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView(
+                    children: [
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.person_outlined),
+                        title: Text(person.name),
+                        subtitle: const Text("الأسم"),
+                      )),
 
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.phone_outlined),
-                      title: Text("${person.phoneNumber}"),
-                      subtitle: const Text("رقم الهاتف"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.badge_outlined),
-                      title: Text(person.idNumber),
-                      subtitle: const Text("رقم الهوية"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.date_range_outlined),
-                      title: Text(person.aidDates.length >= 2
-                          ? "${person.aidDates[0]} - ${person.aidDates[1]}"
-                          : "لا يوجد"),
-                      subtitle: const Text("تاريخ المساعدة"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.request_quote_outlined),
-                      title: Text(person.aidType),
-                      subtitle: const Text("نوع المساعدة"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.attach_money_outlined),
-                      title: Text("${person.aidAmount} ريال"),
-                      subtitle: const Text("مقدار المساعدة"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.update_outlined),
-                      title: Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
-                      subtitle: const Text("مدة المساعدة"),
-                    )),
-                    Card(
-                        child: ListTile(
-                      leading: const Icon(Icons.description_outlined),
-                      title: Text(person.notes),
-                      subtitle: const Text("الملاحظات"),
-                    )),
-                    //  Card(
-                    //     child: ListTile(
-                    //   title: Text(widget.person.name),
-                    //   subtitle: Text("مشاركة"),
-                    // )),
-                  ],
-                ),
-              )),
-            ),
-    );
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.phone_outlined),
+                        title: Text("${person.phoneNumber}"),
+                        subtitle: const Text("رقم الهاتف"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.badge_outlined),
+                        title: Text(person.idNumber),
+                        subtitle: const Text("رقم الهوية"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.date_range_outlined),
+                        title: Text(person.aidDates.length >= 2
+                            ? "${person.aidDates[0]} - ${person.aidDates[1]}"
+                            : "لا يوجد"),
+                        subtitle: const Text("تاريخ المساعدة"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.request_quote_outlined),
+                        title: Text(person.aidType),
+                        subtitle: const Text("نوع المساعدة"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.attach_money_outlined),
+                        title: Text("${person.aidAmount} ريال"),
+                        subtitle: const Text("مقدار المساعدة"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.update_outlined),
+                        title:
+                            Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
+                        subtitle: const Text("مدة المساعدة"),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: const Icon(Icons.description_outlined),
+                        title: Text(person.notes),
+                        subtitle: const Text("الملاحظات"),
+                      )),
+                      //  Card(
+                      //     child: ListTile(
+                      //   title: Text(widget.person.name),
+                      //   subtitle: Text("مشاركة"),
+                      // )),
+                    ],
+                  ),
+                )),
+              ));
+  }
+}
+
+class NoSelectedRecord extends StatelessWidget {
+  const NoSelectedRecord({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text("لا توجد مساعدة محددة")));
   }
 }
