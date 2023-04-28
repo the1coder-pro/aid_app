@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'person.dart';
 import 'search_widget.dart';
 import 'themes.dart';
@@ -171,372 +172,400 @@ class _MyHomePageState extends State<MyHomePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.title,
-            style: const TextStyle(fontFamily: "ScheherazadeNew"),
-            // style: GoogleFonts.ibmPlexSansArabic(),
-          ),
-          centerTitle: true,
-          actions: box.isEmpty
-              ? [Container()]
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {
-                      showSearch(
-                        context: context,
-                        delegate: SearchWidget(),
-                      );
-                    },
-                  ),
-                ],
-          leading: box.isEmpty
-              ? Container()
-              : PopupMenuButton<SampleItem>(
-                  // Callback that sets the selected popup menu item.
-                  onSelected: (SampleItem item) {
-                    setState(() {
-                      selectedMenu = item;
-                      switch (selectedMenu!) {
-                        // Chart Page
-                        case SampleItem.itemOne:
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: ((context) => Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: Scaffold(
-                                          appBar: AppBar(
-                                              title:
-                                                  const Text('الرسم البياني')),
-                                          body: const Center(
-                                              child: Text(
-                                                  "صفحة الرسم البياني هنا")),
-                                        ),
-                                      ))));
-
-                          break;
-                        // Printing Page
-                        case SampleItem.itemTwo:
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: ((context) => Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: Scaffold(
-                                          appBar: AppBar(
-                                              title: const Text('الطباعة')),
-                                          body: const Center(
-                                              child: Text("صفحة الطباعة هنا")),
-                                        ),
-                                      ))));
-                          break;
-
-                        // Settings Page
-                        case SampleItem.itemThree:
-                          showModalBottomSheet<void>(
-                              context: context,
-                              elevation: 1,
-                              builder: (BuildContext context) {
-                                return Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: Scaffold(
-                                    appBar: AppBar(
-                                      title: const Text("الإعدادات"),
-                                    ),
-                                    body: Center(
-                                        child: ListView(
-                                      children: [
-                                        SwitchListTile(
-                                            title: const Text(
-                                              "الوضع الداكن",
-                                              style: TextStyle(
-                                                  fontFamily:
-                                                      "ibmPlexSansArabic"),
-                                            ),
-                                            value: themeChange.darkTheme,
-                                            onChanged: (bool value) =>
-                                                themeChange.darkTheme = value),
-                                        // TODO: ADDING ENGLISH SUPPORT
-                                        // SwitchListTile(
-                                        //     title: const Text(
-                                        //       "اللغة الإنقليزية",
-                                        //       style: TextStyle(
-                                        //           fontFamily:
-                                        //               "ibmPlexSansArabic"),
-                                        //     ),
-                                        //     value: themeChange.darkTheme,
-                                        //     onChanged: (bool value) =>
-                                        //         themeChange.darkTheme = value),
-                                        Center(
-                                          child: ToggleButtons(
-                                            isSelected: isSelected,
-                                            onPressed: (int index) {
-                                              setState(() {
-                                                for (int buttonIndex = 0;
-                                                    buttonIndex <
-                                                        isSelected.length;
-                                                    buttonIndex++) {
-                                                  if (buttonIndex == index) {
-                                                    isSelected[buttonIndex] =
-                                                        true;
-                                                    colorChangeProvider
-                                                            .colorTheme =
-                                                        buttonIndex;
-                                                  } else {
-                                                    isSelected[buttonIndex] =
-                                                        false;
-                                                  }
-                                                }
-                                              });
-                                            },
-                                            children: const <Widget>[
-                                              Icon(Icons.book),
-                                              Icon(Icons.call),
-                                              Icon(Icons.cake),
-                                              Icon(Icons.ac_unit),
-                                              Icon(Icons.phone_android),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 15),
-                                        Center(
-                                            child: Text(
-                                                "إصدار رقم $VERSION_NUMBER",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelSmall!
-                                                    .copyWith(fontSize: 15)))
-                                      ],
-                                    )),
-                                  ),
-                                );
-                              });
-                          break;
-                      }
-                    });
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<SampleItem>>[
-                    PopupMenuItem<SampleItem>(
-                      value: SampleItem.itemOne,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: const [
-                          Icon(Icons.bar_chart_outlined),
-                          Spacer(),
-                          Text('الرسم البياني'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<SampleItem>(
-                      value: SampleItem.itemTwo,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: const [
-                          Icon(Icons.print_outlined),
-                          Spacer(),
-                          Text('الطباعة'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem<SampleItem>(
-                      value: SampleItem.itemThree,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: const [
-                          Icon(Icons.settings_outlined),
-                          Spacer(),
-                          Text('الإعدادات'),
-                        ],
-                      ),
+          appBar: AppBar(
+            title: Text(
+              widget.title,
+              style: const TextStyle(fontFamily: "ScheherazadeNew"),
+              // style: GoogleFonts.ibmPlexSansArabic(),
+            ),
+            centerTitle: true,
+            actions: box.isEmpty
+                ? [Container()]
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        showSearch(
+                          context: context,
+                          delegate: SearchWidget(),
+                        );
+                      },
                     ),
                   ],
-                  child: const Icon(Icons.more_vert),
-                ),
-        ),
-        body: OrientationBuilder(builder: (context, orientation) {
-          if (MediaQuery.of(context).size.width > 600) {
-            isLargeScreen = true;
-          } else {
-            isLargeScreen = false;
-          }
-          if (box.isNotEmpty) {
-            return Center(
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Center(
-                        child: ValueListenableBuilder(
-                          valueListenable: box.listenable(),
-                          builder: (context, Box<Person> box, _) {
-                            return ListView.builder(
-                                itemCount: box.length,
-                                itemBuilder: (context, i) {
-                                  var person = box.getAt(i);
-                                  return Slidable(
-                                    // Specify a key if the Slidable is dismissible.
-                                    key: const ValueKey(0),
+            leading: box.isEmpty
+                ? Container()
+                : PopupMenuButton<SampleItem>(
+                    // Callback that sets the selected popup menu item.
+                    onSelected: (SampleItem item) {
+                      setState(() {
+                        selectedMenu = item;
+                        switch (selectedMenu!) {
+                          // Chart Page
+                          case SampleItem.itemOne:
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) => Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: Scaffold(
+                                            appBar: AppBar(
+                                                title: const Text(
+                                                    'الرسم البياني')),
+                                            body: const Center(
+                                                child: Text(
+                                                    "صفحة الرسم البياني هنا")),
+                                          ),
+                                        ))));
 
-                                    // The start action pane is the one at the left or the top side.
-                                    startActionPane: ActionPane(
-                                      // A motion is a widget used to control how the pane animates.
-                                      motion: const ScrollMotion(),
+                            break;
+                          // Printing Page
+                          case SampleItem.itemTwo:
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) => Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: Scaffold(
+                                            appBar: AppBar(
+                                                title: const Text('الطباعة')),
+                                            body: const Center(
+                                                child:
+                                                    Text("صفحة الطباعة هنا")),
+                                          ),
+                                        ))));
+                            break;
 
-                                      // A pane can dismiss the Slidable.
-                                      dismissible:
-                                          DismissiblePane(onDismissed: () {
-                                        box.deleteAt(i).then((value) {
-                                          debugPrint(
-                                              "deleted $i - ${box.length}");
-                                          setState(() {});
-                                        });
-                                      }),
-
-                                      // All actions are defined in the children parameter.
-                                      children: [
-                                        // A SlidableAction can have an icon and/or a label.
-                                        SlidableAction(
-                                          onPressed: (context) =>
-                                              box.deleteAt(i).then((value) {
-                                            debugPrint(
-                                                "deleted $i - ${box.length}");
-                                            setState(() {});
-                                          }),
-                                          backgroundColor: themeChange.darkTheme
-                                              ? redDarkColorScheme.primary
-                                              : redLightColorScheme.primary,
-                                          foregroundColor: themeChange.darkTheme
-                                              ? redDarkColorScheme.onPrimary
-                                              : redLightColorScheme.onPrimary,
-                                          icon: Icons.delete,
-                                          label: 'حذف',
-                                        ),
-                                        SlidableAction(
-                                          onPressed: (context) =>
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          RegisterPage(id: i))),
-                                          backgroundColor: themeChange.darkTheme
-                                              ? blueDarkColorScheme.primary
-                                              : blueLightColorScheme.primary,
-                                          foregroundColor: themeChange.darkTheme
-                                              ? blueDarkColorScheme.onPrimary
-                                              : blueLightColorScheme.onPrimary,
-                                          icon: Icons.edit,
-                                          label: 'تعديل',
-                                        ),
-                                      ],
-                                    ),
-
-                                    child: ListTile(
-                                      onLongPress: () {
-                                        box.deleteAt(i).then((value) {
-                                          debugPrint(
-                                              "deleted $i - ${box.length} - ${person.key}");
-                                          setState(() {});
-                                        });
-                                      },
-                                      leading: CircleAvatar(
-                                        child: Text(
-                                          (person!.name)
-                                              .toString()
-                                              .substring(0, 1),
-                                          style: const TextStyle(fontSize: 20),
-                                        ),
+                          // Settings Page
+                          case SampleItem.itemThree:
+                            showModalBottomSheet<void>(
+                                context: context,
+                                elevation: 1,
+                                builder: (BuildContext context) {
+                                  return Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: Scaffold(
+                                      appBar: AppBar(
+                                        leading: IconButton(
+                                            icon: const Icon(Icons.close),
+                                            onPressed: () =>
+                                                Navigator.pop(context)),
+                                        title: const Text("الإعدادات"),
                                       ),
-                                      title: Text(
-                                        person.name,
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
-                                      subtitle: RichText(
-                                          text: TextSpan(
-                                              style:
-                                                  DefaultTextStyle.of(context)
-                                                      .style,
-                                              children: [
-                                            TextSpan(
-                                                text: "${person.phoneNumber}\n",
-                                                style: const TextStyle(
-                                                    fontSize: 15)),
-                                            TextSpan(
-                                                text:
-                                                    "${person.aidAmount} ريال",
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            const TextSpan(text: " لأجل "),
-                                            TextSpan(
-                                                text: person.aidType,
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            const TextSpan(text: " لفترة "),
-                                            TextSpan(
-                                                text: person.isContinuousAid
-                                                    ? "مستمرة"
-                                                    : "منقطعة",
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ])),
-                                      isThreeLine: true,
-                                      onTap: () {
-                                        if (isLargeScreen) {
-                                          // selectedId = (box.length > i ? i : -1);
-                                          selectedIdProvider.selectedId = i;
-                                          setState(() {});
-                                        } else {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                            builder: (context) {
-                                              return DetailsPage(id: i);
-                                            },
-                                          ));
-                                        }
-                                      },
+                                      body: Center(
+                                          child: ListView(
+                                        children: [
+                                          SwitchListTile(
+                                              title: const Text(
+                                                "الوضع الداكن",
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        "ibmPlexSansArabic"),
+                                              ),
+                                              value: themeChange.darkTheme,
+                                              onChanged: (bool value) =>
+                                                  themeChange.darkTheme =
+                                                      value),
+                                          // TODO: ADDING ENGLISH SUPPORT
+                                          // SwitchListTile(
+                                          //     title: const Text(
+                                          //       "اللغة الإنقليزية",
+                                          //       style: TextStyle(
+                                          //           fontFamily:
+                                          //               "ibmPlexSansArabic"),
+                                          //     ),
+                                          //     value: themeChange.darkTheme,
+                                          //     onChanged: (bool value) =>
+                                          //         themeChange.darkTheme = value),
+                                          const SizedBox(height: 10),
+                                          Center(
+                                            child: ToggleButtons(
+                                              isSelected: isSelected,
+                                              onPressed: (int index) {
+                                                setState(() {
+                                                  for (int buttonIndex = 0;
+                                                      buttonIndex <
+                                                          isSelected.length;
+                                                      buttonIndex++) {
+                                                    if (buttonIndex == index) {
+                                                      isSelected[buttonIndex] =
+                                                          true;
+                                                      colorChangeProvider
+                                                              .colorTheme =
+                                                          buttonIndex;
+                                                    } else {
+                                                      isSelected[buttonIndex] =
+                                                          false;
+                                                    }
+                                                  }
+                                                });
+                                              },
+                                              children: const <Widget>[
+                                                Icon(Icons.book),
+                                                Icon(Icons.call),
+                                                Icon(Icons.cake),
+                                                Icon(Icons.ac_unit),
+                                                Icon(Icons.phone_android),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 15),
+                                          Center(
+                                              child: Text(
+                                                  "إصدار رقم $VERSION_NUMBER",
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .labelSmall!
+                                                      .copyWith(fontSize: 15)))
+                                        ],
+                                      )),
                                     ),
                                   );
                                 });
-                          },
+                            break;
+                        }
+                      });
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<SampleItem>>[
+                      PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemOne,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const [
+                            Icon(Icons.bar_chart_outlined),
+                            Spacer(),
+                            Text('الرسم البياني'),
+                          ],
                         ),
                       ),
-                    ),
-                    (isLargeScreen &&
-                            (box.length > selectedIdProvider.selectedId &&
-                                    selectedIdProvider.selectedId != -1
-                                ? true
-                                : false) &&
-                            box.getAt(selectedIdProvider.selectedId)!.isInBox)
-                        // i || selectedId || person.key
-                        ? Expanded(
-                            flex: 2,
-                            child:
-                                DetailsPage(id: selectedIdProvider.selectedId))
-                        : Container(),
-                  ]),
-            );
-          } else {
-            return NoRecordsPage(themeChange: themeChange);
-          }
-        }),
-        floatingActionButton: box.isEmpty
-            ? Container()
-            : FloatingActionButton(
-                child: const Icon(Icons.add),
-                onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (context) => RegisterPage()),
-                    )),
-      ),
+                      PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemTwo,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const [
+                            Icon(Icons.print_outlined),
+                            Spacer(),
+                            Text('الطباعة'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemThree,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const [
+                            Icon(Icons.settings_outlined),
+                            Spacer(),
+                            Text('الإعدادات'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: const Icon(Icons.more_vert),
+                  ),
+          ),
+          body: OrientationBuilder(builder: (context, orientation) {
+            if (MediaQuery.of(context).size.width > 600) {
+              isLargeScreen = true;
+            } else {
+              isLargeScreen = false;
+            }
+            if (box.isNotEmpty) {
+              return Center(
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Center(
+                          child: ValueListenableBuilder(
+                            valueListenable: box.listenable(),
+                            builder: (context, Box<Person> box, _) {
+                              return ListView.builder(
+                                  itemCount: box.length,
+                                  itemBuilder: (context, i) {
+                                    var person = box.getAt(i);
+                                    return Slidable(
+                                      // Specify a key if the Slidable is dismissible.
+                                      key: const ValueKey(0),
+
+                                      // The start action pane is the one at the left or the top side.
+                                      startActionPane: ActionPane(
+                                        // A motion is a widget used to control how the pane animates.
+                                        motion: const ScrollMotion(),
+
+                                        // All actions are defined in the children parameter.
+                                        children: [
+                                          // A SlidableAction can have an icon and/or a label.
+                                          SlidableAction(
+                                            onPressed: (context) => showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    Directionality(
+                                                      textDirection:
+                                                          TextDirection.rtl,
+                                                      child: AlertDialog(
+                                                        icon: const Icon(Icons
+                                                            .delete_forever_outlined),
+                                                        title: const Text(
+                                                            "هل انت متأكد ؟"),
+                                                        content: Text(
+                                                            "هل انت متأكد انك تريد حذف \n'${person!.name}' ؟"),
+                                                        actions: [
+                                                          TextButton(
+                                                              child: const Text(
+                                                                  "إلغاء"),
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context)),
+                                                          TextButton(
+                                                              child: const Text(
+                                                                  "نعم"),
+                                                              onPressed: () {
+                                                                box
+                                                                    .deleteAt(i)
+                                                                    .then(
+                                                                        (value) {
+                                                                  // TODO: does it work? if it work then do we need the setState((){}) ?
+                                                                  selectedIdProvider
+                                                                      .selectedId = -1;
+                                                                  setState(
+                                                                      () {});
+
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                });
+                                                              })
+                                                        ],
+                                                      ),
+                                                    )),
+                                            backgroundColor: themeChange
+                                                    .darkTheme
+                                                ? redDarkColorScheme.primary
+                                                : redLightColorScheme.primary,
+                                            foregroundColor: themeChange
+                                                    .darkTheme
+                                                ? redDarkColorScheme.onPrimary
+                                                : redLightColorScheme.onPrimary,
+                                            icon: Icons.delete,
+                                            label: 'حذف',
+                                          ),
+                                          SlidableAction(
+                                            onPressed: (context) => showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    RegisterPage(id: i)),
+                                            backgroundColor: themeChange
+                                                    .darkTheme
+                                                ? blueDarkColorScheme.primary
+                                                : blueLightColorScheme.primary,
+                                            foregroundColor: themeChange
+                                                    .darkTheme
+                                                ? blueDarkColorScheme.onPrimary
+                                                : blueLightColorScheme
+                                                    .onPrimary,
+                                            icon: Icons.edit,
+                                            label: 'تعديل',
+                                          ),
+                                        ],
+                                      ),
+
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          child: Text(
+                                            (person!.name)
+                                                .toString()
+                                                .substring(0, 1),
+                                            style:
+                                                const TextStyle(fontSize: 20),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          person.name,
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                        subtitle: RichText(
+                                            text: TextSpan(
+                                                style:
+                                                    DefaultTextStyle.of(context)
+                                                        .style,
+                                                children: [
+                                              TextSpan(
+                                                  text:
+                                                      "${person.phoneNumber}\n",
+                                                  style: const TextStyle(
+                                                      fontSize: 15)),
+                                              TextSpan(
+                                                  text:
+                                                      "${person.aidAmount} ريال",
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              const TextSpan(text: " لأجل "),
+                                              TextSpan(
+                                                  text: person.aidType,
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              const TextSpan(text: " لفترة "),
+                                              TextSpan(
+                                                  text: person.isContinuousAid
+                                                      ? "مستمرة"
+                                                      : "منقطعة",
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ])),
+                                        isThreeLine: true,
+                                        onTap: () {
+                                          if (isLargeScreen) {
+                                            // selectedId = (box.length > i ? i : -1);
+                                            selectedIdProvider.selectedId = i;
+                                            setState(() {});
+                                          } else {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return DetailsPage(id: i);
+                                              },
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  });
+                            },
+                          ),
+                        ),
+                      ),
+                      (isLargeScreen &&
+                              (box.length > selectedIdProvider.selectedId &&
+                                      selectedIdProvider.selectedId != -1
+                                  ? true
+                                  : false) &&
+                              box.getAt(selectedIdProvider.selectedId)!.isInBox)
+                          // i || selectedId || person.key
+                          ? Expanded(
+                              flex: 2,
+                              child: DetailsPage(
+                                  id: selectedIdProvider.selectedId))
+                          : Container(),
+                    ]),
+              );
+            } else {
+              return NoRecordsPage(themeChange: themeChange);
+            }
+          }),
+          floatingActionButton: box.isEmpty
+              ? Container()
+              : FloatingActionButton(
+                  child: const Icon(Icons.add),
+                  onPressed: () => showDialog(
+                      context: context,
+                      builder: (context) {
+                        return RegisterPage();
+                      }))),
     );
   }
 }
@@ -557,7 +586,6 @@ class NoRecordsPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 30),
-
         SizedBox(
             height: 250,
             width: 250,
@@ -567,19 +595,17 @@ class NoRecordsPage extends StatelessWidget {
               colorFilter: ColorFilter.mode(
                   Theme.of(context).colorScheme.primary, BlendMode.srcIn),
             )),
-        // const Text("لا توجد مساعدات مسجلة", style: TextStyle(fontSize: 25)),
-        Text("لا توجد مساعدات مسجلة", style: GoogleFonts.amiri(fontSize: 25)),
-
+        const Text("لا توجد مساعدات مسجلة",
+            style: TextStyle(fontSize: 25, fontFamily: "Amiri")),
         const SizedBox(height: 20),
         TextButton.icon(
-          icon: const Icon(Icons.add),
-          label: const Text("إنشاء مساعدة", style: TextStyle(fontSize: 20)),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                fullscreenDialog: true, builder: (context) => RegisterPage()),
-          ),
-        )
+            icon: const Icon(Icons.add),
+            label: const Text("إنشاء مساعدة", style: TextStyle(fontSize: 20)),
+            onPressed: () => showDialog(
+                context: context,
+                builder: (context) {
+                  return RegisterPage();
+                }))
       ],
     ));
   }
@@ -694,8 +720,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 Text(savedPersonId ? "تعديل المساعدة" : "إنشاء مساعدة جديدة"),
             centerTitle: true,
             actions: [
-              IconButton(
-                  icon: const Icon(Icons.check),
+              TextButton(
+                  child: Text(savedPersonId ? 'حفظ' : 'إنشاء'),
                   onPressed: () {
                     // If the form is valid, display a snackbar. In the real world,
                     // you'd often call a server or save the information in a database.
@@ -812,7 +838,97 @@ class _RegisterPageState extends State<RegisterPage> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 10),
-                const Text("تاريخ المساعدة"),
+                OutlinedButton(
+                    child: const Text("تاريخ المساعدة (ميلادي)"),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => Directionality(
+                                textDirection: TextDirection.rtl,
+                                child: SfDateRangePicker(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    startRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    endRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    rangeSelectionColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    selectionMode:
+                                        DateRangePickerSelectionMode.range,
+                                    confirmText: "تأكيد",
+                                    cancelText: "إلغاء",
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onSubmit: (Object? value) {
+                                      if (value is PickerDateRange) {
+                                        final rangeStartDate = value.startDate!;
+                                        final rangeEndDate = value.endDate!;
+                                        debugPrint(
+                                            "Saved DateRange is $rangeStartDate - $rangeEndDate");
+                                      } else if (value is DateTime) {
+                                        final DateTime selectedDate = value;
+                                      } else if (value is List<DateTime>) {
+                                        final List<DateTime> selectedDates =
+                                            value;
+                                      } else if (value
+                                          is List<PickerDateRange>) {
+                                        final List<PickerDateRange>
+                                            selectedRanges = value;
+                                      }
+                                    },
+                                    showActionButtons: true),
+                              ));
+                    }),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                    child: const Text("تاريخ المساعدة (هجري)"),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => Directionality(
+                                textDirection: TextDirection.rtl,
+                                child: SfHijriDateRangePicker(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    startRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    endRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    rangeSelectionColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    selectionMode:
+                                        DateRangePickerSelectionMode.range,
+                                    confirmText: "تأكيد",
+                                    cancelText: "إلغاء",
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onSubmit: (Object? value) {
+                                      if (value is HijriDateRange) {
+                                        final rangeStartDate = value.startDate!;
+                                        final rangeEndDate = value.endDate!;
+                                        debugPrint(
+                                            "Saved Hijri DateRange is $rangeStartDate - $rangeEndDate");
+                                      } else if (value is DateTime) {
+                                        final DateTime selectedDate = value;
+                                      } else if (value is List<DateTime>) {
+                                        final List<DateTime> selectedDates =
+                                            value;
+                                      } else if (value
+                                          is List<PickerDateRange>) {
+                                        final List<PickerDateRange>
+                                            selectedRanges = value;
+                                      }
+                                    },
+                                    showActionButtons: true),
+                              ));
+                    }),
                 const SizedBox(height: 10),
                 DropdownButtonFormField(
                   value: (aidTypes.contains(loadPerson?.aidType) ||
@@ -930,102 +1046,202 @@ class _DetailsPageState extends State<DetailsPage> {
         child: !(person != null)
             ? const NoSelectedRecord()
             : Scaffold(
-                appBar: AppBar(
-                    title: Text("${person.name} - ${widget.id}"),
-                    leading: isLargeScreen ? Container() : const BackButton(),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
-                          // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes
-                          box.deleteAt(widget.id).then((value) {
-                            // TODO: does it work? if it work then do we need the setState((){}) ?
-                            selectedIdProvider.selectedId = -1;
-                            if (isLargeScreen) {
-                              setState(() {});
-                            } else {
-                              Navigator.pop(context);
-                            }
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      RegisterPage(id: widget.id)));
-                        },
-                      )
-                    ]),
-                body: Center(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListView(
-                    children: [
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.person_outlined),
-                        title: Text(person.name),
-                        subtitle: const Text("الأسم"),
-                      )),
+                body: CustomScrollView(
+                  slivers: <Widget>[
+                    SliverAppBar.large(
+                      leading: isLargeScreen ? Container() : const BackButton(),
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () {
+                            // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
+                            // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes
+                            showDialog(
+                                context: context,
+                                builder: (context) => Directionality(
+                                      textDirection: TextDirection.rtl,
+                                      child: AlertDialog(
+                                        icon: const Icon(
+                                            Icons.delete_forever_outlined),
+                                        title: const Text("هل انت متأكد ؟"),
+                                        content: Text(
+                                            "هل انت متأكد انك تريد حذف \n'${person.name}' ؟"),
+                                        actions: [
+                                          TextButton(
+                                              child: const Text("إلغاء"),
+                                              onPressed: () =>
+                                                  Navigator.pop(context)),
+                                          TextButton(
+                                              child: const Text("نعم"),
+                                              onPressed: () {
+                                                box
+                                                    .deleteAt(widget.id)
+                                                    .then((value) {
+                                                  // TODO: does it work? if it work then do we need the setState((){}) ?
+                                                  selectedIdProvider
+                                                      .selectedId = -1;
+                                                  if (isLargeScreen) {
+                                                    setState(() {});
+                                                  } else {
+                                                    Navigator.pop(context);
+                                                    Navigator
+                                                        .pushReplacementNamed(
+                                                            context, '/');
+                                                  }
+                                                });
+                                              })
+                                        ],
+                                      ),
+                                    ));
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) =>
+                                    RegisterPage(id: widget.id));
+                          },
+                        )
+                      ],
+                      pinned: true,
+                      snap: true,
+                      floating: true,
+                      expandedHeight: 160.0,
+                      title: Text(person.name),
+                    ),
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          // Card(
+                          //     child: ListTile(
+                          //   leading: const Icon(Icons.person_outlined),
+                          //   title: Text(person.name),
+                          //   subtitle: const Text("الأسم"),
+                          // )),
 
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.phone_outlined),
-                        title: Text("${person.phoneNumber}"),
-                        subtitle: const Text("رقم الهاتف"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.badge_outlined),
-                        title: Text(person.idNumber),
-                        subtitle: const Text("رقم الهوية"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.date_range_outlined),
-                        title: Text(person.aidDates.length >= 2
-                            ? "${person.aidDates[0]} - ${person.aidDates[1]}"
-                            : "لا يوجد"),
-                        subtitle: const Text("تاريخ المساعدة"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.request_quote_outlined),
-                        title: Text(person.aidType),
-                        subtitle: const Text("نوع المساعدة"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.attach_money_outlined),
-                        title: Text("${person.aidAmount} ريال"),
-                        subtitle: const Text("مقدار المساعدة"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.update_outlined),
-                        title:
-                            Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
-                        subtitle: const Text("مدة المساعدة"),
-                      )),
-                      Card(
-                          child: ListTile(
-                        leading: const Icon(Icons.description_outlined),
-                        title: Text(person.notes),
-                        subtitle: const Text("الملاحظات"),
-                      )),
-                      //  Card(
-                      //     child: ListTile(
-                      //   title: Text(widget.person.name),
-                      //   subtitle: Text("مشاركة"),
-                      // )),
-                    ],
-                  ),
-                )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.phone_outlined),
+                            title: Text("${person.phoneNumber}"),
+                            subtitle: const Text("رقم الهاتف"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.badge_outlined),
+                            title: Text(person.idNumber),
+                            subtitle: const Text("رقم الهوية"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.date_range_outlined),
+                            title: Text(person.aidDates.length >= 2
+                                ? "${person.aidDates[0]} - ${person.aidDates[1]}"
+                                : "لا يوجد"),
+                            subtitle: const Text("تاريخ المساعدة"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.request_quote_outlined),
+                            title: Text(person.aidType),
+                            subtitle: const Text("نوع المساعدة"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.attach_money_outlined),
+                            title: Text("${person.aidAmount} ريال"),
+                            subtitle: const Text("مقدار المساعدة"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.update_outlined),
+                            title: Text(
+                                person.isContinuousAid ? "مستمرة" : "منقطعة"),
+                            subtitle: const Text("مدة المساعدة"),
+                          )),
+                          Card(
+                              child: ListTile(
+                            leading: const Icon(Icons.description_outlined),
+                            title: Text(person.notes),
+                            subtitle: const Text("الملاحظات"),
+                          )),
+                          //  Card(
+                          //     child: ListTile(
+                          //   title: Text(widget.person.name),
+                          //   subtitle: Text("مشاركة"),
+                          // )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                //  Center(
+                //     child: Padding(
+                //   padding: const EdgeInsets.all(8.0),
+                //   child: ListView(
+                //     children: [
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.person_outlined),
+                //         title: Text(person.name),
+                //         subtitle: const Text("الأسم"),
+                //       )),
+
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.phone_outlined),
+                //         title: Text("${person.phoneNumber}"),
+                //         subtitle: const Text("رقم الهاتف"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.badge_outlined),
+                //         title: Text(person.idNumber),
+                //         subtitle: const Text("رقم الهوية"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.date_range_outlined),
+                //         title: Text(person.aidDates.length >= 2
+                //             ? "${person.aidDates[0]} - ${person.aidDates[1]}"
+                //             : "لا يوجد"),
+                //         subtitle: const Text("تاريخ المساعدة"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.request_quote_outlined),
+                //         title: Text(person.aidType),
+                //         subtitle: const Text("نوع المساعدة"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.attach_money_outlined),
+                //         title: Text("${person.aidAmount} ريال"),
+                //         subtitle: const Text("مقدار المساعدة"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.update_outlined),
+                //         title:
+                //             Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
+                //         subtitle: const Text("مدة المساعدة"),
+                //       )),
+                //       Card(
+                //           child: ListTile(
+                //         leading: const Icon(Icons.description_outlined),
+                //         title: Text(person.notes),
+                //         subtitle: const Text("الملاحظات"),
+                //       )),
+                //       //  Card(
+                //       //     child: ListTile(
+                //       //   title: Text(widget.person.name),
+                //       //   subtitle: Text("مشاركة"),
+                //       // )),
+                //     ],
+                //   ),
+                // )),
               ));
   }
 }
