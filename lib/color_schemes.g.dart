@@ -67,9 +67,79 @@ const textThemeDefault = TextTheme(
   ),
 );
 
-// Default (Blue)
+// Default (Black)
 
 const defaultLightColorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: Color(0xFF000000),
+  onPrimary: Color(0xFFFFFFFF),
+  primaryContainer: Color(0xFF000000),
+  onPrimaryContainer: Color(0xFFFFFFFF),
+  secondary: Color(0xFF8A8B8B),
+  onSecondary: Color(0xFFFFFFFF),
+  secondaryContainer: Color(0xFFCFE6F2),
+  onSecondaryContainer: Color(0xFF081E26),
+  tertiary: Color(0xFFBBBDBD),
+  onTertiary: Color(0xFFFFFFFF),
+  tertiaryContainer: Color(0xFFBAEAFF),
+  onTertiaryContainer: Color(0xFF001F29),
+  error: Color(0xFFBA1A1A),
+  errorContainer: Color(0xFFFFDAD6),
+  onError: Color(0xFFFFFFFF),
+  onErrorContainer: Color(0xFF410002),
+  background: Color(0xFFFBFCFE),
+  onBackground: Color(0xFF191C1E),
+  surface: Color(0xFFFBFCFE),
+  onSurface: Color(0xFF191C1E),
+  surfaceVariant: Color(0xFFDCE4E9),
+  onSurfaceVariant: Color(0xFF40484C),
+  outline: Color(0xFF70787D),
+  onInverseSurface: Color(0xFFEFF1F3),
+  inverseSurface: Color(0xFF2E3132),
+  inversePrimary: Color(0xFF0D1E24),
+  shadow: Color(0xFF000000),
+  surfaceTint: Color(0xFF4B4B4B),
+  outlineVariant: Color(0xFFC0C8CC),
+  scrim: Color(0xFF000000),
+);
+
+const defaultDarkColorScheme = ColorScheme(
+  brightness: Brightness.dark,
+  primary: Color(0xFFFFFFFF),
+  onPrimary: Color(0xFF000000),
+  primaryContainer: Color(0xFFFFFFFF),
+  onPrimaryContainer: Color(0xFF000000),
+  secondary: Color(0xFFFFFFFF),
+  onSecondary: Color(0xFF8A8B8B),
+  secondaryContainer: Color(0xFF081E26),
+  onSecondaryContainer: Color(0xFFCFE6F2),
+  tertiary: Color(0xFFFFFFFF),
+  onTertiary: Color(0xFFBBBDBD),
+  tertiaryContainer: Color(0xFF001F29),
+  onTertiaryContainer: Color(0xFFBAEAFF),
+  error: Color(0xFFFFDAD6),
+  errorContainer: Color(0xFFBA1A1A),
+  onError: Color(0xFF410002),
+  onErrorContainer: Color(0xFFFFFFFF),
+  background: Color(0xFF191C1E),
+  onBackground: Color(0xFFFBFCFE),
+  surface: Color(0xFF191C1E),
+  onSurface: Color(0xFFFBFCFE),
+  surfaceVariant: Color(0xFF40484C),
+  onSurfaceVariant: Color(0xFFDCE4E9),
+  outline: Color(0xFF8A9296),
+  onInverseSurface: Color(0xFF191C1E),
+  inverseSurface: Color(0xFFE1E3E4),
+  inversePrimary: Color(0xFF006782),
+  shadow: Color(0xFF000000),
+  surfaceTint: Color(0xFFD3D3D3),
+  outlineVariant: Color(0xFF40484C),
+  scrim: Color(0xFF000000),
+);
+
+// Blue
+
+const blueLightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF006782),
   onPrimary: Color(0xFFFFFFFF),
@@ -103,7 +173,7 @@ const defaultLightColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
-const defaultDarkColorScheme = ColorScheme(
+const blueDarkColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xFF61D4FF),
   onPrimary: Color(0xFF003545),

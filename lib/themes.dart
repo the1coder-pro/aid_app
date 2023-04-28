@@ -60,3 +60,33 @@ class ThemeColorProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+// selectedId
+
+class TheSelectedId {
+  // ignore: constant_identifier_names
+  static const SELECTED_ID = "SELECTEDID";
+
+  setSelectedId(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt(SELECTED_ID, id);
+  }
+
+  Future<int> getSelectedId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(SELECTED_ID) ?? -1;
+  }
+}
+
+class SelectedIdProvider with ChangeNotifier {
+  TheSelectedId selectedIdPreference = TheSelectedId();
+  int _selectedId = -1;
+
+  int get selectedId => _selectedId;
+
+  set selectedId(int id) {
+    _selectedId = id;
+    selectedIdPreference.setSelectedId(id);
+    notifyListeners();
+  }
+}

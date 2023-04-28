@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'person.dart';
@@ -10,7 +10,8 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.61";
+String VERSION_NUMBER = "0.62";
+List<String> colorSchemes = ["Default", "Red", "Yellow", "Blue", "Device"];
 
 void main() async {
   await Hive.initFlutter();
@@ -20,8 +21,6 @@ void main() async {
 
   runApp(const MyApp());
 }
-
-final colorSchemes = ["Default", "Red", "Yellow", "Device"];
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -33,12 +32,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   TheThemeProvider themeChangeProvider = TheThemeProvider();
   ThemeColorProvider colorChangeProvider = ThemeColorProvider();
+  SelectedIdProvider selectedIdProvider = SelectedIdProvider();
 
   @override
   void initState() {
     super.initState();
     getCurrentAppTheme();
     getCurrentColorTheme();
+    getSelectedId();
   }
 
   void getCurrentAppTheme() async {
@@ -51,6 +52,11 @@ class _MyAppState extends State<MyApp> {
         await colorChangeProvider.colorThemePreference.getThemeColor();
   }
 
+  void getSelectedId() async {
+    selectedIdProvider.selectedId =
+        await selectedIdProvider.selectedIdPreference.getSelectedId();
+  }
+
   ColorScheme colorSchemeChooser(int color, bool darkMode,
       {ColorScheme? deviceLightColorTheme, ColorScheme? deviceDarkColorTheme}) {
     switch (colorSchemes[color]) {
@@ -60,6 +66,8 @@ class _MyAppState extends State<MyApp> {
         return darkMode ? redDarkColorScheme : redLightColorScheme;
       case "Yellow":
         return darkMode ? yellowDarkColorScheme : yellowLightColorScheme;
+      case "Blue":
+        return darkMode ? blueDarkColorScheme : blueLightColorScheme;
       case "Device":
         return darkMode
             ? (deviceDarkColorTheme ?? defaultDarkColorScheme)
@@ -74,43 +82,46 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) {
-        return themeChangeProvider;
-      },
+      create: (_) => themeChangeProvider,
       child: Consumer<TheThemeProvider>(
         builder: (BuildContext context, value, child) => DynamicColorBuilder(
           builder: (deviceLightColorScheme, deviceDarkColorScheme) =>
               ChangeNotifierProvider(
-            create: (_) {
-              return colorChangeProvider;
-            },
+            create: (_) => colorChangeProvider,
             child: Consumer<ThemeColorProvider>(
-              builder: (BuildContext context, value, change) => MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: 'Aid App',
-                theme: ThemeData(
-                  useMaterial3: true,
-                  textTheme: textThemeDefault,
-                  colorScheme: colorSchemeChooser(
-                      colorChangeProvider.colorTheme, false,
-                      deviceLightColorTheme: deviceLightColorScheme,
-                      deviceDarkColorTheme: deviceDarkColorScheme),
+              builder: (BuildContext context, value, change) =>
+                  ChangeNotifierProvider(
+                create: (_) => selectedIdProvider,
+                child: Consumer<SelectedIdProvider>(
+                  builder: (BuildContext context, value, change) => MaterialApp(
+                    debugShowCheckedModeBanner: false,
+                    title: 'Aid App',
+                    theme: ThemeData(
+                      useMaterial3: true,
+                      textTheme: textThemeDefault,
+                      colorScheme: colorSchemeChooser(
+                          colorChangeProvider.colorTheme, false,
+                          deviceLightColorTheme: deviceLightColorScheme,
+                          deviceDarkColorTheme: deviceDarkColorScheme),
+                    ),
+                    darkTheme: ThemeData(
+                      useMaterial3: true,
+                      textTheme: textThemeDefault,
+                      colorScheme: colorSchemeChooser(
+                          colorChangeProvider.colorTheme, true,
+                          deviceLightColorTheme: deviceLightColorScheme,
+                          deviceDarkColorTheme: deviceDarkColorScheme),
+                    ),
+                    themeMode: themeChangeProvider.darkTheme
+                        ? ThemeMode.dark
+                        : ThemeMode.light,
+                    routes: {
+                      // maybe consider removing the `title` argument from the `MyHomePage` Widget
+                      '/': (context) => const MyHomePage(title: 'المساعدات'),
+                    },
+                    initialRoute: '/',
+                  ),
                 ),
-                darkTheme: ThemeData(
-                  useMaterial3: true,
-                  textTheme: textThemeDefault,
-                  colorScheme: colorSchemeChooser(
-                      colorChangeProvider.colorTheme, true,
-                      deviceLightColorTheme: deviceLightColorScheme,
-                      deviceDarkColorTheme: deviceDarkColorScheme),
-                ),
-                themeMode: themeChangeProvider.darkTheme
-                    ? ThemeMode.dark
-                    : ThemeMode.light,
-                routes: {
-                  '/': (context) => const MyHomePage(title: 'المساعدات'),
-                },
-                initialRoute: '/',
               ),
             ),
           ),
@@ -135,8 +146,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // int currentPageIndex = 0;
   SampleItem? selectedMenu;
   final box = Hive.box<Person>('personList');
+
   bool isLargeScreen = false;
-  int selectedId = -1;
+  // int selectedId = -1;
 
   List<bool> isSelected = [];
   List<bool> getIsSelected(ThemeColorProvider colorProvider) {
@@ -152,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final themeChange = Provider.of<TheThemeProvider>(context);
     final colorThemeChange = Provider.of<ThemeColorProvider>(context);
+    final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     isSelected = getIsSelected(colorThemeChange);
 
     return Directionality(
@@ -159,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            "${widget.title} - $selectedId",
+            widget.title,
             style: const TextStyle(fontFamily: "ScheherazadeNew"),
             // style: GoogleFonts.ibmPlexSansArabic(),
           ),
@@ -196,7 +209,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                           appBar: AppBar(
                                               title:
                                                   const Text('الرسم البياني')),
-                                          body: const Center(child: Text("hi")),
+                                          body: const Center(
+                                              child: Text(
+                                                  "صفحة الرسم البياني هنا")),
                                         ),
                                       ))));
 
@@ -211,7 +226,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                         child: Scaffold(
                                           appBar: AppBar(
                                               title: const Text('الطباعة')),
-                                          body: const Center(child: Text("hi")),
+                                          body: const Center(
+                                              child: Text("صفحة الطباعة هنا")),
                                         ),
                                       ))));
                           break;
@@ -274,9 +290,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                               });
                                             },
                                             children: const <Widget>[
-                                              Icon(Icons.ac_unit),
+                                              Icon(Icons.book),
                                               Icon(Icons.call),
                                               Icon(Icons.cake),
+                                              Icon(Icons.ac_unit),
                                               Icon(Icons.phone_android),
                                             ],
                                           ),
@@ -408,7 +425,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     isThreeLine: true,
                                     onTap: () {
                                       if (isLargeScreen) {
-                                        selectedId = (box.length > i ? i : -1);
+                                        // selectedId = (box.length > i ? i : -1);
+                                        selectedIdProvider.selectedId = i;
                                         setState(() {});
                                       } else {
                                         Navigator.push(context,
@@ -426,12 +444,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     (isLargeScreen &&
-                            (box.length > selectedId && selectedId != -1
+                            (box.length > selectedIdProvider.selectedId &&
+                                    selectedIdProvider.selectedId != -1
                                 ? true
                                 : false) &&
-                            box.getAt(selectedId)!.isInBox)
+                            box.getAt(selectedIdProvider.selectedId)!.isInBox)
                         // i || selectedId || person.key
-                        ? Expanded(flex: 2, child: DetailsPage(id: selectedId))
+                        ? Expanded(
+                            flex: 2,
+                            child:
+                                DetailsPage(id: selectedIdProvider.selectedId))
                         : Container(),
                   ]),
             );
@@ -439,14 +461,16 @@ class _MyHomePageState extends State<MyHomePage> {
             return NoRecordsPage(themeChange: themeChange);
           }
         }),
-        floatingActionButton: FloatingActionButton(
-            child: const Icon(Icons.add),
-            onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      fullscreenDialog: true,
-                      builder: (context) => RegisterPage()),
-                )),
+        floatingActionButton: box.isEmpty
+            ? Container()
+            : FloatingActionButton(
+                child: const Icon(Icons.add),
+                onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (context) => RegisterPage()),
+                    )),
       ),
     );
   }
@@ -464,16 +488,23 @@ class NoRecordsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
         child: Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        const SizedBox(height: 30),
+
         SizedBox(
-            height: 300,
-            width: 300,
-            child: Image(
-                image: AssetImage(themeChange.darkTheme
-                    ? 'assets/openBook-dark.png'
-                    : 'assets/openBook-light.png'))),
-        const Text("لا توجد مساعدات مسجلة",
-            style: TextStyle(fontSize: 25, fontFamily: "ScheherazadeNew")),
+            height: 250,
+            width: 250,
+            child: SvgPicture.asset(
+              'assets/openBook-light.svg',
+              semanticsLabel: 'open book',
+              colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.primary, BlendMode.srcIn),
+            )),
+        // const Text("لا توجد مساعدات مسجلة", style: TextStyle(fontSize: 25)),
+        Text("لا توجد مساعدات مسجلة", style: GoogleFonts.amiri(fontSize: 25)),
+
         const SizedBox(height: 20),
         TextButton.icon(
           icon: const Icon(Icons.add),
@@ -588,7 +619,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Directionality scaffoldRegisterPage(BuildContext context, {int? id}) {
     bool savedPersonId = id != null;
-    Person? loadPerson = savedPersonId ? box.get(id) : null;
+    Person? loadPerson = savedPersonId ? box.getAt(id) : null;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -694,6 +725,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: InputDecoration(
+                      suffixIcon: clearButton(_idNumberController),
+                      label: const Text("رقم الهوية"),
+                      border: const OutlineInputBorder(),
+                      isDense: true),
+                  controller: _idNumberController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 10,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
                       suffixIcon: clearButton(_phoneController),
                       label: const Text("رقم الهاتف"),
                       border: const OutlineInputBorder(),
@@ -704,17 +747,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_idNumberController),
-                      label: const Text("رقم الهوية"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _idNumberController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10,
-                  textInputAction: TextInputAction.next,
-                ),
+                const Text("تاريخ المساعدة"),
                 const SizedBox(height: 10),
                 DropdownButtonFormField(
                   value: (aidTypes.contains(loadPerson?.aidType) ||
@@ -818,6 +851,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     Person? person = widget.id >= 0 && box.getAt(widget.id)!.isInBox
         ? box.getAt(widget.id)
         : null;
@@ -841,6 +875,8 @@ class _DetailsPageState extends State<DetailsPage> {
                           // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
                           // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes
                           box.deleteAt(widget.id).then((value) {
+                            // TODO: does it work? if it work then do we need the setState((){}) ?
+                            selectedIdProvider.selectedId = -1;
                             if (isLargeScreen) {
                               setState(() {});
                             } else {
@@ -856,7 +892,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                      RegisterPage(id: person.key)));
+                                      RegisterPage(id: widget.id)));
                         },
                       )
                     ]),
