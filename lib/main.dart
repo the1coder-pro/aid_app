@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -163,9 +164,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final themeChange = Provider.of<TheThemeProvider>(context);
-    final colorThemeChange = Provider.of<ThemeColorProvider>(context);
+    final colorChangeProvider = Provider.of<ThemeColorProvider>(context);
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
-    isSelected = getIsSelected(colorThemeChange);
+    isSelected = getIsSelected(colorChangeProvider);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -257,16 +258,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                             value: themeChange.darkTheme,
                                             onChanged: (bool value) =>
                                                 themeChange.darkTheme = value),
-                                        SwitchListTile(
-                                            title: const Text(
-                                              "اللغة الإنقليزية",
-                                              style: TextStyle(
-                                                  fontFamily:
-                                                      "ibmPlexSansArabic"),
-                                            ),
-                                            value: themeChange.darkTheme,
-                                            onChanged: (bool value) =>
-                                                themeChange.darkTheme = value),
+                                        // TODO: ADDING ENGLISH SUPPORT
+                                        // SwitchListTile(
+                                        //     title: const Text(
+                                        //       "اللغة الإنقليزية",
+                                        //       style: TextStyle(
+                                        //           fontFamily:
+                                        //               "ibmPlexSansArabic"),
+                                        //     ),
+                                        //     value: themeChange.darkTheme,
+                                        //     onChanged: (bool value) =>
+                                        //         themeChange.darkTheme = value),
                                         Center(
                                           child: ToggleButtons(
                                             isSelected: isSelected,
@@ -279,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   if (buttonIndex == index) {
                                                     isSelected[buttonIndex] =
                                                         true;
-                                                    colorThemeChange
+                                                    colorChangeProvider
                                                             .colorTheme =
                                                         buttonIndex;
                                                   } else {
@@ -376,67 +378,130 @@ class _MyHomePageState extends State<MyHomePage> {
                                 itemCount: box.length,
                                 itemBuilder: (context, i) {
                                   var person = box.getAt(i);
-                                  return ListTile(
-                                    onLongPress: () {
-                                      box.deleteAt(i).then((value) {
-                                        debugPrint(
-                                            "deleted $i - ${box.length} - ${person.key}");
-                                        setState(() {});
-                                      });
-                                    },
-                                    leading: CircleAvatar(
-                                      child: Text(
-                                        (person!.name)
-                                            .toString()
-                                            .substring(0, 1),
-                                        style: const TextStyle(fontSize: 20),
+                                  return Slidable(
+                                    // Specify a key if the Slidable is dismissible.
+                                    key: const ValueKey(0),
+
+                                    // The start action pane is the one at the left or the top side.
+                                    startActionPane: ActionPane(
+                                      // A motion is a widget used to control how the pane animates.
+                                      motion: const ScrollMotion(),
+
+                                      // A pane can dismiss the Slidable.
+                                      dismissible:
+                                          DismissiblePane(onDismissed: () {
+                                        box.deleteAt(i).then((value) {
+                                          debugPrint(
+                                              "deleted $i - ${box.length}");
+                                          setState(() {});
+                                        });
+                                      }),
+
+                                      // All actions are defined in the children parameter.
+                                      children: [
+                                        // A SlidableAction can have an icon and/or a label.
+                                        SlidableAction(
+                                          onPressed: (context) =>
+                                              box.deleteAt(i).then((value) {
+                                            debugPrint(
+                                                "deleted $i - ${box.length}");
+                                            setState(() {});
+                                          }),
+                                          backgroundColor: themeChange.darkTheme
+                                              ? redDarkColorScheme.primary
+                                              : redLightColorScheme.primary,
+                                          foregroundColor: themeChange.darkTheme
+                                              ? redDarkColorScheme.onPrimary
+                                              : redLightColorScheme.onPrimary,
+                                          icon: Icons.delete,
+                                          label: 'حذف',
+                                        ),
+                                        SlidableAction(
+                                          onPressed: (context) =>
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          RegisterPage(id: i))),
+                                          backgroundColor: themeChange.darkTheme
+                                              ? blueDarkColorScheme.primary
+                                              : blueLightColorScheme.primary,
+                                          foregroundColor: themeChange.darkTheme
+                                              ? blueDarkColorScheme.onPrimary
+                                              : blueLightColorScheme.onPrimary,
+                                          icon: Icons.edit,
+                                          label: 'تعديل',
+                                        ),
+                                      ],
+                                    ),
+
+                                    child: ListTile(
+                                      onLongPress: () {
+                                        box.deleteAt(i).then((value) {
+                                          debugPrint(
+                                              "deleted $i - ${box.length} - ${person.key}");
+                                          setState(() {});
+                                        });
+                                      },
+                                      leading: CircleAvatar(
+                                        child: Text(
+                                          (person!.name)
+                                              .toString()
+                                              .substring(0, 1),
+                                          style: const TextStyle(fontSize: 20),
+                                        ),
                                       ),
+                                      title: Text(
+                                        person.name,
+                                        style: const TextStyle(fontSize: 15),
+                                      ),
+                                      subtitle: RichText(
+                                          text: TextSpan(
+                                              style:
+                                                  DefaultTextStyle.of(context)
+                                                      .style,
+                                              children: [
+                                            TextSpan(
+                                                text: "${person.phoneNumber}\n",
+                                                style: const TextStyle(
+                                                    fontSize: 15)),
+                                            TextSpan(
+                                                text:
+                                                    "${person.aidAmount} ريال",
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            const TextSpan(text: " لأجل "),
+                                            TextSpan(
+                                                text: person.aidType,
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            const TextSpan(text: " لفترة "),
+                                            TextSpan(
+                                                text: person.isContinuousAid
+                                                    ? "مستمرة"
+                                                    : "منقطعة",
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ])),
+                                      isThreeLine: true,
+                                      onTap: () {
+                                        if (isLargeScreen) {
+                                          // selectedId = (box.length > i ? i : -1);
+                                          selectedIdProvider.selectedId = i;
+                                          setState(() {});
+                                        } else {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                            builder: (context) {
+                                              return DetailsPage(id: i);
+                                            },
+                                          ));
+                                        }
+                                      },
                                     ),
-                                    title: Text(
-                                      person.name,
-                                      style: const TextStyle(fontSize: 15),
-                                    ),
-                                    subtitle: RichText(
-                                        text: TextSpan(
-                                            style: DefaultTextStyle.of(context)
-                                                .style,
-                                            children: [
-                                          TextSpan(
-                                              text: "${person.phoneNumber}\n",
-                                              style: const TextStyle(
-                                                  fontSize: 15)),
-                                          TextSpan(
-                                              text: "${person.aidAmount} ريال",
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          const TextSpan(text: " لأجل "),
-                                          TextSpan(
-                                              text: person.aidType,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          const TextSpan(text: " لفترة "),
-                                          TextSpan(
-                                              text: person.isContinuousAid
-                                                  ? "مستمرة"
-                                                  : "منقطعة",
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ])),
-                                    isThreeLine: true,
-                                    onTap: () {
-                                      if (isLargeScreen) {
-                                        // selectedId = (box.length > i ? i : -1);
-                                        selectedIdProvider.selectedId = i;
-                                        setState(() {});
-                                      } else {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(
-                                          builder: (context) {
-                                            return DetailsPage(id: i);
-                                          },
-                                        ));
-                                      }
-                                    },
                                   );
                                 });
                           },
@@ -630,7 +695,7 @@ class _RegisterPageState extends State<RegisterPage> {
             centerTitle: true,
             actions: [
               IconButton(
-                  icon: Icon(savedPersonId ? Icons.edit : Icons.check),
+                  icon: const Icon(Icons.check),
                   onPressed: () {
                     // If the form is valid, display a snackbar. In the real world,
                     // you'd often call a server or save the information in a database.

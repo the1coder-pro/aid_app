@@ -7,6 +7,15 @@ import 'person.dart';
 
 class SearchWidget extends SearchDelegate<Person> {
   @override
+  String get searchFieldLabel => 'البحث';
+
+  // TODO: SEARCH BAR THEME needs more design
+  // @override
+  // ThemeData appBarTheme(BuildContext context) {
+  //   return ThemeData(appBarTheme: Theme.of(context).appBarTheme);
+  // }
+
+  @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
