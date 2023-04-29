@@ -1,8 +1,8 @@
+import 'package:aid_app/chart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -12,7 +12,7 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.62";
+String VERSION_NUMBER = "0.63";
 List<String> colorSchemes = ["Default", "Red", "Yellow", "Blue", "Device"];
 
 void main() async {
@@ -206,16 +206,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: ((context) => Directionality(
-                                          textDirection: TextDirection.rtl,
-                                          child: Scaffold(
-                                            appBar: AppBar(
-                                                title: const Text(
-                                                    'الرسم البياني')),
-                                            body: const Center(
-                                                child: Text(
-                                                    "صفحة الرسم البياني هنا")),
-                                          ),
-                                        ))));
+                                        textDirection: TextDirection.rtl,
+                                        child: ChartPage()))));
 
                             break;
                           // Printing Page
@@ -250,6 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             onPressed: () =>
                                                 Navigator.pop(context)),
                                         title: const Text("الإعدادات"),
+                                        centerTitle: true,
                                       ),
                                       body: Center(
                                           child: ListView(
@@ -524,12 +517,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                             selectedIdProvider.selectedId = i;
                                             setState(() {});
                                           } else {
-                                            showDialog(
-                                              context: context,
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
                                               builder: (context) {
                                                 return DetailsPage(id: i);
                                               },
-                                            );
+                                            ));
                                           }
                                         },
                                       ),
@@ -788,10 +781,9 @@ class _RegisterPageState extends State<RegisterPage> {
         body: Form(
           key: _formKey,
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(10),
             child: ListView(
               children: <Widget>[
-                const SizedBox(height: 10),
                 TextFormField(
                   decoration: InputDecoration(
                       suffixIcon: clearButton(_firstNameController),
@@ -1055,7 +1047,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () {
                             // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
-                            // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes
+                            // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes (fixed)
                             showDialog(
                                 context: context,
                                 builder: (context) => Directionality(
