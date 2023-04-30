@@ -6,6 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:syncfusion_flutter_core/core.dart';
+import 'package:intl/intl.dart' as intl;
 import 'person.dart';
 import 'search_widget.dart';
 import 'themes.dart';
@@ -642,6 +644,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? aidType = aidTypes[5];
 
+  List<DateTime> dateRange = [];
+
   late FocusNode myFocusNode;
 
   @override
@@ -730,7 +734,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               phoneNumber: _phoneController.text.isNotEmpty
                                   ? int.parse(_phoneController.text)
                                   : 0,
-                              aidDates: [],
+                              aidDates: dateRange,
                               aidType: aidType == aidTypes.last
                                   ? _typeController.text
                                   : aidType ??
@@ -754,7 +758,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           phoneNumber: _phoneController.text.isNotEmpty
                               ? int.parse(_phoneController.text)
                               : 0,
-                          aidDates: [],
+                          aidDates: dateRange,
                           aidType: aidType == aidTypes.last
                               ? _typeController.text
                               : (aidType ?? aidTypes[5]),
@@ -830,8 +834,27 @@ class _RegisterPageState extends State<RegisterPage> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 10),
-                OutlinedButton(
-                    child: const Text("تاريخ المساعدة (ميلادي)"),
+                const Center(child: Text("تاريخ المساعدة")),
+                dateRange.isEmpty
+                    ? Container()
+                    : Center(
+                        child: Container(
+                        margin: const EdgeInsets.all(15.0),
+                        padding: const EdgeInsets.all(3.0),
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(2)),
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.primary)),
+                        child: Text(
+                          "الميلادي: ${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}\n الهجري: ${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
+                          style: const TextStyle(fontSize: 30),
+                          textDirection: TextDirection.rtl,
+                        ),
+                      )),
+                OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    label: const Text("تاريخ المساعدة (ميلادي)"),
                     onPressed: () {
                       showDialog(
                           context: context,
@@ -857,27 +880,25 @@ class _RegisterPageState extends State<RegisterPage> {
                                     },
                                     onSubmit: (Object? value) {
                                       if (value is PickerDateRange) {
-                                        final rangeStartDate = value.startDate!;
-                                        final rangeEndDate = value.endDate!;
+                                        dateRange.clear();
+                                        dateRange.add(value.startDate!);
+                                        dateRange.add(value.endDate!);
+                                        setState(() {});
+
                                         debugPrint(
-                                            "Saved DateRange is $rangeStartDate - $rangeEndDate");
-                                      } else if (value is DateTime) {
-                                        final DateTime selectedDate = value;
-                                      } else if (value is List<DateTime>) {
-                                        final List<DateTime> selectedDates =
-                                            value;
-                                      } else if (value
-                                          is List<PickerDateRange>) {
-                                        final List<PickerDateRange>
-                                            selectedRanges = value;
+                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                        debugPrint(
+                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        Navigator.pop(context);
                                       }
                                     },
                                     showActionButtons: true),
                               ));
                     }),
                 const SizedBox(height: 10),
-                OutlinedButton(
-                    child: const Text("تاريخ المساعدة (هجري)"),
+                OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    label: const Text("تاريخ المساعدة (هجري)"),
                     onPressed: () {
                       showDialog(
                           context: context,
@@ -903,10 +924,18 @@ class _RegisterPageState extends State<RegisterPage> {
                                     },
                                     onSubmit: (Object? value) {
                                       if (value is HijriDateRange) {
-                                        final rangeStartDate = value.startDate!;
-                                        final rangeEndDate = value.endDate!;
+                                        dateRange.clear();
+                                        dateRange
+                                            .add(value.startDate!.toDateTime());
+                                        dateRange
+                                            .add(value.endDate!.toDateTime());
+                                        setState(() {});
+
                                         debugPrint(
-                                            "Saved Hijri DateRange is $rangeStartDate - $rangeEndDate");
+                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                        debugPrint(
+                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        Navigator.pop(context);
                                       } else if (value is DateTime) {
                                         final DateTime selectedDate = value;
                                       } else if (value is List<DateTime>) {
@@ -1129,7 +1158,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               child: ListTile(
                             leading: const Icon(Icons.date_range_outlined),
                             title: Text(person.aidDates.length >= 2
-                                ? "${person.aidDates[0]} - ${person.aidDates[1]}"
+                                ? "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}"
                                 : "لا يوجد"),
                             subtitle: const Text("تاريخ المساعدة"),
                           )),
