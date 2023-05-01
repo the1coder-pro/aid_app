@@ -90,3 +90,33 @@ class SelectedIdProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+// shown Date
+
+class TheSelectedDate {
+  // ignore: constant_identifier_names
+  static const SELECTED_DATE = "SELECTEDDATE";
+
+  setSelectedDate(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt(SELECTED_DATE, id);
+  }
+
+  Future<int> getSelectedDate() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(SELECTED_DATE) ?? 0;
+  }
+}
+
+class SelectedDateProvider with ChangeNotifier {
+  TheSelectedDate selectedDatePreference = TheSelectedDate();
+  int _selectedDate = 0;
+
+  int get selectedDate => _selectedDate;
+
+  set selectedDate(int date) {
+    _selectedDate = date;
+    selectedDatePreference.setSelectedDate(date);
+    notifyListeners();
+  }
+}

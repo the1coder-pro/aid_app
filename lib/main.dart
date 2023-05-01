@@ -14,7 +14,7 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.63";
+String VERSION_NUMBER = "0.64";
 List<String> colorSchemes = ["Default", "Red", "Yellow", "Blue", "Device"];
 
 void main() async {
@@ -79,9 +79,6 @@ class _MyAppState extends State<MyApp> {
     }
     return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
   }
-
-  // convert the colorChangeProvider.colorTheme to Numbers like this => colorSchemes[colorChangeProvider.colorTheme]
-  // so it will be more easier and faster than making Ifs/Elses Or Switchs
 
   @override
   Widget build(BuildContext context) {
@@ -295,14 +292,29 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 });
                                               },
                                               children: const <Widget>[
-                                                Icon(Icons.book),
-                                                Icon(Icons.call),
-                                                Icon(Icons.cake),
-                                                Icon(Icons.ac_unit),
+                                                Text("اسود"),
+                                                Text("احمر"),
+                                                Text("اصفر"),
+                                                Text("ازرق"),
                                                 Icon(Icons.phone_android),
                                               ],
                                             ),
                                           ),
+
+                                          // TODO: "Export Data" Button
+
+                                          // Padding(
+                                          //   padding: const EdgeInsets.all(8.0),
+                                          //   child: Center(
+                                          //     child: OutlinedButton.icon(
+                                          //         icon: const Icon(
+                                          //             Icons.save_alt_outlined),
+                                          //         label: const Text(
+                                          //             "استخراج البيانات"),
+                                          //         onPressed: () {}),
+                                          //   ),
+                                          // ),
+
                                           const SizedBox(height: 15),
                                           Center(
                                               child: Text(
@@ -422,7 +434,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                                                     .deleteAt(i)
                                                                     .then(
                                                                         (value) {
-                                                                  // TODO: does it work? if it work then do we need the setState((){}) ?
                                                                   selectedIdProvider
                                                                       .selectedId = -1;
                                                                   setState(
@@ -737,9 +748,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               aidDates: dateRange,
                               aidType: aidType == aidTypes.last
                                   ? _typeController.text
-                                  : aidType ??
-                                      aidTypes
-                                          .last, // Always Shows "غير محددة" fix this...
+                                  : aidType ?? aidTypes.last,
                               aidAmount: _amountController.text.isNotEmpty
                                   ? int.parse(_amountController.text)
                                   : 0,
@@ -833,124 +842,149 @@ class _RegisterPageState extends State<RegisterPage> {
                   maxLength: 10,
                   textInputAction: TextInputAction.next,
                 ),
+                const SizedBox(height: 12),
+                const Center(
+                    child: Text("تاريخ المساعدة",
+                        style: TextStyle(fontWeight: FontWeight.bold))),
                 const SizedBox(height: 10),
-                const Center(child: Text("تاريخ المساعدة")),
                 dateRange.isEmpty
                     ? Container()
                     : Center(
-                        child: Container(
-                        margin: const EdgeInsets.all(15.0),
-                        padding: const EdgeInsets.all(3.0),
-                        decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(2)),
-                            border: Border.all(
-                                color: Theme.of(context).colorScheme.primary)),
-                        child: Text(
-                          "الميلادي: ${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}\n الهجري: ${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
-                          style: const TextStyle(fontSize: 30),
+                        child: SizedBox(
+                        width: 350,
+                        child: Table(
                           textDirection: TextDirection.rtl,
+                          children: [
+                            TableRow(children: [
+                              const Text("الميلادي"),
+                              Text(
+                                  "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+                            ]),
+                            TableRow(children: [
+                              const Text("الهجري"),
+                              Text(
+                                  "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+                            ]),
+                          ],
                         ),
                       )),
-                OutlinedButton.icon(
-                    icon: const Icon(Icons.calendar_month_outlined),
-                    label: const Text("تاريخ المساعدة (ميلادي)"),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) => Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: SfDateRangePicker(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .background,
-                                    startRangeSelectionColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    endRangeSelectionColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    rangeSelectionColor: Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer,
-                                    selectionMode:
-                                        DateRangePickerSelectionMode.range,
-                                    confirmText: "تأكيد",
-                                    cancelText: "إلغاء",
-                                    onCancel: () {
-                                      Navigator.pop(context);
-                                    },
-                                    onSubmit: (Object? value) {
-                                      if (value is PickerDateRange) {
-                                        dateRange.clear();
-                                        dateRange.add(value.startDate!);
-                                        dateRange.add(value.endDate!);
-                                        setState(() {});
-
-                                        debugPrint(
-                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                        debugPrint(
-                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                        Navigator.pop(context);
-                                      }
-                                    },
-                                    showActionButtons: true),
-                              ));
-                    }),
                 const SizedBox(height: 10),
-                OutlinedButton.icon(
-                    icon: const Icon(Icons.calendar_month_outlined),
-                    label: const Text("تاريخ المساعدة (هجري)"),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) => Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: SfHijriDateRangePicker(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .background,
-                                    startRangeSelectionColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    endRangeSelectionColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    rangeSelectionColor: Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer,
-                                    selectionMode:
-                                        DateRangePickerSelectionMode.range,
-                                    confirmText: "تأكيد",
-                                    cancelText: "إلغاء",
-                                    onCancel: () {
-                                      Navigator.pop(context);
-                                    },
-                                    onSubmit: (Object? value) {
-                                      if (value is HijriDateRange) {
-                                        dateRange.clear();
-                                        dateRange
-                                            .add(value.startDate!.toDateTime());
-                                        dateRange
-                                            .add(value.endDate!.toDateTime());
-                                        setState(() {});
+                Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          label: const Text("تاريخ (ميلادي)"),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => Directionality(
+                                      textDirection: TextDirection.rtl,
+                                      child: SfDateRangePicker(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .background,
+                                          startRangeSelectionColor:
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          endRangeSelectionColor:
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          rangeSelectionColor: Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer,
+                                          selectionMode:
+                                              DateRangePickerSelectionMode
+                                                  .range,
+                                          confirmText: "تأكيد",
+                                          cancelText: "إلغاء",
+                                          onCancel: () {
+                                            Navigator.pop(context);
+                                          },
+                                          onSubmit: (Object? value) {
+                                            if (value is PickerDateRange) {
+                                              dateRange.clear();
+                                              dateRange.add(value.startDate!);
+                                              dateRange.add(value.endDate!);
+                                              setState(() {});
 
-                                        debugPrint(
-                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                        debugPrint(
-                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                        Navigator.pop(context);
-                                      } else if (value is DateTime) {
-                                        final DateTime selectedDate = value;
-                                      } else if (value is List<DateTime>) {
-                                        final List<DateTime> selectedDates =
-                                            value;
-                                      } else if (value
-                                          is List<PickerDateRange>) {
-                                        final List<PickerDateRange>
-                                            selectedRanges = value;
-                                      }
-                                    },
-                                    showActionButtons: true),
-                              ));
-                    }),
-                const SizedBox(height: 10),
+                                              debugPrint(
+                                                  "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                              debugPrint(
+                                                  "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          showActionButtons: true),
+                                    ));
+                          }),
+                      // const SizedBox(width: 10),
+                      OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          label: const Text("تاريخ (هجري)"),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => Directionality(
+                                      textDirection: TextDirection.rtl,
+                                      child: SfHijriDateRangePicker(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .background,
+                                          startRangeSelectionColor:
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          endRangeSelectionColor:
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          rangeSelectionColor: Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer,
+                                          selectionMode:
+                                              DateRangePickerSelectionMode
+                                                  .range,
+                                          confirmText: "تأكيد",
+                                          cancelText: "إلغاء",
+                                          onCancel: () {
+                                            Navigator.pop(context);
+                                          },
+                                          onSubmit: (Object? value) {
+                                            if (value is HijriDateRange) {
+                                              dateRange.clear();
+                                              dateRange.add(value.startDate!
+                                                  .toDateTime());
+                                              dateRange.add(
+                                                  value.endDate!.toDateTime());
+                                              setState(() {});
+
+                                              debugPrint(
+                                                  "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                              debugPrint(
+                                                  "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                              Navigator.pop(context);
+                                            } else if (value is DateTime) {
+                                              final DateTime selectedDate =
+                                                  value;
+                                            } else if (value
+                                                is List<DateTime>) {
+                                              final List<DateTime>
+                                                  selectedDates = value;
+                                            } else if (value
+                                                is List<PickerDateRange>) {
+                                              final List<PickerDateRange>
+                                                  selectedRanges = value;
+                                            }
+                                          },
+                                          showActionButtons: true),
+                                    ));
+                          }),
+                    ]),
+                const SizedBox(height: 12),
                 DropdownButtonFormField(
                   value: (aidTypes.contains(loadPerson?.aidType) ||
                           aidTypes.contains(aidType))
@@ -994,10 +1028,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Center(child: Text("مدة المساعدة")),
-                ),
+                const SizedBox(height: 12),
+                const Center(
+                    child: Text("مدة المساعدة",
+                        style: TextStyle(fontWeight: FontWeight.bold))),
                 RadioListTile<AidDuration>(
                   title: const Text('مستمرة'),
                   value: AidDuration.continuous,
@@ -1075,8 +1109,6 @@ class _DetailsPageState extends State<DetailsPage> {
                         IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () {
-                            // TODO: Fix the Deleting Issue (n + 1 maybe...) (fixed)
-                            // TODO: Fix the Aid Type Issue when changing it first time it doesn't change but the second time it changes (fixed)
                             showDialog(
                                 context: context,
                                 builder: (context) => Directionality(
@@ -1098,7 +1130,6 @@ class _DetailsPageState extends State<DetailsPage> {
                                                 box
                                                     .deleteAt(widget.id)
                                                     .then((value) {
-                                                  // TODO: does it work? if it work then do we need the setState((){}) ?
                                                   selectedIdProvider
                                                       .selectedId = -1;
                                                   if (isLargeScreen) {
