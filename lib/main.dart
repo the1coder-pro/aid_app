@@ -194,6 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: box.isEmpty
                 ? Container()
                 : PopupMenuButton<SampleItem>(
+                    tooltip: 'صفحات اضافية',
                     // Callback that sets the selected popup menu item.
                     onSelected: (SampleItem item) {
                       setState(() {
@@ -215,15 +216,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: ((context) => Directionality(
-                                          textDirection: TextDirection.rtl,
-                                          child: Scaffold(
-                                            appBar: AppBar(
-                                                title: const Text('الطباعة')),
-                                            body: const Center(
-                                                child:
-                                                    Text("صفحة الطباعة هنا")),
-                                          ),
-                                        ))));
+                                        textDirection: TextDirection.rtl,
+                                        child: PrintPage(context)))));
                             break;
 
                           // Settings Page
@@ -493,7 +487,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                         ),
                                         title: Text(
-                                          person.name,
+                                          person.name + '$i',
                                           style: const TextStyle(fontSize: 15),
                                         ),
                                         subtitle: RichText(
@@ -535,10 +529,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                             selectedIdProvider.selectedId = i;
                                             setState(() {});
                                           } else {
+                                            selectedIdProvider.selectedId = i;
+                                            setState(() {});
                                             Navigator.push(context,
                                                 MaterialPageRoute(
                                               builder: (context) {
-                                                return DetailsPage(id: i);
+                                                return DetailsPage(
+                                                    id: selectedIdProvider
+                                                        .selectedId);
                                               },
                                             ));
                                           }
@@ -575,6 +573,210 @@ class _MyHomePageState extends State<MyHomePage> {
                       builder: (context) {
                         return RegisterPage();
                       }))),
+    );
+  }
+
+  Scaffold PrintPage(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('الطباعة')),
+      body: Center(
+        child: OutlinedButton(
+            child: const Text("اختيار التسجيلات"),
+            onPressed: () {
+              List<DateTime> dateRange = [];
+
+              showDialog(
+                  context: context,
+                  builder: (context) => Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AlertDialog(
+                          icon: const Icon(Icons.people_outline_outlined),
+                          title: const Text("من تريد طباعته"),
+                          content: Column(children: [
+                            const Center(
+                                child: Text("تاريخ المساعدة",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold))),
+                            const SizedBox(height: 10),
+                            dateRange.isEmpty
+                                ? Container()
+                                : Center(
+                                    child: SizedBox(
+                                    width: 350,
+                                    child: Table(
+                                      textDirection: TextDirection.rtl,
+                                      children: [
+                                        TableRow(children: [
+                                          const Text("الميلادي"),
+                                          Text(
+                                              "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+                                        ]),
+                                        TableRow(children: [
+                                          const Text("الهجري"),
+                                          Text(
+                                              "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+                                        ]),
+                                      ],
+                                    ),
+                                  )),
+                            const SizedBox(height: 10),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  OutlinedButton.icon(
+                                      icon: const Icon(
+                                          Icons.calendar_month_outlined),
+                                      label: const Text("تاريخ (ميلادي)"),
+                                      onPressed: () {
+                                        List<DateTime> dateRange = [];
+
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                Directionality(
+                                                  textDirection:
+                                                      TextDirection.rtl,
+                                                  child: SfDateRangePicker(
+                                                      backgroundColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .background,
+                                                      startRangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      endRangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      rangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primaryContainer,
+                                                      selectionMode:
+                                                          DateRangePickerSelectionMode
+                                                              .range,
+                                                      confirmText: "تأكيد",
+                                                      cancelText: "إلغاء",
+                                                      onCancel: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      onSubmit:
+                                                          (Object? value) {
+                                                        if (value
+                                                            is PickerDateRange) {
+                                                          dateRange.clear();
+                                                          dateRange.add(
+                                                              value.startDate!);
+                                                          dateRange.add(
+                                                              value.endDate!);
+                                                          setState(() {});
+
+                                                          debugPrint(
+                                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                                          debugPrint(
+                                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                                          Navigator.pop(
+                                                              context);
+                                                        }
+                                                      },
+                                                      showActionButtons: true),
+                                                ));
+                                      }),
+                                  // const SizedBox(width: 10),
+                                  OutlinedButton.icon(
+                                      icon: const Icon(
+                                          Icons.calendar_month_outlined),
+                                      label: const Text("تاريخ (هجري)"),
+                                      onPressed: () {
+                                        List<DateTime> dateRange = [];
+
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                Directionality(
+                                                  textDirection:
+                                                      TextDirection.rtl,
+                                                  child: SfHijriDateRangePicker(
+                                                      backgroundColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .background,
+                                                      startRangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      endRangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      rangeSelectionColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primaryContainer,
+                                                      selectionMode:
+                                                          DateRangePickerSelectionMode
+                                                              .range,
+                                                      confirmText: "تأكيد",
+                                                      cancelText: "إلغاء",
+                                                      onCancel: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      onSubmit:
+                                                          (Object? value) {
+                                                        if (value
+                                                            is HijriDateRange) {
+                                                          dateRange.clear();
+                                                          dateRange.add(value
+                                                              .startDate!
+                                                              .toDateTime());
+                                                          dateRange.add(value
+                                                              .endDate!
+                                                              .toDateTime());
+                                                          setState(() {});
+
+                                                          debugPrint(
+                                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                                          debugPrint(
+                                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                                          Navigator.pop(
+                                                              context);
+                                                        } else if (value
+                                                            is DateTime) {
+                                                          final DateTime
+                                                              selectedDate =
+                                                              value;
+                                                        } else if (value
+                                                            is List<DateTime>) {
+                                                          final List<DateTime>
+                                                              selectedDates =
+                                                              value;
+                                                        } else if (value is List<
+                                                            PickerDateRange>) {
+                                                          final List<
+                                                                  PickerDateRange>
+                                                              selectedRanges =
+                                                              value;
+                                                        }
+                                                      },
+                                                      showActionButtons: true),
+                                                ));
+                                      }),
+                                ]),
+                          ]),
+                          actions: [
+                            TextButton(
+                                child: const Text("إلغاء"),
+                                onPressed: () => Navigator.pop(context)),
+                            TextButton(
+                                child: const Text("نعم"), onPressed: () {})
+                          ],
+                        ),
+                      ));
+            }),
+      ),
     );
   }
 }
@@ -1132,27 +1334,32 @@ class _DetailsPageState extends State<DetailsPage> {
                                                   Navigator.pop(context)),
                                           TextButton(
                                               child: const Text("نعم"),
-                                              onPressed: () {
-                                                selectedIdProvider.selectedId =
-                                                    -1;
-                                                box.values.isNotEmpty
-                                                    ? box
-                                                        .deleteAt(widget.id)
-                                                        .then((value) {
-                                                        // selectedIdProvider
-                                                        //     .selectedId = -1;
-                                                        setState(() {});
+                                              onPressed: () async {
+                                                if (box.values.isNotEmpty) {
+                                                  box
+                                                      .deleteAt(widget.id)
+                                                      .then((value) {
+                                                    // selectedIdProvider
+                                                    //     .selectedId = -1;
+                                                    selectedIdProvider
+                                                        .selectedId = -1;
+                                                    setState(() {});
 
-                                                        if (isLargeScreen) {
-                                                          setState(() {});
-                                                          Navigator.pop(
-                                                              context);
-                                                        } else {
-                                                          Navigator.pop(
-                                                              context);
-                                                        }
-                                                      })
-                                                    : Navigator.pop(context);
+                                                    if (isLargeScreen) {
+                                                      setState(() {});
+                                                      Navigator.pop(context);
+                                                    } else {
+                                                      setState(() {});
+
+                                                      Navigator.pop(context);
+                                                      Navigator
+                                                          .pushReplacementNamed(
+                                                              context, '/');
+                                                    }
+                                                  });
+                                                } else {
+                                                  Navigator.pop(context);
+                                                }
                                               })
                                         ],
                                       ),

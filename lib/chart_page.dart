@@ -41,6 +41,9 @@ class ChartPageState extends State<ChartPage> {
     debugPrint(chartAidMap.toString());
   }
 
+  RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+  String Function(Match) mathFunc = (Match match) => '${match[1]},';
+
   @override
   void initState() {
     super.initState();
@@ -63,7 +66,12 @@ class ChartPageState extends State<ChartPage> {
           delegate: SliverChildListDelegate([
         Center(
             child: SfCartesianChart(
-                title: ChartTitle(text: 'تقرير لمجموع أنواع المساعدة'),
+                title: ChartTitle(
+                    text: 'تقرير لمجموع أنواع المساعدة',
+                    textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'ibmPlexSansArabic')),
                 legend: const Legend(isVisible: false),
                 primaryXAxis:
                     CategoryAxis(labelStyle: const TextStyle(fontSize: 15)),
@@ -75,25 +83,38 @@ class ChartPageState extends State<ChartPage> {
                   yValueMapper: (ChartAidData data, _) => data.amount,
                   dataLabelMapper: (ChartAidData data, _) => "${data.amount}",
                   dataLabelSettings: const DataLabelSettings(
-                      isVisible: true, textStyle: TextStyle(fontSize: 20)),
+                      isVisible: true,
+                      textStyle: TextStyle(
+                          fontSize: 20, fontFamily: 'ibmPlexSansArabic')),
                   color: Theme.of(context).colorScheme.primary),
             ])),
         const SizedBox(height: 15),
         const Center(
-            child: Text("المجموع كامل", style: TextStyle(fontSize: 20))),
+            child: Text("المجموع كامل",
+                style:
+                    TextStyle(fontSize: 20, fontFamily: 'ibmPlexSansArabic'))),
         Center(
             child: Container(
-          margin: const EdgeInsets.all(15.0),
-          padding: const EdgeInsets.all(3.0),
-          decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(2)),
-              border: Border.all(color: Theme.of(context).colorScheme.primary)),
-          child: Text(
-            "$totalAmount ريال",
-            style: const TextStyle(fontSize: 30),
-            textDirection: TextDirection.rtl,
-          ),
-        )),
+                margin: const EdgeInsets.all(15.0),
+                padding: const EdgeInsets.all(3.0),
+                decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(2)),
+                    border: Border.all(
+                        color: Theme.of(context).colorScheme.primary)),
+                child: RichText(
+                  textDirection: TextDirection.rtl,
+                  text: TextSpan(
+                      style: const TextStyle(
+                          fontSize: 30, fontFamily: 'ibmPlexSansArabic'),
+                      children: [
+                        TextSpan(
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            text: totalAmount
+                                .toString()
+                                .replaceAllMapped(reg, mathFunc)),
+                        const TextSpan(text: ' ريال')
+                      ]),
+                ))),
       ]))
     ]));
   }
