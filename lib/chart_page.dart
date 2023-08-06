@@ -64,7 +64,7 @@ class ChartPageState extends State<ChartPage> {
         Center(
             child: SfCartesianChart(
                 title: ChartTitle(text: 'تقرير لمجموع أنواع المساعدة'),
-                legend: Legend(isVisible: false),
+                legend: const Legend(isVisible: false),
                 primaryXAxis:
                     CategoryAxis(labelStyle: const TextStyle(fontSize: 15)),
                 series: <ChartSeries<ChartAidData, String>>[

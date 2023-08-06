@@ -334,22 +334,22 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                     itemBuilder: (BuildContext context) =>
                         <PopupMenuEntry<SampleItem>>[
-                      PopupMenuItem<SampleItem>(
+                      const PopupMenuItem<SampleItem>(
                         value: SampleItem.itemOne,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: const [
+                          children: [
                             Icon(Icons.bar_chart_outlined),
                             Spacer(),
                             Text('الرسم البياني'),
                           ],
                         ),
                       ),
-                      PopupMenuItem<SampleItem>(
+                      const PopupMenuItem<SampleItem>(
                         value: SampleItem.itemTwo,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: const [
+                          children: [
                             Icon(Icons.print_outlined),
                             Spacer(),
                             Text('الطباعة'),
@@ -357,11 +357,11 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                       const PopupMenuDivider(),
-                      PopupMenuItem<SampleItem>(
+                      const PopupMenuItem<SampleItem>(
                         value: SampleItem.itemThree,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: const [
+                          children: [
                             Icon(Icons.settings_outlined),
                             Spacer(),
                             Text('الإعدادات'),
@@ -408,44 +408,49 @@ class _MyHomePageState extends State<MyHomePage> {
                                           SlidableAction(
                                             onPressed: (context) => showDialog(
                                                 context: context,
-                                                builder: (context) =>
-                                                    Directionality(
-                                                      textDirection:
-                                                          TextDirection.rtl,
-                                                      child: AlertDialog(
-                                                        icon: const Icon(Icons
-                                                            .delete_forever_outlined),
-                                                        title: const Text(
-                                                            "هل انت متأكد ؟"),
-                                                        content: Text(
-                                                            "هل انت متأكد انك تريد حذف \n'${person!.name}' ؟"),
-                                                        actions: [
-                                                          TextButton(
-                                                              child: const Text(
-                                                                  "إلغاء"),
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context)),
-                                                          TextButton(
-                                                              child: const Text(
-                                                                  "نعم"),
-                                                              onPressed: () {
-                                                                box
-                                                                    .deleteAt(i)
-                                                                    .then(
-                                                                        (value) {
-                                                                  selectedIdProvider
-                                                                      .selectedId = -1;
-                                                                  setState(
-                                                                      () {});
+                                                builder:
+                                                    (context) => Directionality(
+                                                          textDirection:
+                                                              TextDirection.rtl,
+                                                          child: AlertDialog(
+                                                            icon: const Icon(Icons
+                                                                .delete_forever_outlined),
+                                                            title: const Text(
+                                                                "هل انت متأكد ؟"),
+                                                            content: Text(
+                                                                "هل انت متأكد انك تريد حذف \n'${person!.name}' ؟"),
+                                                            actions: [
+                                                              TextButton(
+                                                                  child: const Text(
+                                                                      "إلغاء"),
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          context)),
+                                                              TextButton(
+                                                                  child:
+                                                                      const Text(
+                                                                          "نعم"),
+                                                                  onPressed:
+                                                                      () {
+                                                                    box.values
+                                                                            .isNotEmpty
+                                                                        ? box
+                                                                            .deleteAt(
+                                                                                i)
+                                                                            .then(
+                                                                                (value) {
+                                                                            selectedIdProvider.selectedId =
+                                                                                -1;
+                                                                            setState(() {});
 
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                });
-                                                              })
-                                                        ],
-                                                      ),
-                                                    )),
+                                                                            Navigator.pop(context);
+                                                                          })
+                                                                        : Navigator.pop(
+                                                                            context);
+                                                                  })
+                                                            ],
+                                                          ),
+                                                        )),
                                             backgroundColor: themeChange
                                                     .darkTheme
                                                 ? redDarkColorScheme.primary
@@ -545,18 +550,16 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                       ),
-                      (isLargeScreen &&
-                              (box.length > selectedIdProvider.selectedId &&
-                                      selectedIdProvider.selectedId != -1
-                                  ? true
-                                  : false) &&
-                              box.getAt(selectedIdProvider.selectedId)!.isInBox)
-                          // i || selectedId || person.key
-                          ? Expanded(
-                              flex: 2,
-                              child: DetailsPage(
-                                  id: selectedIdProvider.selectedId))
-                          : Container(),
+                      if (isLargeScreen &&
+                          box.values.isNotEmpty &&
+                          selectedIdProvider.selectedId != -1 &&
+                          box.getAt(selectedIdProvider.selectedId)!.isInBox)
+                        Expanded(
+                            flex: 2,
+                            child:
+                                DetailsPage(id: selectedIdProvider.selectedId))
+                      else
+                        Container(),
                     ]),
               );
             } else {
@@ -797,6 +800,7 @@ class _RegisterPageState extends State<RegisterPage> {
             padding: const EdgeInsets.all(10),
             child: ListView(
               children: <Widget>[
+                const SizedBox(height: 15),
                 TextFormField(
                   decoration: InputDecoration(
                       suffixIcon: clearButton(_firstNameController),
@@ -1088,7 +1092,9 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
-    Person? person = widget.id >= 0 && box.getAt(widget.id)!.isInBox
+    Person? person = selectedIdProvider.selectedId != -1 &&
+            widget.id >= 0 &&
+            box.getAt(widget.id)!.isInBox
         ? box.getAt(widget.id)
         : null;
     if (MediaQuery.of(context).size.width > 600) {
@@ -1098,7 +1104,7 @@ class _DetailsPageState extends State<DetailsPage> {
     }
     return Directionality(
         textDirection: TextDirection.rtl,
-        child: !(person != null)
+        child: !(box.values.isNotEmpty && person != null)
             ? const NoSelectedRecord()
             : Scaffold(
                 body: CustomScrollView(
@@ -1127,20 +1133,26 @@ class _DetailsPageState extends State<DetailsPage> {
                                           TextButton(
                                               child: const Text("نعم"),
                                               onPressed: () {
-                                                box
-                                                    .deleteAt(widget.id)
-                                                    .then((value) {
-                                                  selectedIdProvider
-                                                      .selectedId = -1;
-                                                  if (isLargeScreen) {
-                                                    setState(() {});
-                                                  } else {
-                                                    Navigator.pop(context);
-                                                    Navigator
-                                                        .pushReplacementNamed(
-                                                            context, '/');
-                                                  }
-                                                });
+                                                selectedIdProvider.selectedId =
+                                                    -1;
+                                                box.values.isNotEmpty
+                                                    ? box
+                                                        .deleteAt(widget.id)
+                                                        .then((value) {
+                                                        // selectedIdProvider
+                                                        //     .selectedId = -1;
+                                                        setState(() {});
+
+                                                        if (isLargeScreen) {
+                                                          setState(() {});
+                                                          Navigator.pop(
+                                                              context);
+                                                        } else {
+                                                          Navigator.pop(
+                                                              context);
+                                                        }
+                                                      })
+                                                    : Navigator.pop(context);
                                               })
                                         ],
                                       ),
@@ -1166,13 +1178,6 @@ class _DetailsPageState extends State<DetailsPage> {
                     SliverList(
                       delegate: SliverChildListDelegate(
                         [
-                          // Card(
-                          //     child: ListTile(
-                          //   leading: const Icon(Icons.person_outlined),
-                          //   title: Text(person.name),
-                          //   subtitle: const Text("الأسم"),
-                          // )),
-
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.phone_outlined),
@@ -1218,82 +1223,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             title: Text(person.notes),
                             subtitle: const Text("الملاحظات"),
                           )),
-                          //  Card(
-                          //     child: ListTile(
-                          //   title: Text(widget.person.name),
-                          //   subtitle: Text("مشاركة"),
-                          // )),
                         ],
                       ),
                     ),
                   ],
                 ),
-
-                //  Center(
-                //     child: Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: ListView(
-                //     children: [
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.person_outlined),
-                //         title: Text(person.name),
-                //         subtitle: const Text("الأسم"),
-                //       )),
-
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.phone_outlined),
-                //         title: Text("${person.phoneNumber}"),
-                //         subtitle: const Text("رقم الهاتف"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.badge_outlined),
-                //         title: Text(person.idNumber),
-                //         subtitle: const Text("رقم الهوية"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.date_range_outlined),
-                //         title: Text(person.aidDates.length >= 2
-                //             ? "${person.aidDates[0]} - ${person.aidDates[1]}"
-                //             : "لا يوجد"),
-                //         subtitle: const Text("تاريخ المساعدة"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.request_quote_outlined),
-                //         title: Text(person.aidType),
-                //         subtitle: const Text("نوع المساعدة"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.attach_money_outlined),
-                //         title: Text("${person.aidAmount} ريال"),
-                //         subtitle: const Text("مقدار المساعدة"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.update_outlined),
-                //         title:
-                //             Text(person.isContinuousAid ? "مستمرة" : "منقطعة"),
-                //         subtitle: const Text("مدة المساعدة"),
-                //       )),
-                //       Card(
-                //           child: ListTile(
-                //         leading: const Icon(Icons.description_outlined),
-                //         title: Text(person.notes),
-                //         subtitle: const Text("الملاحظات"),
-                //       )),
-                //       //  Card(
-                //       //     child: ListTile(
-                //       //   title: Text(widget.person.name),
-                //       //   subtitle: Text("مشاركة"),
-                //       // )),
-                //     ],
-                //   ),
-                // )),
               ));
   }
 }
