@@ -104,8 +104,11 @@ class ChartPageState extends State<ChartPage> {
                 child: RichText(
                   textDirection: TextDirection.rtl,
                   text: TextSpan(
-                      style: const TextStyle(
-                          fontSize: 30, fontFamily: 'ibmPlexSansArabic'),
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).textTheme.displayLarge!.color,
+                          fontSize: 30,
+                          fontFamily: 'ibmPlexSansArabic'),
                       children: [
                         TextSpan(
                             style: const TextStyle(fontWeight: FontWeight.bold),

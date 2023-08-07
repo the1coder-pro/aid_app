@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.13.0"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: "0c8368c9b3f0abbc193b9d6133649a614204b528982bebc7026372d61677ce3a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.7"
   args:
     dependency: transitive
     description:
@@ -33,6 +41,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  barcode:
+    dependency: transitive
+    description:
+      name: barcode
+      sha256: "789f898eef0bd88312470bdb2cc996f895ad7dd5f89e9adde84b204546a90b45"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.4"
+  bidi:
+    dependency: transitive
+    description:
+      name: bidi
+      sha256: "6794b226bc939731308b8539c49bb6c2fdbf0e78c3a65e9b9e81e727c256dfe6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
   boolean_selector:
     dependency: transitive
     description:
@@ -169,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  dart_date:
+    dependency: "direct main"
+    description:
+      name: dart_date
+      sha256: e248419c035d4adb535dfa461ee6c65e15f9e0258541d48362e1168c0c3024cd
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.2"
   dart_style:
     dependency: transitive
     description:
@@ -336,6 +368,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: a72242c9a0ffb65d03de1b7113bc4e189686fc07c7147b8b41811d0dd0e0d9bf
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.17"
   intl:
     dependency: transitive
     description:
@@ -496,6 +536,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  pdf:
+    dependency: transitive
+    description:
+      name: pdf
+      sha256: "9f75fc7f5580ea5e635b5724de58fb27f684c9ad03ed46fdc1aac768e4557315"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.10.4"
   petitparser:
     dependency: transitive
     description:
@@ -520,6 +568,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.5"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "7c1e5f0d23c9016c5bbd8b1473d0d3fb3fc851b876046039509e18e0c7485f2c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.7.3"
   pool:
     dependency: transitive
     description:
@@ -528,6 +584,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  printing:
+    dependency: "direct main"
+    description:
+      name: printing
+      sha256: e7c383dca95ee7b88c02dc1c66638628d3dcdc2fb2cc47e7a595facd47e46b56
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.11.0"
   provider:
     dependency: "direct main"
     description:
@@ -552,6 +616,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
+  qr:
+    dependency: transitive
+    description:
+      name: qr
+      sha256: "64957a3930367bf97cc211a5af99551d630f2f4625e38af10edd6b19131b64b3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -725,6 +797,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
+  timeago:
+    dependency: transitive
+    description:
+      name: timeago
+      sha256: "4addcda362e51f23cf7ae2357fccd053f29d59b4ddd17fb07fc3e7febb47a456"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.0"
   timing:
     dependency: transitive
     description:
@@ -823,4 +903,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.0.0 <4.0.0"
-  flutter: ">=3.7.0"
+  flutter: ">=3.10.0"

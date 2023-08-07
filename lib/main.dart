@@ -1,4 +1,5 @@
 import 'package:aid_app/chart_page.dart';
+import 'package:aid_app/print_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -215,9 +216,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: ((context) => Directionality(
+                                    builder: ((context) => const Directionality(
                                         textDirection: TextDirection.rtl,
-                                        child: PrintPage(context)))));
+                                        child: PrintPage()))));
                             break;
 
                           // Settings Page
@@ -289,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 Text("ازرق"),
                                                 Text("احمر"),
                                                 Text("اصفر"),
-                                                Text("رصاصي"),
+                                                Text("اسود"),
                                                 Icon(Icons.phone_android),
                                               ],
                                             ),
@@ -333,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Icon(Icons.bar_chart_outlined),
+                            Icon(Icons.poll_outlined),
                             Spacer(),
                             Text('الرسم البياني'),
                           ],
@@ -487,7 +488,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                         ),
                                         title: Text(
-                                          person.name,
+                                          person.name.split(' ').length > 3
+                                              ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
+                                              : person.name,
                                           style: const TextStyle(
                                               fontFamily: "ibmPlexSansArabic",
                                               fontSize: 18),
@@ -583,210 +586,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       builder: (context) {
                         return RegisterPage();
                       }))),
-    );
-  }
-
-  Scaffold PrintPage(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('الطباعة')),
-      body: Center(
-        child: OutlinedButton(
-            child: const Text("اختيار التسجيلات"),
-            onPressed: () {
-              List<DateTime> dateRange = [];
-
-              showDialog(
-                  context: context,
-                  builder: (context) => Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: AlertDialog(
-                          icon: const Icon(Icons.people_outline_outlined),
-                          title: const Text("من تريد طباعته"),
-                          content: Column(children: [
-                            const Center(
-                                child: Text("تاريخ المساعدة",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                            const SizedBox(height: 10),
-                            dateRange.isEmpty
-                                ? Container()
-                                : Center(
-                                    child: SizedBox(
-                                    width: 350,
-                                    child: Table(
-                                      textDirection: TextDirection.rtl,
-                                      children: [
-                                        TableRow(children: [
-                                          const Text("الميلادي"),
-                                          Text(
-                                              "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
-                                        ]),
-                                        TableRow(children: [
-                                          const Text("الهجري"),
-                                          Text(
-                                              "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
-                                        ]),
-                                      ],
-                                    ),
-                                  )),
-                            const SizedBox(height: 10),
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  OutlinedButton.icon(
-                                      icon: const Icon(
-                                          Icons.calendar_month_outlined),
-                                      label: const Text("تاريخ (ميلادي)"),
-                                      onPressed: () {
-                                        List<DateTime> dateRange = [];
-
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) =>
-                                                Directionality(
-                                                  textDirection:
-                                                      TextDirection.rtl,
-                                                  child: SfDateRangePicker(
-                                                      backgroundColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .background,
-                                                      startRangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primary,
-                                                      endRangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primary,
-                                                      rangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primaryContainer,
-                                                      selectionMode:
-                                                          DateRangePickerSelectionMode
-                                                              .range,
-                                                      confirmText: "تأكيد",
-                                                      cancelText: "إلغاء",
-                                                      onCancel: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      onSubmit:
-                                                          (Object? value) {
-                                                        if (value
-                                                            is PickerDateRange) {
-                                                          dateRange.clear();
-                                                          dateRange.add(
-                                                              value.startDate!);
-                                                          dateRange.add(
-                                                              value.endDate!);
-                                                          setState(() {});
-
-                                                          debugPrint(
-                                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                                          debugPrint(
-                                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                                          Navigator.pop(
-                                                              context);
-                                                        }
-                                                      },
-                                                      showActionButtons: true),
-                                                ));
-                                      }),
-                                  // const SizedBox(width: 10),
-                                  OutlinedButton.icon(
-                                      icon: const Icon(
-                                          Icons.calendar_month_outlined),
-                                      label: const Text("تاريخ (هجري)"),
-                                      onPressed: () {
-                                        List<DateTime> dateRange = [];
-
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) =>
-                                                Directionality(
-                                                  textDirection:
-                                                      TextDirection.rtl,
-                                                  child: SfHijriDateRangePicker(
-                                                      backgroundColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .background,
-                                                      startRangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primary,
-                                                      endRangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primary,
-                                                      rangeSelectionColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .primaryContainer,
-                                                      selectionMode:
-                                                          DateRangePickerSelectionMode
-                                                              .range,
-                                                      confirmText: "تأكيد",
-                                                      cancelText: "إلغاء",
-                                                      onCancel: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      onSubmit:
-                                                          (Object? value) {
-                                                        if (value
-                                                            is HijriDateRange) {
-                                                          dateRange.clear();
-                                                          dateRange.add(value
-                                                              .startDate!
-                                                              .toDateTime());
-                                                          dateRange.add(value
-                                                              .endDate!
-                                                              .toDateTime());
-                                                          setState(() {});
-
-                                                          debugPrint(
-                                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                                          debugPrint(
-                                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                                          Navigator.pop(
-                                                              context);
-                                                        } else if (value
-                                                            is DateTime) {
-                                                          final DateTime
-                                                              selectedDate =
-                                                              value;
-                                                        } else if (value
-                                                            is List<DateTime>) {
-                                                          final List<DateTime>
-                                                              selectedDates =
-                                                              value;
-                                                        } else if (value is List<
-                                                            PickerDateRange>) {
-                                                          final List<
-                                                                  PickerDateRange>
-                                                              selectedRanges =
-                                                              value;
-                                                        }
-                                                      },
-                                                      showActionButtons: true),
-                                                ));
-                                      }),
-                                ]),
-                          ]),
-                          actions: [
-                            TextButton(
-                                child: const Text("إلغاء"),
-                                onPressed: () => Navigator.pop(context)),
-                            TextButton(
-                                child: const Text("نعم"), onPressed: () {})
-                          ],
-                        ),
-                      ));
-            }),
-      ),
     );
   }
 }
@@ -896,8 +695,9 @@ class _RegisterPageState extends State<RegisterPage> {
     if (loadPerson != null) {
       List<String> fullName = loadPerson.name.split(" ");
       _firstNameController.text = fullName[0];
-      _lastNameController.text =
-          "${fullName[1]} ${fullName.last != fullName[1] ? fullName.last : ''}";
+      fullName.removeAt(0);
+      _lastNameController.text = fullName.join(' ');
+      // "${fullName[1]} ${fullName.last != fullName[1] ? fullName.join('') : ''}";
       _phoneController.text = loadPerson.phoneNumber.toString();
       _idNumberController.text = loadPerson.idNumber.toString();
       _amountController.text = loadPerson.aidAmount.toString();
@@ -1199,17 +999,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                               debugPrint(
                                                   "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
                                               Navigator.pop(context);
-                                            } else if (value is DateTime) {
-                                              final DateTime selectedDate =
-                                                  value;
-                                            } else if (value
-                                                is List<DateTime>) {
-                                              final List<DateTime>
-                                                  selectedDates = value;
-                                            } else if (value
-                                                is List<PickerDateRange>) {
-                                              final List<PickerDateRange>
-                                                  selectedRanges = value;
                                             }
                                           },
                                           showActionButtons: true),
@@ -1436,7 +1225,11 @@ class _DetailsPageState extends State<DetailsPage> {
                       snap: true,
                       floating: true,
                       expandedHeight: 160.0,
-                      title: Text(person.name,
+                      title: Text(
+                          person.name.split(' ').length > 3
+                              ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
+                              : person.name,
+                          softWrap: true,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     SliverList(
@@ -1444,17 +1237,25 @@ class _DetailsPageState extends State<DetailsPage> {
                         [
                           Card(
                               child: ListTile(
+                            leading: const Icon(Icons.perm_identity_outlined),
+                            title: Text(person.name, softWrap: true),
+                            subtitle: const Text("الإسم كامل"),
+                          )),
+                          Card(
+                              child: ListTile(
                             leading: const Icon(Icons.phone_outlined),
                             title: Text(person.phoneNumber == 0
-                                ? "-"
+                                ? "لا يوجد"
                                 : "${person.phoneNumber}"),
                             subtitle: const Text("رقم الهاتف"),
                           )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.badge_outlined),
-                            title: Text(
-                                person.idNumber == "0" ? "-" : person.idNumber),
+                            title: Text(person.idNumber == "0" ||
+                                    person.idNumber.isEmpty
+                                ? "لا يوجد"
+                                : person.idNumber),
                             subtitle: const Text("رقم الهوية"),
                           )),
                           Card(
