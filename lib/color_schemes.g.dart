@@ -67,9 +67,9 @@ const textThemeDefault = TextTheme(
   ),
 );
 
-// Default (Black)
+// Grey
 
-const defaultLightColorScheme = ColorScheme(
+const greyLightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF000000),
   onPrimary: Color(0xFFFFFFFF),
@@ -103,7 +103,7 @@ const defaultLightColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
-const defaultDarkColorScheme = ColorScheme(
+const greyDarkColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xFFFFFFFF),
   onPrimary: Color(0xFF000000),
@@ -137,7 +137,7 @@ const defaultDarkColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
-// Blue
+// Default (Blue)
 
 const blueLightColorScheme = ColorScheme(
   brightness: Brightness.light,

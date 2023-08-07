@@ -14,8 +14,8 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.64";
-List<String> colorSchemes = ["Default", "Red", "Yellow", "Blue", "Device"];
+String VERSION_NUMBER = "0.65";
+List<String> colorSchemes = ["Default", "Red", "Yellow", "Grey", "Device"];
 
 void main() async {
   await Hive.initFlutter();
@@ -65,19 +65,19 @@ class _MyAppState extends State<MyApp> {
       {ColorScheme? deviceLightColorTheme, ColorScheme? deviceDarkColorTheme}) {
     switch (colorSchemes[color]) {
       case "Default":
-        return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+        return darkMode ? blueDarkColorScheme : blueLightColorScheme;
       case "Red":
         return darkMode ? redDarkColorScheme : redLightColorScheme;
       case "Yellow":
         return darkMode ? yellowDarkColorScheme : yellowLightColorScheme;
-      case "Blue":
-        return darkMode ? blueDarkColorScheme : blueLightColorScheme;
+      case "Grey":
+        return darkMode ? greyDarkColorScheme : greyLightColorScheme;
       case "Device":
         return darkMode
-            ? (deviceDarkColorTheme ?? defaultDarkColorScheme)
-            : (deviceLightColorTheme ?? defaultLightColorScheme);
+            ? (deviceDarkColorTheme ?? blueDarkColorScheme)
+            : (deviceLightColorTheme ?? blueLightColorScheme);
     }
-    return darkMode ? defaultDarkColorScheme : defaultLightColorScheme;
+    return darkMode ? blueDarkColorScheme : blueLightColorScheme;
   }
 
   @override
@@ -286,10 +286,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 });
                                               },
                                               children: const <Widget>[
-                                                Text("اسود"),
+                                                Text("ازرق"),
                                                 Text("احمر"),
                                                 Text("اصفر"),
-                                                Text("ازرق"),
+                                                Text("رصاصي"),
                                                 Icon(Icons.phone_android),
                                               ],
                                             ),
@@ -487,20 +487,28 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                         ),
                                         title: Text(
-                                          person.name + '$i',
-                                          style: const TextStyle(fontSize: 15),
+                                          person.name,
+                                          style: const TextStyle(
+                                              fontFamily: "ibmPlexSansArabic",
+                                              fontSize: 18),
                                         ),
                                         subtitle: RichText(
                                             text: TextSpan(
-                                                style:
-                                                    DefaultTextStyle.of(context)
-                                                        .style,
+                                                style: DefaultTextStyle.of(
+                                                        context)
+                                                    .style
+                                                    .copyWith(
+                                                        fontFamily:
+                                                            "ibmPlexSansArabic"),
                                                 children: [
-                                              TextSpan(
-                                                  text:
-                                                      "${person.phoneNumber}\n",
-                                                  style: const TextStyle(
-                                                      fontSize: 15)),
+                                              if (person.phoneNumber != 0)
+                                                TextSpan(
+                                                    text:
+                                                        "${person.phoneNumber}\n",
+                                                    style: const TextStyle(
+                                                        fontSize: 15))
+                                              else
+                                                const TextSpan(),
                                               TextSpan(
                                                   text:
                                                       "${person.aidAmount} ريال",
@@ -509,7 +517,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                                           FontWeight.bold)),
                                               const TextSpan(text: " لأجل "),
                                               TextSpan(
-                                                  text: person.aidType,
+                                                  text: person.aidType.isEmpty
+                                                      ? 'لا يوجد'
+                                                      : person.aidType,
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold)),
@@ -891,6 +901,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _phoneController.text = loadPerson.phoneNumber.toString();
       _idNumberController.text = loadPerson.idNumber.toString();
       _amountController.text = loadPerson.aidAmount.toString();
+      dateRange = loadPerson.aidDates;
       if (aidTypes.contains(loadPerson.aidType)) {
         aidType = loadPerson.aidType;
         debugPrint(aidTypes.contains(loadPerson.aidType).toString());
@@ -1088,6 +1099,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                 builder: (context) => Directionality(
                                       textDirection: TextDirection.rtl,
                                       child: SfDateRangePicker(
+                                          initialSelectedRange: dateRange
+                                                  .isNotEmpty
+                                              ? PickerDateRange(
+                                                  dateRange[0], dateRange[1])
+                                              : null,
                                           backgroundColor: Theme.of(context)
                                               .colorScheme
                                               .background,
@@ -1099,7 +1115,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                               Theme.of(context)
                                                   .colorScheme
                                                   .primary,
-                                          rangeSelectionColor: Theme.of(context)
+                                          rangeSelectionColor: Theme
+                                                  .of(context)
                                               .colorScheme
                                               .primaryContainer,
                                           selectionMode:
@@ -1137,6 +1154,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                 builder: (context) => Directionality(
                                       textDirection: TextDirection.rtl,
                                       child: SfHijriDateRangePicker(
+                                          initialSelectedRange: dateRange
+                                                  .isNotEmpty
+                                              ? HijriDateRange(
+                                                  HijriDateTime.fromDateTime(
+                                                      dateRange[0]),
+                                                  HijriDateTime.fromDateTime(
+                                                      dateRange[1]))
+                                              : null,
                                           backgroundColor: Theme.of(context)
                                               .colorScheme
                                               .background,
@@ -1148,7 +1173,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                               Theme.of(context)
                                                   .colorScheme
                                                   .primary,
-                                          rangeSelectionColor: Theme.of(context)
+                                          rangeSelectionColor: Theme
+                                                  .of(context)
                                               .colorScheme
                                               .primaryContainer,
                                           selectionMode:
@@ -1212,9 +1238,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   onTap: () => TextInputAction.next,
                 ),
                 const SizedBox(height: 5),
-                if (!(aidTypes.contains(loadPerson?.aidType)) &&
-                    aidType == aidTypes.last)
-                  TextFormField(
+                Visibility(
+                  visible: aidType == aidTypes.last,
+                  child: TextFormField(
                     decoration: InputDecoration(
                         suffixIcon: clearButton(_typeController),
                         label: const Text("نوع اخر"),
@@ -1223,6 +1249,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _typeController,
                     textInputAction: TextInputAction.next,
                   ),
+                ),
                 const SizedBox(height: 15),
                 TextFormField(
                   decoration: InputDecoration(
@@ -1291,6 +1318,10 @@ class _DetailsPageState extends State<DetailsPage> {
   final box = Hive.box<Person>('personList');
   bool isLargeScreen = false;
 
+  String dateRangeView = '';
+  String hijriDateRangeView = '';
+  bool isDateHijri = false;
+
   @override
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
@@ -1299,6 +1330,19 @@ class _DetailsPageState extends State<DetailsPage> {
             box.getAt(widget.id)!.isInBox
         ? box.getAt(widget.id)
         : null;
+
+    if (person != null) {
+      if (person.aidDates.length >= 2) {
+        dateRangeView =
+            "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}";
+        hijriDateRangeView =
+            "${HijriDateTime.fromDateTime(person.aidDates[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(person.aidDates[1]).toString().replaceAll('-', '/')}";
+      } else {
+        dateRangeView = "لا يوجد";
+        hijriDateRangeView = "لا يوجد";
+      }
+    }
+
     if (MediaQuery.of(context).size.width > 600) {
       isLargeScreen = true;
     } else {
@@ -1312,7 +1356,17 @@ class _DetailsPageState extends State<DetailsPage> {
                 body: CustomScrollView(
                   slivers: <Widget>[
                     SliverAppBar.large(
-                      leading: isLargeScreen ? Container() : const BackButton(),
+                      leading: isLargeScreen
+                          ? IconButton(
+                              icon: const Icon(
+                                  Icons.keyboard_arrow_down_outlined),
+                              onPressed: () {
+                                setState(() {
+                                  selectedIdProvider.selectedId = -1;
+                                });
+                                Navigator.pushReplacementNamed(context, '/');
+                              })
+                          : const BackButton(),
                       actions: [
                         IconButton(
                           icon: const Icon(Icons.delete_outline),
@@ -1341,9 +1395,11 @@ class _DetailsPageState extends State<DetailsPage> {
                                                       .then((value) {
                                                     // selectedIdProvider
                                                     //     .selectedId = -1;
-                                                    selectedIdProvider
-                                                        .selectedId = -1;
-                                                    setState(() {});
+
+                                                    setState(() {
+                                                      selectedIdProvider
+                                                          .selectedId = -1;
+                                                    });
 
                                                     if (isLargeScreen) {
                                                       setState(() {});
@@ -1380,7 +1436,8 @@ class _DetailsPageState extends State<DetailsPage> {
                       snap: true,
                       floating: true,
                       expandedHeight: 160.0,
-                      title: Text(person.name),
+                      title: Text(person.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     SliverList(
                       delegate: SliverChildListDelegate(
@@ -1388,27 +1445,41 @@ class _DetailsPageState extends State<DetailsPage> {
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.phone_outlined),
-                            title: Text("${person.phoneNumber}"),
+                            title: Text(person.phoneNumber == 0
+                                ? "-"
+                                : "${person.phoneNumber}"),
                             subtitle: const Text("رقم الهاتف"),
                           )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.badge_outlined),
-                            title: Text(person.idNumber),
+                            title: Text(
+                                person.idNumber == "0" ? "-" : person.idNumber),
                             subtitle: const Text("رقم الهوية"),
                           )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.date_range_outlined),
-                            title: Text(person.aidDates.length >= 2
-                                ? "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}"
-                                : "لا يوجد"),
+                            title: Text(isDateHijri
+                                ? hijriDateRangeView
+                                : dateRangeView),
+                            onTap: () {
+                              setState(() {
+                                if (dateRangeView != "لا يوجد") {
+                                  setState(() {
+                                    isDateHijri = !isDateHijri;
+                                  });
+                                }
+                              });
+                            },
                             subtitle: const Text("تاريخ المساعدة"),
                           )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.request_quote_outlined),
-                            title: Text(person.aidType),
+                            title: Text(person.aidType.isEmpty
+                                ? 'لا يوجد'
+                                : person.aidType),
                             subtitle: const Text("نوع المساعدة"),
                           )),
                           Card(
@@ -1427,7 +1498,9 @@ class _DetailsPageState extends State<DetailsPage> {
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.description_outlined),
-                            title: Text(person.notes),
+                            title: Text(person.notes.isEmpty
+                                ? 'لا يوجد'
+                                : person.notes),
                             subtitle: const Text("الملاحظات"),
                           )),
                         ],
