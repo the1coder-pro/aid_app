@@ -1,12 +1,15 @@
 import 'package:aid_app/person.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:dart_date/dart_date.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'dart:html' as html;
 
 class PrintPage extends StatefulWidget {
   const PrintPage({super.key});
@@ -61,6 +64,7 @@ class _PrintPageState extends State<PrintPage> {
               )),
         const SizedBox(height: 10),
         Row(
+            textDirection: TextDirection.rtl,
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -186,18 +190,20 @@ class _PrintPageState extends State<PrintPage> {
                                           if (dateRange.isNotEmpty) {
                                             DateTime startDate = dateRange[0];
                                             DateTime endDate = dateRange[1];
-                                            DateTime personStartDate =
-                                                person!.aidDates[0];
-                                            DateTime personEndDate =
-                                                person.aidDates[1];
+                                            if (person != null) {
+                                              DateTime personStartDate =
+                                                  person.aidDates[0];
+                                              DateTime personEndDate =
+                                                  person.aidDates[1];
 
-                                            if (personStartDate
-                                                    .isSameOrAfter(startDate) &&
-                                                personEndDate
-                                                    .isSameOrBefore(endDate)) {
-                                              dateRangeIncludedPersonList
-                                                  .add(person);
-                                              //
+                                              if (personStartDate.isSameOrAfter(
+                                                      startDate) &&
+                                                  personEndDate.isSameOrBefore(
+                                                      endDate)) {
+                                                dateRangeIncludedPersonList
+                                                    .add(person);
+                                                //
+                                              }
                                             }
                                           }
                                         }
@@ -210,25 +216,146 @@ class _PrintPageState extends State<PrintPage> {
                   }),
             ]),
         SizedBox(
-            height: 300,
+            height: 250,
             child: Center(
-              child: ListView.builder(
+              child: ListView.separated(
                   itemCount: dateRangeIncludedPersonList.length,
+                  separatorBuilder: (context, i) =>
+                      const Divider(indent: 60, endIndent: 60, thickness: 2),
                   itemBuilder: (context, i) {
+                    if (dateRangeIncludedPersonList.isEmpty) {
+                      return const Center(
+                          child: Text('لا يوجد مساعدات بهذه التواريخ'));
+                    }
                     Person person = dateRangeIncludedPersonList[i];
                     return ListTile(
-                        title: Text(person.name),
-                        subtitle: Text(
-                            "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}"));
+                        title: Center(child: Text(person.name)),
+                        subtitle: Center(
+                          child: Text(
+                              "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}"),
+                        ));
                   }),
             )),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FilledButton.icon(
-              icon: const Icon(Icons.print_outlined),
-              onPressed: () {},
-              label: const Text("طباعة")),
-        )
+        dateRangeIncludedPersonList.isEmpty
+            ? Container()
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FilledButton.icon(
+                    icon: const Icon(Icons.print_outlined),
+                    onPressed: () async {
+                      final pdf = pw.Document();
+                      final font =
+                          await PdfGoogleFonts.iBMPlexSansArabicRegular();
+                      final boldFont =
+                          await PdfGoogleFonts.iBMPlexSansArabicBold();
+
+                      pdf.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          build: (pw.Context context) {
+                            pw.TextStyle tableStyle =
+                                pw.TextStyle(fontSize: 20.0, font: font);
+
+                            pw.TextStyle tableHeaderStyle = pw.TextStyle(
+                                fontSize: 15,
+                                font: boldFont,
+                                fontWeight: pw.FontWeight.bold);
+                            return pw.Column(children: [
+                              pw.Center(
+                                  child: pw.Text("المساعدات",
+                                      textDirection: pw.TextDirection.rtl,
+                                      style: pw.TextStyle(font: font))),
+                              pw.Center(
+                                  child: pw.Text(
+                                      "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
+
+                                      // Text(
+                                      //     "${intl.DateFormat('yyyy/MM/dd').format(startDate)} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+
+                                      // Text(
+                                      //     "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+
+                                      textDirection: pw.TextDirection.rtl,
+                                      style: pw.TextStyle(font: font))),
+                              pw.Directionality(
+                                  textDirection: pw.TextDirection.rtl,
+                                  child: pw.Table(
+                                    defaultColumnWidth:
+                                        const pw.FixedColumnWidth(120.0),
+                                    border: pw.TableBorder.all(
+                                        color: PdfColors.black,
+                                        style: pw.BorderStyle.solid,
+                                        width: 2),
+                                    children: [
+                                      pw.TableRow(children: [
+                                        pw.Column(children: [
+                                          pw.Text('النوع',
+                                              style: tableHeaderStyle)
+                                        ]),
+                                        pw.Column(children: [
+                                          pw.Text('القيمة',
+                                              style: tableHeaderStyle)
+                                        ]),
+                                        pw.Column(children: [
+                                          pw.Text('التاريخ',
+                                              style: tableHeaderStyle)
+                                        ]),
+                                        pw.Column(children: [
+                                          pw.Text('الاسم',
+                                              style: tableHeaderStyle)
+                                        ]),
+                                      ]),
+                                      for (Person person
+                                          in dateRangeIncludedPersonList)
+                                        pw.TableRow(children: [
+                                          pw.Column(children: [
+                                            pw.Text(person.aidType,
+                                                style: tableStyle.copyWith(
+                                                    fontSize: 15))
+                                          ]),
+                                          pw.Column(children: [
+                                            pw.Text(person.aidAmount.toString(),
+                                                style: tableStyle.copyWith(
+                                                    fontSize: 15))
+                                          ]),
+                                          pw.Column(children: [
+                                            pw.Text(
+                                                intl.DateFormat('yyyy/MM/dd')
+                                                    .format(person.aidDates[0]),
+                                                style: tableStyle.copyWith(
+                                                    fontSize: 15))
+                                          ]),
+                                          pw.Column(children: [
+                                            pw.Text(person.name,
+                                                style: tableStyle.copyWith(
+                                                    fontSize: 15))
+                                          ]),
+                                        ]),
+                                    ],
+                                  )),
+                            ]); // Center
+                          }));
+                      // await Printing.layoutPdf(
+                      //     onLayout: (PdfPageFormat format) async =>
+                      //         await Printing.convertHtml(html: '<h1>Hello</h1>'));
+                      Uint8List pdfInBytes = await pdf.save();
+
+//Create blob and link from bytes
+                      final blob = html.Blob([pdfInBytes], 'application/pdf');
+
+                      final url = html.Url.createObjectUrlFromBlob(blob);
+                      final anchor =
+                          html.document.createElement('a') as html.AnchorElement
+                            ..href = url
+                            ..style.display = 'none'
+                            ..download = 'file.pdf';
+                      html.document.body!.children.add(anchor);
+
+//Trigger the download of this PDF in the browser.
+                      anchor.click();
+                      Navigator.pop(context);
+                    },
+                    label: const Text("طباعة")),
+              ),
       ]))
     ]));
   }
