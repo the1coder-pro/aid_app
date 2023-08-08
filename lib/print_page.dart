@@ -9,7 +9,8 @@ import 'package:dart_date/dart_date.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'dart:html' as html;
+// import 'dart:html' as html;
+import 'package:universal_html/html.dart' as html;
 
 class PrintPage extends StatefulWidget {
   const PrintPage({super.key});
