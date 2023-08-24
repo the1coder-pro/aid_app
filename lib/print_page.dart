@@ -1,16 +1,18 @@
+import 'dart:io';
+
 import 'package:aid_app/person.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:dart_date/dart_date.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-// import 'dart:html' as html;
-import 'package:universal_html/html.dart' as html;
 
 class PrintPage extends StatefulWidget {
   const PrintPage({super.key});
@@ -335,25 +337,34 @@ class _PrintPageState extends State<PrintPage> {
                                   )),
                             ]); // Center
                           }));
-                      // await Printing.layoutPdf(
-                      //     onLayout: (PdfPageFormat format) async =>
-                      //         await Printing.convertHtml(html: '<h1>Hello</h1>'));
-                      Uint8List pdfInBytes = await pdf.save();
 
-//Create blob and link from bytes
-                      final blob = html.Blob([pdfInBytes], 'application/pdf');
+                      // which os is it?
+                      if (Platform.isMacOS ||
+                          Platform.isLinux ||
+                          Platform.isWindows) {
+                        String? outputFile = await FilePicker.platform.saveFile(
+                          dialogTitle: 'Please select an output file:',
+                          fileName: 'output-file.pdf',
+                        );
 
-                      final url = html.Url.createObjectUrlFromBlob(blob);
-                      final anchor =
-                          html.document.createElement('a') as html.AnchorElement
-                            ..href = url
-                            ..style.display = 'none'
-                            ..download = 'file.pdf';
-                      html.document.body!.children.add(anchor);
+                        if (outputFile == null) {
+                          print("User canceled the picker");
+                        } else {
+                          final file = File(outputFile);
+                          await file.writeAsBytes(await pdf.save());
+                        }
+                      } else if (Platform.isAndroid || Platform.isIOS) {
+                        String? selectedDirectory =
+                            await FilePicker.platform.getDirectoryPath();
 
-//Trigger the download of this PDF in the browser.
-                      anchor.click();
-                      Navigator.pop(context);
+                        if (selectedDirectory == null) {
+                          // User canceled the picker
+                          print("User canceled the picker");
+                        } else {
+                          final file = File("$selectedDirectory/example.pdf");
+                          await file.writeAsBytes(await pdf.save());
+                        }
+                      }
                     },
                     label: const Text("طباعة")),
               ),
