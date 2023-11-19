@@ -15,8 +15,15 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.65";
-List<String> colorSchemes = ["Default", "Red", "Yellow", "Grey", "Device"];
+String VERSION_NUMBER = "0.70";
+List<String> colorSchemes = [
+  "Default",
+  "Red",
+  "Yellow",
+  "Green",
+  "Grey",
+  "Device"
+];
 
 void main() async {
   await Hive.initFlutter();
@@ -73,6 +80,8 @@ class _MyAppState extends State<MyApp> {
         return darkMode ? yellowDarkColorScheme : yellowLightColorScheme;
       case "Grey":
         return darkMode ? greyDarkColorScheme : greyLightColorScheme;
+      case "Green":
+        return darkMode ? greenDarkColorScheme : greenLightColorScheme;
       case "Device":
         return darkMode
             ? (deviceDarkColorTheme ?? blueDarkColorScheme)
@@ -242,6 +251,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                           child: ListView(
                                         children: [
                                           SwitchListTile(
+                                              thumbIcon: MaterialStateProperty
+                                                  .resolveWith<Icon?>(
+                                                      (Set<MaterialState>
+                                                          states) {
+                                                if (states.contains(
+                                                    MaterialState.selected)) {
+                                                  return const Icon(
+                                                      Icons.dark_mode);
+                                                }
+                                                return const Icon(Icons
+                                                    .light_mode); // All other states will use the default thumbIcon.
+                                              }),
                                               title: const Text(
                                                 "الوضع الداكن",
                                                 style: TextStyle(
@@ -290,6 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 Text("ازرق"),
                                                 Text("احمر"),
                                                 Text("اصفر"),
+                                                Text("اخضر"),
                                                 Text("اسود"),
                                                 Icon(Icons.phone_android),
                                               ],
@@ -446,14 +468,23 @@ class _MyHomePageState extends State<MyHomePage> {
                                                             ],
                                                           ),
                                                         )),
-                                            backgroundColor: themeChange
-                                                    .darkTheme
-                                                ? redDarkColorScheme.primary
-                                                : redLightColorScheme.primary,
-                                            foregroundColor: themeChange
-                                                    .darkTheme
-                                                ? redDarkColorScheme.onPrimary
-                                                : redLightColorScheme.onPrimary,
+                                            backgroundColor:
+                                                // themeChange.darkTheme
+                                                //     ? Theme.of(context)
+                                                //         .colorScheme
+                                                //         .error
+                                                //     :
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
+                                            foregroundColor:
+                                                // themeChange
+                                                //         .darkTheme
+                                                //     ? redDarkColorScheme.onPrimary
+                                                //     :
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .onError,
                                             icon: Icons.delete,
                                             label: 'حذف',
                                           ),
@@ -462,15 +493,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 context: context,
                                                 builder: (context) =>
                                                     RegisterPage(id: i)),
-                                            backgroundColor: themeChange
-                                                    .darkTheme
-                                                ? blueDarkColorScheme.primary
-                                                : blueLightColorScheme.primary,
-                                            foregroundColor: themeChange
-                                                    .darkTheme
-                                                ? blueDarkColorScheme.onPrimary
-                                                : blueLightColorScheme
-                                                    .onPrimary,
+                                            backgroundColor:
+                                                // themeChange
+                                                //         .darkTheme
+                                                //     ? blueDarkColorScheme.primary
+                                                //     :
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .tertiary,
+                                            foregroundColor:
+                                                // themeChange
+                                                //         .darkTheme
+                                                //     ? blueDarkColorScheme.onPrimary
+                                                //     :
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .onTertiary,
                                             icon: Icons.edit,
                                             label: 'تعديل',
                                           ),
@@ -620,7 +658,10 @@ class NoRecordsPage extends StatelessWidget {
         const SizedBox(height: 20),
         TextButton.icon(
             icon: const Icon(Icons.add),
-            label: const Text("إنشاء مساعدة", style: TextStyle(fontSize: 20)),
+            label: const Text("إنشاء مساعدة",
+                style: TextStyle(
+                  fontSize: 20,
+                )),
             onPressed: () => showDialog(
                 context: context,
                 builder: (context) {
@@ -1096,8 +1137,8 @@ class _RegisterPageState extends State<RegisterPage> {
 }
 
 class DetailsPage extends StatefulWidget {
-  final int id;
-  const DetailsPage({super.key, required this.id});
+  final int? id;
+  const DetailsPage({super.key, this.id});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -1114,12 +1155,10 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
-    Person? person = selectedIdProvider.selectedId != -1 &&
-            widget.id >= 0 &&
-            box.getAt(widget.id)!.isInBox
-        ? box.getAt(widget.id)
+    Person? person = (selectedIdProvider.selectedId != -1 ||
+            widget.id! >= 0 && box.getAt(widget.id!)!.isInBox)
+        ? box.getAt(widget.id!)
         : null;
-
     if (person != null) {
       if (person.aidDates.length >= 2) {
         dateRangeView =
@@ -1180,7 +1219,7 @@ class _DetailsPageState extends State<DetailsPage> {
                                               onPressed: () async {
                                                 if (box.values.isNotEmpty) {
                                                   box
-                                                      .deleteAt(widget.id)
+                                                      .deleteAt(widget.id!)
                                                       .then((value) {
                                                     // selectedIdProvider
                                                     //     .selectedId = -1;

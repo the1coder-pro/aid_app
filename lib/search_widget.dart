@@ -9,21 +9,20 @@ class SearchWidget extends SearchDelegate<Person> {
   @override
   String get searchFieldLabel => 'البحث';
 
-  // TODO: SEARCH BAR THEME needs more design
-  // @override
-  // ThemeData appBarTheme(BuildContext context) {
-  //   return ThemeData(appBarTheme: Theme.of(context).appBarTheme);
-  // }
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return Theme.of(context)
+        .copyWith(appBarTheme: Theme.of(context).appBarTheme);
+  }
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            query = '';
+          })
     ];
   }
 
@@ -51,7 +50,7 @@ class SearchWidget extends SearchDelegate<Person> {
 class SearchFinder extends StatelessWidget {
   final String query;
 
-  const SearchFinder({Key? key, required this.query}) : super(key: key);
+  const SearchFinder({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -93,10 +92,13 @@ class SearchFinder extends StatelessWidget {
 
                     return ListTile(
                       onTap: () {
+                        var selectedPersonIndex =
+                            contactsBox.values.toList().indexOf(personListItem);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => DetailsPage(id: index)),
+                              builder: (context) =>
+                                  DetailsPage(id: selectedPersonIndex)),
                         );
                       },
                       title: Text(
@@ -114,7 +116,7 @@ class SearchFinder extends StatelessWidget {
 class SearchFinderResults extends StatelessWidget {
   final String query;
 
-  const SearchFinderResults({Key? key, required this.query}) : super(key: key);
+  const SearchFinderResults({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -202,8 +204,12 @@ class SearchFinderResults extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => DetailsPage(id: index)),
+                          MaterialPageRoute(builder: (context) {
+                            var selectedPersonIndex = contactsBox.values
+                                .toList()
+                                .indexOf(personListItem);
+                            return DetailsPage(id: selectedPersonIndex);
+                          }),
                         );
                       },
                     );
