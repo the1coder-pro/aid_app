@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:html' as html;
 import 'dart:io';
 
 import 'package:aid_app/person.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -242,7 +245,7 @@ class _PrintPageState extends State<PrintPage> {
         dateRangeIncludedPersonList.isEmpty
             ? Container()
             : Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(10),
                 child: FilledButton.icon(
                     icon: const Icon(Icons.print_outlined),
                     onPressed: () async {
@@ -251,7 +254,7 @@ class _PrintPageState extends State<PrintPage> {
                           await PdfGoogleFonts.iBMPlexSansArabicRegular();
                       final boldFont =
                           await PdfGoogleFonts.iBMPlexSansArabicBold();
-
+                      if (kIsWeb) print('im Web');
                       pdf.addPage(pw.Page(
                           pageFormat: PdfPageFormat.a4,
                           build: (pw.Context context) {
@@ -337,33 +340,44 @@ class _PrintPageState extends State<PrintPage> {
                                   )),
                             ]); // Center
                           }));
+                      try {
+                        // which os is it?
+                        if (Platform.isMacOS ||
+                            Platform.isLinux ||
+                            Platform.isWindows) {
+                          String? outputFile =
+                              await FilePicker.platform.saveFile(
+                            dialogTitle: 'Please select an output file:',
+                            fileName: 'output-file.pdf',
+                          );
 
-                      // which os is it?
-                      if (Platform.isMacOS ||
-                          Platform.isLinux ||
-                          Platform.isWindows) {
-                        String? outputFile = await FilePicker.platform.saveFile(
-                          dialogTitle: 'Please select an output file:',
-                          fileName: 'output-file.pdf',
-                        );
+                          if (outputFile == null) {
+                            print("User canceled the picker");
+                          } else {
+                            final file = File(outputFile);
+                            await file.writeAsBytes(await pdf.save());
+                          }
+                        } else if (Platform.isAndroid || Platform.isIOS) {
+                          String? selectedDirectory =
+                              await FilePicker.platform.getDirectoryPath();
 
-                        if (outputFile == null) {
-                          print("User canceled the picker");
-                        } else {
-                          final file = File(outputFile);
-                          await file.writeAsBytes(await pdf.save());
+                          if (selectedDirectory == null) {
+                            // User canceled the picker
+                            print("User canceled the picker");
+                          } else {
+                            final file = File("$selectedDirectory/example.pdf");
+                            await file.writeAsBytes(await pdf.save());
+                          }
                         }
-                      } else if (Platform.isAndroid || Platform.isIOS) {
-                        String? selectedDirectory =
-                            await FilePicker.platform.getDirectoryPath();
-
-                        if (selectedDirectory == null) {
-                          // User canceled the picker
-                          print("User canceled the picker");
-                        } else {
-                          final file = File("$selectedDirectory/example.pdf");
-                          await file.writeAsBytes(await pdf.save());
-                        }
+                      } catch (e) {
+                        var savedFile = await pdf.save();
+                        List<int> fileInts = List.from(savedFile);
+                        html.AnchorElement(
+                            href:
+                                "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+                          ..setAttribute("download",
+                              "${DateTime.now().millisecondsSinceEpoch}.pdf")
+                          ..click();
                       }
                     },
                     label: const Text("طباعة")),
