@@ -5,6 +5,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
@@ -423,51 +424,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                         children: [
                                           // A SlidableAction can have an icon and/or a label.
                                           SlidableAction(
-                                            onPressed: (context) => showDialog(
-                                                context: context,
-                                                builder:
-                                                    (context) => Directionality(
-                                                          textDirection:
-                                                              TextDirection.rtl,
-                                                          child: AlertDialog(
-                                                            icon: const Icon(Icons
-                                                                .delete_forever_outlined),
-                                                            title: const Text(
-                                                                "هل انت متأكد ؟"),
-                                                            content: Text(
-                                                                "هل انت متأكد انك تريد حذف \n'${person!.name}' ؟"),
-                                                            actions: [
-                                                              TextButton(
-                                                                  child: const Text(
-                                                                      "إلغاء"),
-                                                                  onPressed: () =>
-                                                                      Navigator.pop(
-                                                                          context)),
-                                                              TextButton(
-                                                                  child:
-                                                                      const Text(
-                                                                          "نعم"),
-                                                                  onPressed:
-                                                                      () {
-                                                                    box.values
-                                                                            .isNotEmpty
-                                                                        ? box
-                                                                            .deleteAt(
-                                                                                i)
-                                                                            .then(
-                                                                                (value) {
-                                                                            selectedIdProvider.selectedId =
-                                                                                -1;
-                                                                            setState(() {});
-
-                                                                            Navigator.pop(context);
-                                                                          })
-                                                                        : Navigator.pop(
-                                                                            context);
-                                                                  })
-                                                            ],
-                                                          ),
-                                                        )),
+                                            onPressed: (context) =>
+                                                DeleteDialog(context, person,
+                                                    box, i, selectedIdProvider),
                                             backgroundColor:
                                                 // themeChange.darkTheme
                                                 //     ? Theme.of(context)
@@ -625,6 +584,47 @@ class _MyHomePageState extends State<MyHomePage> {
                         return RegisterPage();
                       }))),
     );
+  }
+
+  Future<dynamic> DeleteDialog(BuildContext context, Person? person,
+      Box<Person> box, int i, SelectedIdProvider selectedIdProvider) {
+    return showDialog(
+        context: context,
+        builder: (context) => Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                icon: const Icon(Icons.delete_forever_outlined),
+                title: const Text("هل انت متأكد ؟"),
+                content: RichText(
+                  textDirection: TextDirection.rtl,
+                  text: TextSpan(children: [
+                    const TextSpan(text: "هل انت متأكد انك تريد حذف \n'"),
+                    TextSpan(
+                        text: person!.name,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    const TextSpan(text: "' ؟")
+                  ]),
+                ),
+                actions: [
+                  TextButton(
+                      child: const Text("إلغاء"),
+                      onPressed: () => Navigator.pop(context)),
+                  TextButton(
+                      child: const Text("نعم"),
+                      onPressed: () {
+                        box.values.isNotEmpty
+                            ? box.deleteAt(i).then((value) {
+                                selectedIdProvider.selectedId = -1;
+                                setState(() {});
+
+                                Navigator.pop(context);
+                              })
+                            : Navigator.pop(context);
+                      })
+                ],
+              ),
+            ));
   }
 }
 
@@ -1207,8 +1207,21 @@ class _DetailsPageState extends State<DetailsPage> {
                                         icon: const Icon(
                                             Icons.delete_forever_outlined),
                                         title: const Text("هل انت متأكد ؟"),
-                                        content: Text(
-                                            "هل انت متأكد انك تريد حذف \n'${person.name}' ؟"),
+                                        content: RichText(
+                                          textDirection: TextDirection.rtl,
+                                          text: TextSpan(children: [
+                                            const TextSpan(
+                                                text:
+                                                    "هل انت متأكد انك تريد حذف \n'"),
+                                            TextSpan(
+                                                text: person!.name,
+                                                style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            const TextSpan(text: "' ؟")
+                                          ]),
+                                        ),
                                         actions: [
                                           TextButton(
                                               child: const Text("إلغاء"),
