@@ -1,11 +1,12 @@
 import 'package:aid_app/person.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class ChartPage extends StatefulWidget {
   // ignore: prefer_const_constructors_in_immutables
-  ChartPage({Key? key}) : super(key: key);
+  ChartPage({super.key});
 
   @override
   ChartPageState createState() => ChartPageState();
@@ -55,27 +56,27 @@ class ChartPageState extends State<ChartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: CustomScrollView(slivers: <Widget>[
-      SliverAppBar.large(
+      const SliverAppBar.large(
         pinned: true,
         snap: true,
         floating: true,
         expandedHeight: 160.0,
-        title: const Text("الرسم البياني"),
+        title: Text("الرسم البياني"),
       ),
       SliverList(
           delegate: SliverChildListDelegate([
         Center(
             child: SfCartesianChart(
-                title: ChartTitle(
+                title: const ChartTitle(
                     text: 'تقرير لمجموع أنواع المساعدة',
-                    textStyle: const TextStyle(
+                    textStyle: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'ibmPlexSansArabic')),
                 legend: const Legend(isVisible: false),
                 primaryXAxis:
-                    CategoryAxis(labelStyle: const TextStyle(fontSize: 15)),
-                series: <ChartSeries<ChartAidData, String>>[
+                    const CategoryAxis(labelStyle: TextStyle(fontSize: 15)),
+                series: <CartesianSeries<ChartAidData, String>>[
               // Renders column chart
               ColumnSeries<ChartAidData, String>(
                   dataSource: peopleDataList,
@@ -118,6 +119,7 @@ class ChartPageState extends State<ChartPage> {
                         const TextSpan(text: ' ريال')
                       ]),
                 ))),
+        Center(child: Text("عدد  المساعدات الكلي :${peopleDataList.length}"))
       ]))
     ]));
   }

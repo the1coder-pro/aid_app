@@ -2,11 +2,19 @@ import 'package:aid_app/chart_page.dart';
 import 'package:aid_app/print_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
+import 'package:markdown_editable_textinput/format_markdown.dart';
+import 'package:markdown_editable_textinput/markdown_text_input.dart';
+
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:printing/printing.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
+// import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:intl/intl.dart' as intl;
@@ -19,10 +27,10 @@ import 'color_schemes.g.dart';
 String VERSION_NUMBER = "0.70";
 List<String> colorSchemes = [
   "Default",
+  "Blue",
   "Red",
   "Yellow",
   "Green",
-  "Grey",
   "Device"
 ];
 
@@ -74,21 +82,21 @@ class _MyAppState extends State<MyApp> {
       {ColorScheme? deviceLightColorTheme, ColorScheme? deviceDarkColorTheme}) {
     switch (colorSchemes[color]) {
       case "Default":
-        return darkMode ? blueDarkColorScheme : blueLightColorScheme;
+        return darkMode ? greyDarkColorScheme : greyLightColorScheme;
       case "Red":
         return darkMode ? redDarkColorScheme : redLightColorScheme;
       case "Yellow":
         return darkMode ? yellowDarkColorScheme : yellowLightColorScheme;
-      case "Grey":
-        return darkMode ? greyDarkColorScheme : greyLightColorScheme;
+      case "Blue":
+        return darkMode ? blueDarkColorScheme : blueLightColorScheme;
       case "Green":
         return darkMode ? greenDarkColorScheme : greenLightColorScheme;
       case "Device":
         return darkMode
-            ? (deviceDarkColorTheme ?? blueDarkColorScheme)
-            : (deviceLightColorTheme ?? blueLightColorScheme);
+            ? (deviceDarkColorTheme ?? greyDarkColorScheme)
+            : (deviceLightColorTheme ?? greyLightColorScheme);
     }
-    return darkMode ? blueDarkColorScheme : blueLightColorScheme;
+    return darkMode ? greyDarkColorScheme : greyLightColorScheme;
   }
 
   @override
@@ -128,8 +136,7 @@ class _MyAppState extends State<MyApp> {
                         ? ThemeMode.dark
                         : ThemeMode.light,
                     routes: {
-                      // maybe consider removing the `title` argument from the `MyHomePage` Widget
-                      '/': (context) => const MyHomePage(title: 'المساعدات'),
+                      '/': (context) => const MyHomePage(),
                     },
                     initialRoute: '/',
                   ),
@@ -145,10 +152,14 @@ class _MyAppState extends State<MyApp> {
 
 enum SampleItem { itemOne, itemTwo, itemThree }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+extension ColorToHex on Color {
+  String get toHex {
+    return "#${value.toRadixString(16).substring(2)}";
+  }
+}
 
-  final String title;
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -173,6 +184,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    setState(() {});
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final themeChange = Provider.of<TheThemeProvider>(context);
     final colorChangeProvider = Provider.of<ThemeColorProvider>(context);
@@ -180,17 +198,24 @@ class _MyHomePageState extends State<MyHomePage> {
     isSelected = getIsSelected(colorChangeProvider);
 
     return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
           appBar: AppBar(
-            title: Text(
-              widget.title,
-              style: const TextStyle(fontFamily: "ScheherazadeNew"),
+            title: const Text(
+              'المساعدات',
+              style: TextStyle(fontFamily: "ScheherazadeNew"),
               // style: GoogleFonts.ibmPlexSansArabic(),
             ),
             centerTitle: true,
             actions: box.isEmpty
-                ? [Container()]
+                ? [
+                    IconButton(
+                        icon: const Icon(Icons.settings_outlined),
+                        onPressed: () async {
+                          return await appearancePage(
+                              context, themeChange, colorChangeProvider);
+                        })
+                  ]
                 : [
                     IconButton(
                       icon: const Icon(Icons.search),
@@ -215,137 +240,28 @@ class _MyHomePageState extends State<MyHomePage> {
                           case SampleItem.itemOne:
                             Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                    builder: ((context) => Directionality(
+                                PageTransition(
+                                    child: Directionality(
                                         textDirection: TextDirection.rtl,
-                                        child: ChartPage()))));
+                                        child: ChartPage()),
+                                    type: PageTransitionType.rightToLeft));
 
                             break;
                           // Printing Page
                           case SampleItem.itemTwo:
                             Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                    builder: ((context) => const Directionality(
+                                PageTransition(
+                                    child: const Directionality(
                                         textDirection: TextDirection.rtl,
-                                        child: PrintPage()))));
+                                        child: PrintPage()),
+                                    type: PageTransitionType.rightToLeft));
                             break;
 
                           // Settings Page
                           case SampleItem.itemThree:
-                            showModalBottomSheet<void>(
-                                context: context,
-                                elevation: 1,
-                                builder: (BuildContext context) {
-                                  return Directionality(
-                                    textDirection: TextDirection.rtl,
-                                    child: Scaffold(
-                                      appBar: AppBar(
-                                        leading: IconButton(
-                                            icon: const Icon(Icons.close),
-                                            onPressed: () =>
-                                                Navigator.pop(context)),
-                                        title: const Text("الإعدادات"),
-                                        centerTitle: true,
-                                      ),
-                                      body: Center(
-                                          child: ListView(
-                                        children: [
-                                          SwitchListTile(
-                                              thumbIcon: MaterialStateProperty
-                                                  .resolveWith<Icon?>(
-                                                      (Set<MaterialState>
-                                                          states) {
-                                                if (states.contains(
-                                                    MaterialState.selected)) {
-                                                  return const Icon(
-                                                      Icons.dark_mode);
-                                                }
-                                                return const Icon(Icons
-                                                    .light_mode); // All other states will use the default thumbIcon.
-                                              }),
-                                              title: const Text(
-                                                "الوضع الداكن",
-                                                style: TextStyle(
-                                                    fontFamily:
-                                                        "ibmPlexSansArabic"),
-                                              ),
-                                              value: themeChange.darkTheme,
-                                              onChanged: (bool value) =>
-                                                  themeChange.darkTheme =
-                                                      value),
-                                          // TODO: ADDING ENGLISH SUPPORT
-                                          // SwitchListTile(
-                                          //     title: const Text(
-                                          //       "اللغة الإنقليزية",
-                                          //       style: TextStyle(
-                                          //           fontFamily:
-                                          //               "ibmPlexSansArabic"),
-                                          //     ),
-                                          //     value: themeChange.darkTheme,
-                                          //     onChanged: (bool value) =>
-                                          //         themeChange.darkTheme = value),
-                                          const SizedBox(height: 10),
-                                          Center(
-                                            child: ToggleButtons(
-                                              isSelected: isSelected,
-                                              onPressed: (int index) {
-                                                setState(() {
-                                                  for (int buttonIndex = 0;
-                                                      buttonIndex <
-                                                          isSelected.length;
-                                                      buttonIndex++) {
-                                                    if (buttonIndex == index) {
-                                                      isSelected[buttonIndex] =
-                                                          true;
-                                                      colorChangeProvider
-                                                              .colorTheme =
-                                                          buttonIndex;
-                                                    } else {
-                                                      isSelected[buttonIndex] =
-                                                          false;
-                                                    }
-                                                  }
-                                                });
-                                              },
-                                              children: const <Widget>[
-                                                Text("ازرق"),
-                                                Text("احمر"),
-                                                Text("اصفر"),
-                                                Text("اخضر"),
-                                                Text("اسود"),
-                                                Icon(Icons.phone_android),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // TODO: "Export Data" Button
-
-                                          // Padding(
-                                          //   padding: const EdgeInsets.all(8.0),
-                                          //   child: Center(
-                                          //     child: OutlinedButton.icon(
-                                          //         icon: const Icon(
-                                          //             Icons.save_alt_outlined),
-                                          //         label: const Text(
-                                          //             "استخراج البيانات"),
-                                          //         onPressed: () {}),
-                                          //   ),
-                                          // ),
-
-                                          const SizedBox(height: 15),
-                                          Center(
-                                              child: Text(
-                                                  "إصدار رقم $VERSION_NUMBER",
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .labelSmall!
-                                                      .copyWith(fontSize: 15)))
-                                        ],
-                                      )),
-                                    ),
-                                  );
-                                });
+                            appearancePage(
+                                context, themeChange, colorChangeProvider);
                             break;
                         }
                       });
@@ -425,25 +341,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                           // A SlidableAction can have an icon and/or a label.
                                           SlidableAction(
                                             onPressed: (context) =>
-                                                DeleteDialog(context, person,
+                                                deleteDialog(context, person,
                                                     box, i, selectedIdProvider),
-                                            backgroundColor:
-                                                // themeChange.darkTheme
-                                                //     ? Theme.of(context)
-                                                //         .colorScheme
-                                                //         .error
-                                                //     :
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .error,
-                                            foregroundColor:
-                                                // themeChange
-                                                //         .darkTheme
-                                                //     ? redDarkColorScheme.onPrimary
-                                                //     :
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .onError,
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .error,
+                                            foregroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .onError,
                                             icon: Icons.delete,
                                             label: 'حذف',
                                           ),
@@ -452,22 +357,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 context: context,
                                                 builder: (context) =>
                                                     RegisterPage(id: i)),
-                                            backgroundColor:
-                                                // themeChange
-                                                //         .darkTheme
-                                                //     ? blueDarkColorScheme.primary
-                                                //     :
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .tertiary,
-                                            foregroundColor:
-                                                // themeChange
-                                                //         .darkTheme
-                                                //     ? blueDarkColorScheme.onPrimary
-                                                //     :
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .onTertiary,
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .tertiary,
+                                            foregroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .onTertiary,
                                             icon: Icons.edit,
                                             label: 'تعديل',
                                           ),
@@ -480,6 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             (person!.name)
                                                 .toString()
                                                 .substring(0, 1),
+                                            textAlign: TextAlign.center,
                                             style:
                                                 const TextStyle(fontSize: 20),
                                           ),
@@ -541,14 +437,24 @@ class _MyHomePageState extends State<MyHomePage> {
                                           } else {
                                             selectedIdProvider.selectedId = i;
                                             setState(() {});
-                                            Navigator.push(context,
-                                                MaterialPageRoute(
-                                              builder: (context) {
-                                                return DetailsPage(
-                                                    id: selectedIdProvider
-                                                        .selectedId);
-                                              },
-                                            ));
+                                            Navigator.push(
+                                                context,
+                                                PageTransition(
+                                                    child: DetailsPage(
+                                                        id: selectedIdProvider
+                                                            .selectedId),
+                                                    type: PageTransitionType
+                                                        .bottomToTop,
+                                                    duration: const Duration(
+                                                        milliseconds: 300)));
+                                            // Navigator.push(context,
+                                            //     MaterialPageRoute(
+                                            //   builder: (context) {
+                                            //     return DetailsPage(
+                                            //         id: selectedIdProvider
+                                            //             .selectedId);
+                                            //   },
+                                            // ));
                                           }
                                         },
                                       ),
@@ -571,22 +477,212 @@ class _MyHomePageState extends State<MyHomePage> {
                     ]),
               );
             } else {
-              return NoRecordsPage(themeChange: themeChange);
+              return Padding(
+                padding: const EdgeInsets.only(top: 100, right: 20, left: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                        height: 300, width: 300, child: SvgPicture.string('''
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1080px" height="1080px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M -0.5,-0.5 C 359.5,-0.5 719.5,-0.5 1079.5,-0.5C 1079.5,359.5 1079.5,719.5 1079.5,1079.5C 719.5,1079.5 359.5,1079.5 -0.5,1079.5C -0.5,719.5 -0.5,359.5 -0.5,-0.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 222.5,245.5 C 271.516,250.837 319.182,262.004 365.5,279C 418.192,297.682 468.859,320.682 517.5,348C 532.167,348.667 546.833,348.667 561.5,348C 640.525,302.824 724.525,270.491 813.5,251C 828.021,247.851 842.687,246.185 857.5,246C 858.126,246.75 858.626,247.584 859,248.5C 859.5,256.493 859.666,264.493 859.5,272.5C 869.506,272.334 879.506,272.5 889.5,273C 890.126,273.75 890.626,274.584 891,275.5C 891.5,283.827 891.666,292.16 891.5,300.5C 901.506,300.334 911.506,300.5 921.5,301C 922.333,301.833 923.167,302.667 924,303.5C 924.5,314.495 924.667,325.495 924.5,336.5C 931.175,336.334 937.842,336.5 944.5,337C 945.416,337.374 946.25,337.874 947,338.5C 947.5,494.833 947.667,651.166 947.5,807.5C 819.507,811.74 691.84,820.574 564.5,834C 546.5,834.667 528.5,834.667 510.5,834C 384.528,820.088 258.195,811.255 131.5,807.5C 131.333,651.5 131.5,495.5 132,339.5C 132.833,338.667 133.667,337.833 134.5,337C 141.158,336.5 147.825,336.334 154.5,336.5C 154.333,325.495 154.5,314.495 155,303.5C 155.833,302.667 156.667,301.833 157.5,301C 167.828,300.5 178.161,300.334 188.5,300.5C 188.334,291.827 188.5,283.16 189,274.5C 189.5,274 190,273.5 190.5,273C 200.161,272.5 209.828,272.334 219.5,272.5C 219.334,264.493 219.5,256.493 220,248.5C 221.045,247.627 221.878,246.627 222.5,245.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 511.5,356.5 C 511.833,505.001 511.5,653.334 510.5,801.5C 449.152,768.66 385.152,742.16 318.5,722C 289.639,713.805 260.306,707.972 230.5,704.5C 230.5,555.167 230.5,405.833 230.5,256.5C 279.842,263.335 327.842,275.502 374.5,293C 421.955,310.424 467.621,331.59 511.5,356.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 841.5,256.5 C 843.833,256.5 846.167,256.5 848.5,256.5C 848.5,405.833 848.5,555.167 848.5,704.5C 791.665,711.959 736.665,726.459 683.5,748C 643.686,763.741 605.019,781.907 567.5,802.5C 566.167,653.833 566.167,505.167 567.5,356.5C 653.202,307.491 744.536,274.157 841.5,256.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 198.5,282.5 C 205.833,282.5 213.167,282.5 220.5,282.5C 220.333,425.5 220.5,568.5 221,711.5C 221.833,712.333 222.667,713.167 223.5,714C 282.418,721.646 339.418,736.646 394.5,759C 409.615,765.058 424.615,771.391 439.5,778C 399.898,766.098 359.898,755.432 319.5,746C 279.6,737.181 239.267,731.681 198.5,729.5C 198.5,580.5 198.5,431.5 198.5,282.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 651.5,774.5 C 650.833,774.5 650.5,774.167 650.5,773.5C 715.503,743.444 783.503,723.611 854.5,714C 856.286,713.215 857.786,712.049 859,710.5C 859.5,567.834 859.667,425.167 859.5,282.5C 866.5,282.5 873.5,282.5 880.5,282.5C 880.5,431.5 880.5,580.5 880.5,729.5C 822.172,732.999 764.839,742.499 708.5,758C 689.362,763.034 670.362,768.534 651.5,774.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 457.5,795.5 C 456.791,796.404 455.791,796.737 454.5,796.5C 359.042,778.184 262.709,767.85 165.5,765.5C 165.5,613.833 165.5,462.167 165.5,310.5C 173.167,310.5 180.833,310.5 188.5,310.5C 188.333,452.5 188.5,594.5 189,736.5C 189.833,737.333 190.667,738.167 191.5,739C 232.603,740.954 273.27,746.287 313.5,755C 362.151,766.161 410.151,779.661 457.5,795.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 623.5,796.5 C 622.508,796.672 621.842,796.338 621.5,795.5C 709.229,764.769 799.063,744.769 891,735.5C 891.5,593.834 891.667,452.167 891.5,310.5C 899.167,310.5 906.833,310.5 914.5,310.5C 914.5,462.167 914.5,613.833 914.5,765.5C 816.589,767.713 719.589,778.046 623.5,796.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,323.5 C 315.89,335.352 374.89,354.519 431.5,381C 451.85,390.258 471.683,400.424 491,411.5C 491.989,416.84 489.822,419.34 484.5,419C 411.34,379.332 334.173,350.499 253,332.5C 250.788,329.021 251.288,326.021 254.5,323.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 819.5,323.5 C 827.49,323.086 829.49,326.253 825.5,333C 744.188,350.159 667.188,378.826 594.5,419C 588.531,418.902 586.698,416.068 589,410.5C 661.643,370.123 738.477,341.123 819.5,323.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 511.5,356.5 C 512.833,505.001 512.833,653.667 511.5,802.5C 510.893,802.376 510.56,802.043 510.5,801.5C 511.5,653.334 511.833,505.001 511.5,356.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 555.5,806.5 C 555.5,657.5 555.5,508.5 555.5,359.5C 544.833,359.5 534.167,359.5 523.5,359.5C 523.5,508.5 523.5,657.5 523.5,806.5C 522.5,657.334 522.167,508.001 522.5,358.5C 533.833,358.5 545.167,358.5 556.5,358.5C 556.833,508.001 556.5,657.334 555.5,806.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 555.5,806.5 C 544.833,806.5 534.167,806.5 523.5,806.5C 523.5,657.5 523.5,508.5 523.5,359.5C 534.167,359.5 544.833,359.5 555.5,359.5C 555.5,508.5 555.5,657.5 555.5,806.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,369.5 C 298.377,377.304 341.044,389.47 382.5,406C 418.8,420.213 454.133,436.546 488.5,455C 492.072,457.626 492.405,460.626 489.5,464C 487.5,464.667 485.5,464.667 483.5,464C 411.289,424.596 334.956,396.263 254.5,379C 250.581,375.84 250.581,372.673 254.5,369.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 816.5,369.5 C 819.518,369.335 822.518,369.502 825.5,370C 828.229,373.015 828.063,375.848 825,378.5C 744.294,395.735 667.794,424.235 595.5,464C 590.16,464.989 587.66,462.822 588,457.5C 659.935,417.024 736.101,387.691 816.5,369.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 253.5,415.5 C 272.105,417.9 290.439,421.734 308.5,427C 371.46,445.315 431.793,469.982 489.5,501C 492.999,507.669 490.999,510.669 483.5,510C 411.431,470.199 335.098,441.866 254.5,425C 250.956,422.127 250.623,418.96 253.5,415.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 816.5,415.5 C 819.518,415.335 822.518,415.502 825.5,416C 828.539,419.805 827.872,422.805 823.5,425C 743.292,442.069 667.292,470.402 595.5,510C 590.16,510.989 587.66,508.822 588,503.5C 659.778,462.632 735.945,433.299 816.5,415.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,460.5 C 315.89,472.352 374.89,491.519 431.5,518C 451.357,527.179 470.857,537.012 490,547.5C 492.569,553.256 490.736,556.089 484.5,556C 411.34,516.332 334.173,487.499 253,469.5C 250.788,466.021 251.288,463.021 254.5,460.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 819.5,460.5 C 827.021,460.39 829.021,463.557 825.5,470C 744.188,487.159 667.188,515.826 594.5,556C 588.531,555.902 586.698,553.068 589,547.5C 661.643,507.123 738.477,478.123 819.5,460.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,506.5 C 315.89,518.352 374.89,537.519 431.5,564C 451.881,573.273 471.714,583.44 491,594.5C 492.033,599.799 489.866,602.299 484.5,602C 411.721,562.073 334.721,533.406 253.5,516C 250.69,512.432 251.023,509.266 254.5,506.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 816.5,506.5 C 819.518,506.335 822.518,506.502 825.5,507C 828.539,510.805 827.872,513.805 823.5,516C 743.292,533.069 667.292,561.402 595.5,601C 590.16,601.989 587.66,599.822 588,594.5C 659.935,554.024 736.101,524.691 816.5,506.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 253.5,552.5 C 272.105,554.9 290.439,558.734 308.5,564C 372.466,582.239 433.299,607.739 491,640.5C 491.667,646.161 489.167,648.328 483.5,647C 411.431,607.199 335.098,578.866 254.5,562C 250.956,559.127 250.623,555.96 253.5,552.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 820.5,551.5 C 825.813,551.644 827.979,554.31 827,559.5C 745.962,578.183 668.795,607.35 595.5,647C 590.16,647.989 587.66,645.822 588,640.5C 661.056,599.095 738.556,569.428 820.5,551.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 819.5,597.5 C 827.021,597.39 829.021,600.557 825.5,607C 744.188,624.159 667.188,652.826 594.5,693C 588.531,692.902 586.698,690.068 589,684.5C 661.643,644.123 738.477,615.123 819.5,597.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,597.5 C 337.897,614.617 416.73,643.95 491,685.5C 491.881,691.286 489.381,693.786 483.5,693C 411.067,653.121 334.4,624.455 253.5,607C 250.753,603.553 251.087,600.386 254.5,597.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 254.5,643.5 C 315.89,655.352 374.89,674.519 431.5,701C 451.881,710.273 471.714,720.44 491,731.5C 492.033,736.799 489.866,739.299 484.5,739C 411.721,699.073 334.721,670.406 253.5,653C 250.69,649.432 251.023,646.266 254.5,643.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 819.5,643.5 C 825.496,642.333 827.996,644.666 827,650.5C 826.5,651.667 825.667,652.5 824.5,653C 744.027,670.268 667.693,698.601 595.5,738C 589.498,738.993 587.332,736.493 589,730.5C 661.643,690.123 738.477,661.123 819.5,643.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 650.5,773.5 C 650.5,774.167 650.833,774.5 651.5,774.5C 647.791,776.569 643.791,777.735 639.5,778C 643.188,776.487 646.855,774.987 650.5,773.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 621.5,795.5 C 621.842,796.338 622.508,796.672 623.5,796.5C 619.708,798.034 615.708,798.868 611.5,799C 614.744,797.53 618.077,796.363 621.5,795.5 Z"/></g>
+                    <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 457.5,795.5 C 460.907,796.358 464.24,797.525 467.5,799C 462.946,798.941 458.613,798.108 454.5,796.5C 455.791,796.737 456.791,796.404 457.5,795.5 Z"/></g>
+                    </svg>
+                    ''')),
+                    const Center(
+                      child: Text("لا توجد مساعدات مسجلة",
+                          style: TextStyle(fontSize: 25, fontFamily: "Amiri")),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ButtonStyle(
+                            elevation:
+                                const MaterialStatePropertyAll<double>(0),
+                            backgroundColor: MaterialStatePropertyAll(
+                                Theme.of(context).colorScheme.primary)),
+                        icon: Icon(Icons.add,
+                            color: Theme.of(context).colorScheme.onPrimary),
+                        label: Text("إنشاء مساعدة",
+                            style: TextStyle(
+                                fontSize: 25,
+                                color:
+                                    Theme.of(context).colorScheme.onPrimary)),
+                        // onPressed: () => Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //         builder: (context) => RegisterPage()))
+                        onPressed: () async {
+                          Future<bool?> newRecord = showDialog<bool>(
+                              context: context,
+                              builder: (context) => RegisterPage());
+                          newRecord.then((value) {
+                            if (value == true) {
+                              setState(() {});
+                            }
+                          });
+                        }
+                        // Navigator.push(
+                        //     context,
+                        //     PageTransition(
+                        //         duration: const Duration(milliseconds: 300),
+                        //         curve: Curves.bounceInOut,
+                        //         child: RegisterPage(),
+                        //         type: PageTransitionType.bottomToTop))
+                        ,
+                      ),
+                    )
+                  ],
+                ),
+              );
             }
           }),
           floatingActionButton: box.isEmpty
               ? Container()
               : FloatingActionButton(
                   child: const Icon(Icons.add),
-                  onPressed: () => showDialog(
-                      context: context,
-                      builder: (context) {
-                        return RegisterPage();
-                      }))),
-    );
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        PageTransition(
+                            child: RegisterPage(),
+                            type: PageTransitionType.bottomToTop,
+                            duration: const Duration(milliseconds: 300))
+                        // MaterialPageRoute(builder: (context) => RegisterPage())
+                        );
+                  }),
+        ));
   }
 
-  Future<dynamic> DeleteDialog(BuildContext context, Person? person,
+  Future<void> appearancePage(BuildContext context,
+      TheThemeProvider themeChange, ThemeColorProvider colorChangeProvider) {
+    return showModalBottomSheet<void>(
+        context: context,
+        elevation: 1,
+        builder: (BuildContext context) {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context)),
+                title: const Text("الإعدادات"),
+                centerTitle: true,
+              ),
+              body: Center(
+                  child: ListView(
+                children: [
+                  SwitchListTile(
+                      title: const Text(
+                        "الوضع الداكن",
+                        style: TextStyle(fontFamily: "ibmPlexSansArabic"),
+                      ),
+                      value: themeChange.darkTheme,
+                      onChanged: (bool value) => themeChange.darkTheme = value),
+
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: Text('السمات',
+                        style: TextStyle(
+                            fontFamily: "ibmPlexSansArabic", fontSize: 20)),
+                  ),
+                  Center(
+                    child: ToggleButtons(
+                      isSelected: isSelected,
+                      onPressed: (int index) {
+                        setState(() {
+                          for (int buttonIndex = 0;
+                              buttonIndex < isSelected.length;
+                              buttonIndex++) {
+                            if (buttonIndex == index) {
+                              isSelected[buttonIndex] = true;
+                              colorChangeProvider.colorTheme = buttonIndex;
+                            } else {
+                              isSelected[buttonIndex] = false;
+                            }
+                          }
+                        });
+                      },
+                      selectedBorderColor:
+                          Theme.of(context).colorScheme.primary,
+                      borderWidth: 4,
+                      children: <Widget>[
+                        ThemeButton(
+                            darkColorScheme: greyDarkColorScheme,
+                            lightColorScheme: greyLightColorScheme,
+                            themeChange: themeChange),
+                        ThemeButton(
+                            darkColorScheme: blueDarkColorScheme,
+                            lightColorScheme: blueLightColorScheme,
+                            themeChange: themeChange),
+                        ThemeButton(
+                            darkColorScheme: redDarkColorScheme,
+                            lightColorScheme: redLightColorScheme,
+                            themeChange: themeChange),
+                        ThemeButton(
+                            darkColorScheme: yellowDarkColorScheme,
+                            lightColorScheme: yellowLightColorScheme,
+                            themeChange: themeChange),
+                        ThemeButton(
+                            darkColorScheme: greenDarkColorScheme,
+                            lightColorScheme: greenLightColorScheme,
+                            themeChange: themeChange),
+                        const Icon(Icons.phone_android),
+                      ],
+                    ),
+                  ),
+
+                  // TODO: "Export Data" Button
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                      title: const Text("اعدادات متقدمة",
+                          style: TextStyle(fontFamily: "ibmPlexSansArabic")),
+                      childrenPadding: const EdgeInsets.all(10),
+                      children: [
+                        const SizedBox(height: 20),
+                        OutlinedButton(
+                            onPressed: () {},
+                            child: const Text("استخراج البيانات")),
+                        const SizedBox(height: 20),
+                      ]),
+                ],
+              )),
+            ),
+          );
+        });
+  }
+
+  Future<dynamic> deleteDialog(BuildContext context, Person? person,
       Box<Person> box, int i, SelectedIdProvider selectedIdProvider) {
     return showDialog(
         context: context,
@@ -594,18 +690,8 @@ class _MyHomePageState extends State<MyHomePage> {
               textDirection: TextDirection.rtl,
               child: AlertDialog(
                 icon: const Icon(Icons.delete_forever_outlined),
-                title: const Text("هل انت متأكد ؟"),
-                content: RichText(
-                  textDirection: TextDirection.rtl,
-                  text: TextSpan(children: [
-                    const TextSpan(text: "هل انت متأكد انك تريد حذف \n'"),
-                    TextSpan(
-                        text: person!.name,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
-                    const TextSpan(text: "' ؟")
-                  ]),
-                ),
+                title: Text("حذف ${person!.name}؟"),
+                content: const Text("هل انت متأكد انك تريد حذف هذا الشخص ؟"),
                 actions: [
                   TextButton(
                       child: const Text("إلغاء"),
@@ -619,56 +705,24 @@ class _MyHomePageState extends State<MyHomePage> {
                                 setState(() {});
 
                                 Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration: const Duration(
+                                            milliseconds: 1000),
+                                        backgroundColor: Theme
+                                                .of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: Text(
+                                            "تم حذف ${person.name} بنجاح",
+                                            style: const TextStyle(
+                                                fontSize: 15))));
                               })
                             : Navigator.pop(context);
                       })
                 ],
               ),
             ));
-  }
-}
-
-class NoRecordsPage extends StatelessWidget {
-  const NoRecordsPage({
-    super.key,
-    required this.themeChange,
-  });
-
-  final TheThemeProvider themeChange;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-        child: Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: 30),
-        SizedBox(
-            height: 250,
-            width: 250,
-            child: SvgPicture.asset(
-              'assets/openBook-light.svg',
-              semanticsLabel: 'open book',
-              colorFilter: ColorFilter.mode(
-                  Theme.of(context).colorScheme.primary, BlendMode.srcIn),
-            )),
-        const Text("لا توجد مساعدات مسجلة",
-            style: TextStyle(fontSize: 25, fontFamily: "Amiri")),
-        const SizedBox(height: 20),
-        TextButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text("إنشاء مساعدة",
-                style: TextStyle(
-                  fontSize: 20,
-                )),
-            onPressed: () => showDialog(
-                context: context,
-                builder: (context) {
-                  return RegisterPage();
-                }))
-      ],
-    ));
   }
 }
 
@@ -703,6 +757,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+
+  String description = '';
 
   final box = Hive.box<Person>('personList');
 
@@ -754,6 +810,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ? AidDuration.continuous
           : AidDuration.interrupted;
       _notesController.text = loadPerson.notes;
+      description = _notesController.text;
     }
   }
 
@@ -779,357 +836,739 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-            title:
-                Text(savedPersonId ? "تعديل المساعدة" : "إنشاء مساعدة جديدة"),
-            centerTitle: true,
-            actions: [
-              TextButton(
-                  child: Text(savedPersonId ? 'حفظ' : 'إنشاء'),
-                  onPressed: () {
-                    // If the form is valid, display a snackbar. In the real world,
-                    // you'd often call a server or save the information in a database.
-                    if (savedPersonId) {
-                      // don't save empty fields by default
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 600) {
+            // large screen
+            return Scaffold(
+              appBar: AppBar(
+                  title: Text(
+                      savedPersonId ? "تعديل المساعدة" : "إنشاء مساعدة جديدة"),
+                  centerTitle: true,
+                  actions: [
+                    IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: () {
+                          // If the form is valid, display a snackbar. In the real world,
+                          // you'd often call a server or save the information in a database.
+                          if (savedPersonId) {
+                            // don't save empty fields by default
 
-                      box.putAt(
-                          id,
-                          Person(
+                            box.putAt(
+                                id,
+                                Person(
+                                    name:
+                                        "${_firstNameController.text} ${_lastNameController.text}",
+                                    idNumber: _idNumberController.text,
+                                    phoneNumber:
+                                        _phoneController.text.isNotEmpty
+                                            ? int.parse(_phoneController.text)
+                                            : 0,
+                                    aidDates: dateRange,
+                                    aidType: aidType == aidTypes.last
+                                        ? _typeController.text
+                                        : aidType ?? aidTypes.last,
+                                    aidAmount: _amountController.text.isNotEmpty
+                                        ? int.parse(_amountController.text)
+                                        : 0,
+                                    isContinuousAid:
+                                        _duration == AidDuration.continuous
+                                            ? true
+                                            : false,
+                                    notes: _notesController.text));
+                            debugPrint(
+                                "${loadPerson!.name} is now ${_firstNameController.text}");
+                          } else {
+                            box.add(Person(
+                                name:
+                                    "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
+                                idNumber: _idNumberController.text.trim(),
+                                phoneNumber: _phoneController.text
+                                        .trim()
+                                        .isNotEmpty
+                                    ? int.parse(_phoneController.text.trim())
+                                    : 0,
+                                aidDates: dateRange,
+                                aidType: aidType == aidTypes.last
+                                    ? _typeController.text.trim()
+                                    : (aidType ?? aidTypes[5]),
+                                aidAmount: _amountController.text
+                                        .trim()
+                                        .isNotEmpty
+                                    ? int.parse(_amountController.text.trim())
+                                    : 0,
+                                isContinuousAid:
+                                    _duration == AidDuration.continuous
+                                        ? true
+                                        : false,
+                                notes: _notesController.text));
+                          }
+                          // Navigator.pushReplacement(
+                          //     context,
+                          //     PageTransition(
+                          //         child: const MyHomePage(),
+                          //         type: PageTransitionType.topToBottom,
+                          //         duration: const Duration(milliseconds: 300)));
+                          // Navigator.popAndPushNamed(context, '/');
+                          // Navigator.pushReplacementNamed(context, '/');
+                          Navigator.pop(context, true);
+                          // setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              duration: const Duration(milliseconds: 1000),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              content: Text(
+                                  'تم حفظ "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}" بنجاح',
+                                  style: const TextStyle(fontSize: 15))));
+                        }),
+                  ]),
+              body: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(children: [
+                  Expanded(
+                      flex: 3,
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: ListView(
+                          children: [
+                            Card(
+                                child: ListTile(
+                              leading: const Icon(Icons.perm_identity_outlined),
+                              title: Text(
+                                  "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
+                                  softWrap: true),
+                              subtitle: const Text("الإسم كامل"),
+                              onLongPress: () async {
+                                if ("${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
+                                    .isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "لا توجد بيانات للنسخ",
+                                              style: TextStyle(fontSize: 15))));
+                                } else {
+                                  await Clipboard.setData(ClipboardData(
+                                          text:
+                                              "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"))
+                                      .then((value) =>
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration: const Duration(
+                                                      milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم نسخ الإسم الكامل",
+                                                      style: TextStyle(
+                                                          fontSize: 15)))));
+                                }
+                              },
+                            )),
+                            Card(
+                                child: ListTile(
+                              onLongPress: () async {
+                                if (_phoneController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "لا توجد بيانات للنسخ",
+                                              style: TextStyle(fontSize: 15))));
+                                } else {
+                                  await Clipboard.setData(ClipboardData(
+                                          text: _phoneController.text))
+                                      .then((value) =>
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration:
+                                                      const Duration(
+                                                          milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم نسخ رقم الهاتف",
+                                                      style: TextStyle(
+                                                          fontSize: 15)))));
+                                }
+                              },
+                              leading: const Icon(Icons.phone_outlined),
+                              trailing: const Icon(Icons.message_outlined),
+                              title: Text(_phoneController.text.isEmpty
+                                  ? "لا يوجد"
+                                  : _phoneController.text),
+                              subtitle: const Text("رقم الهاتف"),
+                            )),
+                            Card(
+                                child: ListTile(
+                              leading: const Icon(Icons.badge_outlined),
+                              title: Text(_idNumberController.text.isEmpty
+                                  ? "لا يوجد"
+                                  : _idNumberController.text),
+                              subtitle: const Text("رقم الهوية"),
+                              onLongPress: () async {
+                                if (_idNumberController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "لا توجد بيانات للنسخ",
+                                              style: TextStyle(fontSize: 15))));
+                                } else {
+                                  await Clipboard.setData(ClipboardData(
+                                          text: _idNumberController.text))
+                                      .then((value) =>
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                                  SnackBar(
+                                                      duration: const Duration(
+                                                          milliseconds: 1000),
+                                                      backgroundColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      content: const Text(
+                                                          "تم نسخ رقم الهوية",
+                                                          style: TextStyle(
+                                                              fontSize: 15)))));
+                                }
+                              },
+                            )),
+                            Card(
+                                child: ListTile(
+                              leading: const Icon(Icons.request_quote_outlined),
+                              title: Text(aidType ?? 'لا يوجد'),
+                              subtitle: const Text("نوع المساعدة"),
+                              onLongPress: () async {
+                                if (aidType != null || aidType!.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "لا توجد بيانات للنسخ",
+                                              style: TextStyle(fontSize: 15))));
+                                } else {
+                                  await Clipboard.setData(
+                                          ClipboardData(text: aidType!))
+                                      .then((value) => ScaffoldMessenger
+                                              .of(context)
+                                          .showSnackBar(SnackBar(
+                                              duration: const Duration(
+                                                  milliseconds: 1000),
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              content: const Text(
+                                                  "تم نسخ نوع المساعدة",
+                                                  style: TextStyle(
+                                                      fontSize: 15)))));
+                                }
+                              },
+                            )),
+                            Card(
+                                child: ListTile(
+                              leading: const Icon(Icons.attach_money_outlined),
+                              title: Text("${_amountController.text} ريال"),
+                              subtitle: const Text("مقدار المساعدة"),
+                              onLongPress: () async {
+                                await Clipboard.setData(ClipboardData(
+                                        text: _amountController.text))
+                                    .then((value) => ScaffoldMessenger.of(
+                                            context)
+                                        .showSnackBar(SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم نسخ مقدار المساعدة",
+                                                style:
+                                                    TextStyle(fontSize: 15)))));
+                              },
+                            )),
+                            Card(
+                                child: ListTile(
+                              leading: const Icon(Icons.update_outlined),
+                              title: Text(_duration == AidDuration.continuous
+                                  ? "مستمرة"
+                                  : "منقطعة"),
+                              subtitle: const Text("مدة المساعدة"),
+                              onLongPress: () async {
+                                await Clipboard.setData(ClipboardData(
+                                        text:
+                                            _duration == AidDuration.continuous
+                                                ? 'مستمرة'
+                                                : 'منقطعة'))
+                                    .then((value) => ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم نسخ مدة المساعدة",
+                                                style:
+                                                    TextStyle(fontSize: 15)))));
+                              },
+                            )),
+                            Card(
+                                child: ListTile(
+                              subtitle: const Text("الملاحظات"),
+                              trailing: IconButton(
+                                  icon: const Icon(Icons.copy),
+                                  onPressed: () async {
+                                    await Clipboard.setData(ClipboardData(
+                                            text: _notesController.text))
+                                        .then(
+                                            (value) => ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    duration: const Duration(
+                                                        milliseconds: 1000),
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "تم نسخ الملاحظات",
+                                                        style: TextStyle(
+                                                            fontSize: 15)))));
+                                  }),
+                              title: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: MarkdownBody(
+                                  shrinkWrap: false,
+                                  softLineBreak: true,
+                                  selectable: true,
+                                  data: _notesController.text,
+                                  extensionSet: md.ExtensionSet(
+                                    md.ExtensionSet.gitHubFlavored
+                                        .blockSyntaxes,
+                                    <md.InlineSyntax>[
+                                      md.EmojiSyntax(),
+                                      ...md.ExtensionSet.gitHubFlavored
+                                          .inlineSyntaxes
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )),
+                            Card(
+                              child: ListTile(
+                                onTap: () {
+                                  //share
+                                },
+                                title: const Text("مشاركة هذه المساعدة"),
+                                subtitle: const Text("مشاركة"),
+                                leading: const Icon(Icons.share_outlined),
+                              ),
+                            )
+                          ],
+                        ),
+                      )),
+                  Expanded(
+                    flex: 5,
+                    child: registerationForm(context, loadPerson),
+                  ),
+                ]),
+              ),
+            );
+          }
+          return Scaffold(
+            appBar: AppBar(
+                title: Text(
+                    savedPersonId ? "تعديل المساعدة" : "إنشاء مساعدة جديدة"),
+                centerTitle: true,
+                actions: [
+                  IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        // If the form is valid, display a snackbar. In the real world,
+                        // you'd often call a server or save the information in a database.
+                        if (savedPersonId) {
+                          // don't save empty fields by default
+
+                          box.putAt(
+                              id,
+                              Person(
+                                  name:
+                                      "${_firstNameController.text} ${_lastNameController.text}",
+                                  idNumber: _idNumberController.text,
+                                  phoneNumber: _phoneController.text.isNotEmpty
+                                      ? int.parse(_phoneController.text)
+                                      : 0,
+                                  aidDates: dateRange,
+                                  aidType: aidType == aidTypes.last
+                                      ? _typeController.text
+                                      : aidType ?? aidTypes.last,
+                                  aidAmount: _amountController.text.isNotEmpty
+                                      ? int.parse(_amountController.text)
+                                      : 0,
+                                  isContinuousAid:
+                                      _duration == AidDuration.continuous
+                                          ? true
+                                          : false,
+                                  notes: _notesController.text));
+                          debugPrint(
+                              "${loadPerson!.name} is now ${_firstNameController.text}");
+                        } else {
+                          box.add(Person(
                               name:
-                                  "${_firstNameController.text} ${_lastNameController.text}",
-                              idNumber: _idNumberController.text,
-                              phoneNumber: _phoneController.text.isNotEmpty
-                                  ? int.parse(_phoneController.text)
-                                  : 0,
+                                  "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
+                              idNumber: _idNumberController.text.trim(),
+                              phoneNumber:
+                                  _phoneController.text.trim().isNotEmpty
+                                      ? int.parse(_phoneController.text.trim())
+                                      : 0,
                               aidDates: dateRange,
                               aidType: aidType == aidTypes.last
-                                  ? _typeController.text
-                                  : aidType ?? aidTypes.last,
-                              aidAmount: _amountController.text.isNotEmpty
-                                  ? int.parse(_amountController.text)
-                                  : 0,
+                                  ? _typeController.text.trim()
+                                  : (aidType ?? aidTypes[5]),
+                              aidAmount:
+                                  _amountController.text.trim().isNotEmpty
+                                      ? int.parse(_amountController.text.trim())
+                                      : 0,
                               isContinuousAid:
                                   _duration == AidDuration.continuous
                                       ? true
                                       : false,
                               notes: _notesController.text));
-                      debugPrint(
-                          "${loadPerson!.name} is now ${_firstNameController.text}");
-                    } else {
-                      box.add(Person(
-                          name:
-                              "${_firstNameController.text} ${_lastNameController.text}",
-                          idNumber: _idNumberController.text,
-                          phoneNumber: _phoneController.text.isNotEmpty
-                              ? int.parse(_phoneController.text)
-                              : 0,
-                          aidDates: dateRange,
-                          aidType: aidType == aidTypes.last
-                              ? _typeController.text
-                              : (aidType ?? aidTypes[5]),
-                          aidAmount: _amountController.text.isNotEmpty
-                              ? int.parse(_amountController.text)
-                              : 0,
-                          isContinuousAid: _duration == AidDuration.continuous
-                              ? true
-                              : false,
-                          notes: _notesController.text));
-                    }
-                    // Navigator.pushReplacementNamed(context, '/');
-                    Navigator.pushReplacementNamed(context, '/');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'تم حفظ "${_firstNameController.text} ${_lastNameController.text}" بنجاح')),
-                    );
-                  })
-            ],
-            leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context))),
-        body: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: ListView(
-              children: <Widget>[
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_firstNameController),
-                      label: const Text("الأسم الأول"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _firstNameController,
-                  autofocus: true,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_lastNameController),
-                      label: const Text("الأسم الأخير"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _lastNameController,
-                  autofocus: true,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_idNumberController),
-                      label: const Text("رقم الهوية"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _idNumberController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_phoneController),
-                      label: const Text("رقم الهاتف"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                const Center(
-                    child: Text("تاريخ المساعدة",
-                        style: TextStyle(fontWeight: FontWeight.bold))),
-                const SizedBox(height: 10),
-                dateRange.isEmpty
-                    ? Container()
-                    : Center(
-                        child: SizedBox(
-                        width: 350,
-                        child: Table(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            TableRow(children: [
-                              const Text("الميلادي"),
-                              Text(
-                                  "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
-                            ]),
-                            TableRow(children: [
-                              const Text("الهجري"),
-                              Text(
-                                  "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
-                            ]),
-                          ],
-                        ),
-                      )),
-                const SizedBox(height: 10),
-                Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      OutlinedButton.icon(
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          label: const Text("تاريخ (ميلادي)"),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => Directionality(
-                                      textDirection: TextDirection.rtl,
-                                      child: SfDateRangePicker(
-                                          initialSelectedRange: dateRange
-                                                  .isNotEmpty
-                                              ? PickerDateRange(
-                                                  dateRange[0], dateRange[1])
-                                              : null,
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .background,
-                                          startRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          endRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          rangeSelectionColor: Theme
-                                                  .of(context)
-                                              .colorScheme
-                                              .primaryContainer,
-                                          selectionMode:
-                                              DateRangePickerSelectionMode
-                                                  .range,
-                                          confirmText: "تأكيد",
-                                          cancelText: "إلغاء",
-                                          onCancel: () {
-                                            Navigator.pop(context);
-                                          },
-                                          onSubmit: (Object? value) {
-                                            if (value is PickerDateRange) {
-                                              dateRange.clear();
-                                              dateRange.add(value.startDate!);
-                                              dateRange.add(value.endDate!);
-                                              setState(() {});
+                        }
+                        // Navigator.pop(context);
+                        // Navigator.pushReplacementNamed(context, '/');
+                        // Navigator.pushReplacement(
+                        //     context,
+                        //     PageTransition(
+                        //         child: const MyHomePage(),
+                        //         type: PageTransitionType.topToBottom,
+                        //         duration: const Duration(milliseconds: 300)));
+                        // Navigator.pushReplacementNamed(context, '/');
+                        Navigator.pop(context, true);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            duration: const Duration(milliseconds: 1000),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            content: Text(
+                                'تم حفظ "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}" بنجاح',
+                                style: const TextStyle(fontSize: 15))));
+                      })
+                ]),
+            body: registerationForm(context, loadPerson),
+          );
+        },
+      ),
+    );
+  }
 
-                                              debugPrint(
-                                                  "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                              debugPrint(
-                                                  "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          showActionButtons: true),
-                                    ));
-                          }),
-                      // const SizedBox(width: 10),
-                      OutlinedButton.icon(
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          label: const Text("تاريخ (هجري)"),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => Directionality(
-                                      textDirection: TextDirection.rtl,
-                                      child: SfHijriDateRangePicker(
-                                          initialSelectedRange: dateRange
-                                                  .isNotEmpty
-                                              ? HijriDateRange(
-                                                  HijriDateTime.fromDateTime(
-                                                      dateRange[0]),
-                                                  HijriDateTime.fromDateTime(
-                                                      dateRange[1]))
-                                              : null,
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .background,
-                                          startRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          endRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          rangeSelectionColor: Theme
-                                                  .of(context)
-                                              .colorScheme
-                                              .primaryContainer,
-                                          selectionMode:
-                                              DateRangePickerSelectionMode
-                                                  .range,
-                                          confirmText: "تأكيد",
-                                          cancelText: "إلغاء",
-                                          onCancel: () {
-                                            Navigator.pop(context);
-                                          },
-                                          onSubmit: (Object? value) {
-                                            if (value is HijriDateRange) {
-                                              dateRange.clear();
-                                              dateRange.add(value.startDate!
-                                                  .toDateTime());
-                                              dateRange.add(
-                                                  value.endDate!.toDateTime());
-                                              setState(() {});
-
-                                              debugPrint(
-                                                  "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                              debugPrint(
-                                                  "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          showActionButtons: true),
-                                    ));
-                          }),
-                    ]),
-                const SizedBox(height: 12),
-                DropdownButtonFormField(
-                  value: (aidTypes.contains(loadPerson?.aidType) ||
-                          aidTypes.contains(aidType))
-                      ? aidType
-                      : aidTypes.last,
-                  decoration: const InputDecoration(
-                    label: Text("نوع المساعدة"),
-                    border: OutlineInputBorder(),
-                    // contentPadding:
-                    //     EdgeInsets.symmetric(vertical: -40.0, horizontal: 10.0),
-                  ),
-                  items: aidTypes
-                      .map((e) => DropdownMenuItem(
-                          value: e,
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: Text(e)))
-                      .toList(),
-                  onChanged: (value) => setState(() => aidType = value),
-                  onTap: () => TextInputAction.next,
-                ),
-                const SizedBox(height: 5),
-                Visibility(
-                  visible: aidType == aidTypes.last,
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                        suffixIcon: clearButton(_typeController),
-                        label: const Text("نوع اخر"),
-                        border: const OutlineInputBorder(),
-                        isDense: true),
-                    controller: _typeController,
-                    textInputAction: TextInputAction.next,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_amountController),
-                      label: const Text("مقدار المساعدة"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 12),
-                const Center(
-                    child: Text("مدة المساعدة",
-                        style: TextStyle(fontWeight: FontWeight.bold))),
-                RadioListTile<AidDuration>(
-                  title: const Text('مستمرة'),
-                  value: AidDuration.continuous,
-                  groupValue: _duration,
-                  onChanged: (AidDuration? value) {
-                    setState(() {
-                      _duration = value;
-                    });
-                  },
-                ),
-                RadioListTile<AidDuration>(
-                  title: const Text('منقطعة'),
-                  value: AidDuration.interrupted,
-                  groupValue: _duration,
-                  onChanged: (AidDuration? value) {
-                    setState(() {
-                      _duration = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_notesController),
-                      label: const Text("الملاحظات"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  controller: _notesController,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: 10,
-                ),
-              ],
+  Form registerationForm(BuildContext context, Person? loadPerson) {
+    return Form(
+      canPop: true,
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ListView(
+          children: <Widget>[
+            const SizedBox(height: 15),
+            TextFormField(
+              textDirection: TextDirection.rtl,
+              decoration: InputDecoration(
+                  suffixIcon: clearButton(_firstNameController),
+                  label: const Text("الأسم الأول"),
+                  border: const OutlineInputBorder(),
+                  isDense: true),
+              controller: _firstNameController,
+              onChanged: (value) => setState(() {}),
+              autofocus: true,
+              textInputAction: TextInputAction.next,
             ),
-          ),
+            const SizedBox(height: 5),
+            TextFormField(
+              decoration: InputDecoration(
+                  suffixIcon: clearButton(_lastNameController),
+                  label: const Text("الأسم الأخير"),
+                  border: const OutlineInputBorder(),
+                  isDense: true),
+              controller: _lastNameController,
+              onChanged: (value) => setState(() {}),
+              autofocus: true,
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              decoration: InputDecoration(
+                  suffixIcon: clearButton(_idNumberController),
+                  label: const Text("رقم الهوية"),
+                  border: const OutlineInputBorder(),
+                  isDense: true),
+              controller: _idNumberController,
+              onChanged: (value) => setState(() {}),
+              keyboardType: TextInputType.number,
+              maxLength: 10,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              decoration: InputDecoration(
+                  suffixIcon: clearButton(_phoneController),
+                  label: const Text("رقم الهاتف"),
+                  border: const OutlineInputBorder(),
+                  isDense: true),
+              controller: _phoneController,
+              onChanged: (value) => setState(() {}),
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 10,
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 12),
+            const Center(
+                child: Text("تاريخ المساعدة",
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            const SizedBox(height: 10),
+            dateRange.isEmpty
+                ? Container()
+                : Center(
+                    child: SizedBox(
+                    width: 350,
+                    child: Table(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        TableRow(children: [
+                          const Text("الميلادي"),
+                          Text(
+                              "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+                        ]),
+                        TableRow(children: [
+                          const Text("الهجري"),
+                          Text(
+                              "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+                        ]),
+                      ],
+                    ),
+                  )),
+            const SizedBox(height: 10),
+            Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  OutlinedButton.icon(
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: const Text("تاريخ (ميلادي)"),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: SfDateRangePicker(
+                                      initialSelectedRange: dateRange.isNotEmpty
+                                          ? PickerDateRange(
+                                              dateRange[0], dateRange[1])
+                                          : null,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .background,
+                                      startRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      endRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      rangeSelectionColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withOpacity(0.4),
+                                      selectionMode:
+                                          DateRangePickerSelectionMode.range,
+                                      confirmText: "تأكيد",
+                                      cancelText: "إلغاء",
+                                      onCancel: () {
+                                        Navigator.pop(context);
+                                      },
+                                      onSubmit: (Object? value) {
+                                        if (value is PickerDateRange) {
+                                          dateRange.clear();
+                                          dateRange.add(value.startDate!);
+                                          dateRange.add(value.endDate!);
+                                          setState(() {});
+
+                                          debugPrint(
+                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                          debugPrint(
+                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      showActionButtons: true),
+                                ));
+                      }),
+                  // const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: const Text("تاريخ (هجري)"),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: SfHijriDateRangePicker(
+                                      initialSelectedRange: dateRange.isNotEmpty
+                                          ? HijriDateRange(
+                                              HijriDateTime.fromDateTime(
+                                                  dateRange[0]),
+                                              HijriDateTime.fromDateTime(
+                                                  dateRange[1]))
+                                          : null,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .background,
+                                      startRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      endRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      rangeSelectionColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer,
+                                      selectionMode:
+                                          DateRangePickerSelectionMode.range,
+                                      confirmText: "تأكيد",
+                                      cancelText: "إلغاء",
+                                      onCancel: () {
+                                        Navigator.pop(context);
+                                      },
+                                      onSubmit: (Object? value) {
+                                        if (value is HijriDateRange) {
+                                          dateRange.clear();
+                                          dateRange.add(
+                                              value.startDate!.toDateTime());
+                                          dateRange
+                                              .add(value.endDate!.toDateTime());
+                                          setState(() {});
+
+                                          debugPrint(
+                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                          debugPrint(
+                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      showActionButtons: true),
+                                ));
+                      }),
+                ]),
+            const SizedBox(height: 12),
+            DropdownButtonFormField(
+              value: (aidTypes.contains(loadPerson?.aidType) ||
+                      aidTypes.contains(aidType))
+                  ? aidType
+                  : aidTypes.last,
+              decoration: const InputDecoration(
+                label: Text("نوع المساعدة"),
+                border: OutlineInputBorder(),
+              ),
+              items: aidTypes
+                  .map((e) => DropdownMenuItem(
+                      value: e,
+                      alignment: AlignmentDirectional.center,
+                      child: Text(e)))
+                  .toList(),
+              onChanged: (value) => setState(() => aidType = value),
+              onTap: () => TextInputAction.next,
+            ),
+            const SizedBox(height: 5),
+            Visibility(
+              visible: aidType == aidTypes.last,
+              child: TextFormField(
+                decoration: InputDecoration(
+                    suffixIcon: clearButton(_typeController),
+                    label: const Text("نوع اخر"),
+                    border: const OutlineInputBorder(),
+                    isDense: true),
+                controller: _typeController,
+                onChanged: (value) => setState(() {}),
+                textInputAction: TextInputAction.next,
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextFormField(
+              decoration: InputDecoration(
+                  suffixIcon: clearButton(_amountController),
+                  label: const Text("مقدار المساعدة"),
+                  border: const OutlineInputBorder(),
+                  isDense: true),
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              controller: _amountController,
+              onChanged: (value) => setState(() {}),
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 12),
+            const Center(
+                child: Text("مدة المساعدة",
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            RadioListTile<AidDuration>(
+              title: const Text('مستمرة'),
+              value: AidDuration.continuous,
+              groupValue: _duration,
+              onChanged: (AidDuration? value) {
+                setState(() {
+                  _duration = value;
+                });
+              },
+            ),
+            RadioListTile<AidDuration>(
+              title: const Text('منقطعة'),
+              value: AidDuration.interrupted,
+              groupValue: _duration,
+              onChanged: (AidDuration? value) {
+                setState(() {
+                  _duration = value;
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            MarkdownTextInput(
+              (String value) {
+                if (description != value) {
+                  setState(() => description = value);
+                }
+              },
+              description,
+              label: 'الملاحظات',
+              textDirection: TextDirection.rtl,
+              maxLines: null,
+              actions: const [
+                MarkdownType.bold,
+                MarkdownType.italic,
+                MarkdownType.list,
+                MarkdownType.blockquote,
+                MarkdownType.title,
+                MarkdownType.strikethrough,
+                MarkdownType.separator
+              ],
+              controller: _notesController,
+              textStyle: const TextStyle(fontSize: 16),
+            ),
+          ],
         ),
       ),
     );
@@ -1156,7 +1595,7 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     Person? person = (selectedIdProvider.selectedId != -1 ||
-            widget.id! >= 0 && box.getAt(widget.id!)!.isInBox)
+            widget.id! >= 0 && box.get(widget.id!)!.isInBox)
         ? box.getAt(widget.id!)
         : null;
     if (person != null) {
@@ -1206,22 +1645,9 @@ class _DetailsPageState extends State<DetailsPage> {
                                       child: AlertDialog(
                                         icon: const Icon(
                                             Icons.delete_forever_outlined),
-                                        title: const Text("هل انت متأكد ؟"),
-                                        content: RichText(
-                                          textDirection: TextDirection.rtl,
-                                          text: TextSpan(children: [
-                                            const TextSpan(
-                                                text:
-                                                    "هل انت متأكد انك تريد حذف \n'"),
-                                            TextSpan(
-                                                text: person!.name,
-                                                style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            const TextSpan(text: "' ؟")
-                                          ]),
-                                        ),
+                                        title: Text("حذف ${person.name}؟"),
+                                        content: const Text(
+                                            "هل انت متأكد انك تريد حذف هذا الشخص؟"),
                                         actions: [
                                           TextButton(
                                               child: const Text("إلغاء"),
@@ -1249,9 +1675,21 @@ class _DetailsPageState extends State<DetailsPage> {
                                                       setState(() {});
 
                                                       Navigator.pop(context);
-                                                      Navigator
-                                                          .pushReplacementNamed(
-                                                              context, '/');
+                                                      Navigator.pushReplacementNamed(
+                                                              context, '/')
+                                                          .then((value) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                              duration:
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          1000),
+                                                              backgroundColor:
+                                                                  Theme.of(context)
+                                                                      .colorScheme
+                                                                      .primary,
+                                                              content: Text(
+                                                                  "تم حذف ${person.name} بنجاح",
+                                                                  style: const TextStyle(
+                                                                      fontSize: 15)))));
                                                     }
                                                   });
                                                 } else {
@@ -1271,7 +1709,22 @@ class _DetailsPageState extends State<DetailsPage> {
                                 builder: (context) =>
                                     RegisterPage(id: widget.id));
                           },
-                        )
+                        ),
+                        IconButton(
+                            icon: const Icon(Icons.share_outlined),
+                            onPressed: () {
+                              // Share.share("""
+                              //    ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
+                              //    ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
+                              //    ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
+                              //    ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
+                              //    ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
+                              //    ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
+                              //    مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
+                              //    الملاحظات: ${person.notes}\n
+
+                              // """);
+                            })
                       ],
                       pinned: true,
                       snap: true,
@@ -1292,10 +1745,69 @@ class _DetailsPageState extends State<DetailsPage> {
                             leading: const Icon(Icons.perm_identity_outlined),
                             title: Text(person.name, softWrap: true),
                             subtitle: const Text("الإسم كامل"),
+                            onLongPress: () async {
+                              if (person.name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration:
+                                            const Duration(milliseconds: 1000),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: const Text(
+                                            "لا توجد بيانات للنسخ",
+                                            style: TextStyle(fontSize: 15))));
+                              } else {
+                                await Clipboard.setData(
+                                        ClipboardData(text: person.name))
+                                    .then((value) => ScaffoldMessenger.of(
+                                            context)
+                                        .showSnackBar(SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم نسخ الإسم الكامل",
+                                                style:
+                                                    TextStyle(fontSize: 15)))));
+                              }
+                            },
                           )),
                           Card(
                               child: ListTile(
+                            onLongPress: () async {
+                              if (person.phoneNumber == 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration:
+                                            const Duration(milliseconds: 1000),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: const Text(
+                                            "لا توجد بيانات للنسخ",
+                                            style: TextStyle(fontSize: 15))));
+                              } else {
+                                await Clipboard.setData(ClipboardData(
+                                        text: person.phoneNumber.toString()))
+                                    .then((value) => ScaffoldMessenger.of(
+                                            context)
+                                        .showSnackBar(SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم نسخ رقم الهاتف",
+                                                style:
+                                                    TextStyle(fontSize: 15)))));
+                              }
+                            },
                             leading: const Icon(Icons.phone_outlined),
+                            trailing: const Icon(Icons.message_outlined),
                             title: Text(person.phoneNumber == 0
                                 ? "لا يوجد"
                                 : "${person.phoneNumber}"),
@@ -1309,6 +1821,36 @@ class _DetailsPageState extends State<DetailsPage> {
                                 ? "لا يوجد"
                                 : person.idNumber),
                             subtitle: const Text("رقم الهوية"),
+                            onLongPress: () async {
+                              if (person.idNumber.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration:
+                                            const Duration(milliseconds: 1000),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: const Text(
+                                            "لا توجد بيانات للنسخ",
+                                            style: TextStyle(fontSize: 15))));
+                              } else {
+                                await Clipboard.setData(
+                                        ClipboardData(text: person.idNumber))
+                                    .then((value) =>
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                duration: const Duration(
+                                                    milliseconds: 1000),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                content: const Text(
+                                                    "تم نسخ رقم الهوية",
+                                                    style: TextStyle(
+                                                        fontSize: 15)))));
+                              }
+                            },
                           )),
                           Card(
                               child: ListTile(
@@ -1326,6 +1868,38 @@ class _DetailsPageState extends State<DetailsPage> {
                               });
                             },
                             subtitle: const Text("تاريخ المساعدة"),
+                            onLongPress: () async {
+                              if (isDateHijri
+                                  ? hijriDateRangeView.isEmpty
+                                  : dateRangeView.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration:
+                                            const Duration(milliseconds: 1000),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: const Text(
+                                            "لا توجد بيانات للنسخ",
+                                            style: TextStyle(fontSize: 15))));
+                              } else {
+                                await Clipboard.setData(ClipboardData(
+                                        text: isDateHijri
+                                            ? hijriDateRangeView
+                                            : dateRangeView))
+                                    .then((value) => ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: Text(
+                                                "تم نسخ تاريخ المساعدة (${isDateHijri ? 'الهجري' : 'الميلادي'})",
+                                                style: const TextStyle(
+                                                    fontSize: 15)))));
+                              }
+                            },
                           )),
                           Card(
                               child: ListTile(
@@ -1334,12 +1908,57 @@ class _DetailsPageState extends State<DetailsPage> {
                                 ? 'لا يوجد'
                                 : person.aidType),
                             subtitle: const Text("نوع المساعدة"),
+                            onLongPress: () async {
+                              if (person.aidType.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        duration:
+                                            const Duration(milliseconds: 1000),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        content: const Text(
+                                            "لا توجد بيانات للنسخ",
+                                            style: TextStyle(fontSize: 15))));
+                              } else {
+                                await Clipboard.setData(
+                                        ClipboardData(text: person.aidType))
+                                    .then((value) =>
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                duration: const Duration(
+                                                    milliseconds: 1000),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                content: const Text(
+                                                    "تم نسخ نوع المساعدة",
+                                                    style: TextStyle(
+                                                        fontSize: 15)))));
+                              }
+                            },
                           )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.attach_money_outlined),
                             title: Text("${person.aidAmount} ريال"),
                             subtitle: const Text("مقدار المساعدة"),
+                            onLongPress: () async {
+                              await Clipboard.setData(ClipboardData(
+                                      text: person.aidAmount.toString()))
+                                  .then((value) => ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "تم نسخ مقدار المساعدة",
+                                              style:
+                                                  TextStyle(fontSize: 15)))));
+                            },
                           )),
                           Card(
                               child: ListTile(
@@ -1347,21 +1966,114 @@ class _DetailsPageState extends State<DetailsPage> {
                             title: Text(
                                 person.isContinuousAid ? "مستمرة" : "منقطعة"),
                             subtitle: const Text("مدة المساعدة"),
+                            onLongPress: () async {
+                              await Clipboard.setData(ClipboardData(
+                                      text: person.isContinuousAid
+                                          ? 'مستمرة'
+                                          : 'منقطعة'))
+                                  .then((value) => ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          content: const Text(
+                                              "تم نسخ مدة المساعدة",
+                                              style:
+                                                  TextStyle(fontSize: 15)))));
+                            },
                           )),
                           Card(
                               child: ListTile(
-                            leading: const Icon(Icons.description_outlined),
-                            title: Text(person.notes.isEmpty
-                                ? 'لا يوجد'
-                                : person.notes),
                             subtitle: const Text("الملاحظات"),
+                            trailing: IconButton(
+                                icon: const Icon(Icons.copy),
+                                onPressed: () async {
+                                  await Clipboard.setData(
+                                          ClipboardData(text: person.notes))
+                                      .then((value) =>
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration:
+                                                      const Duration(
+                                                          milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم نسخ الملاحظات",
+                                                      style: TextStyle(
+                                                          fontSize: 15)))));
+                                }),
+                            title: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: MarkdownBody(
+                                shrinkWrap: false,
+                                softLineBreak: true,
+                                selectable: true,
+                                data: person.notes.isEmpty
+                                    ? 'لا يوجد'
+                                    : person.notes,
+                                extensionSet: md.ExtensionSet(
+                                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                                  <md.InlineSyntax>[
+                                    md.EmojiSyntax(),
+                                    ...md.ExtensionSet.gitHubFlavored
+                                        .inlineSyntaxes
+                                  ],
+                                ),
+                              ),
+                            ),
                           )),
+                          Card(
+                            child: ListTile(
+                              onTap: () {
+                                //share
+                              },
+                              title: const Text("مشاركة هذه المساعدة"),
+                              subtitle: const Text("مشاركة"),
+                              leading: const Icon(Icons.share_outlined),
+                            ),
+                          )
                         ],
                       ),
                     ),
                   ],
                 ),
               ));
+  }
+}
+
+class ThemeButton extends StatelessWidget {
+  const ThemeButton(
+      {super.key,
+      required this.themeChange,
+      required this.lightColorScheme,
+      required this.darkColorScheme});
+
+  final TheThemeProvider themeChange;
+  final ColorScheme lightColorScheme;
+  final ColorScheme darkColorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        color: themeChange.darkTheme
+            ? darkColorScheme.background
+            : lightColorScheme.background,
+        child: FloatingActionButton.small(
+          elevation: 0,
+          onPressed: null,
+          foregroundColor: themeChange.darkTheme
+              ? darkColorScheme.onPrimaryContainer
+              : lightColorScheme.onPrimaryContainer,
+          backgroundColor: themeChange.darkTheme
+              ? darkColorScheme.primaryContainer
+              : lightColorScheme.primaryContainer,
+          child: const Icon(Icons.add),
+        ));
   }
 }
 

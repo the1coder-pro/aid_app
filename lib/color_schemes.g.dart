@@ -67,7 +67,7 @@ const textThemeDefault = TextTheme(
   ),
 );
 
-// Grey
+// Default (Grey)
 
 const greyLightColorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -79,8 +79,10 @@ const greyLightColorScheme = ColorScheme(
   onSecondary: Color(0xFFFFFFFF),
   secondaryContainer: Color(0xFFCFE6F2),
   onSecondaryContainer: Color(0xFF081E26),
-  tertiary: Color(0xFFBBBDBD),
-  onTertiary: Color(0xFF000000),
+  tertiary: Color(0xFFBBE9FF),
+  onTertiary: Color(0xFF001F29),
+  // tertiary: Color(0xFFBBBDBD),
+  // onTertiary: Color(0xFF000000),
   tertiaryContainer: Color(0xFFBBBDBD),
   onTertiaryContainer: Color(0xFF001F29),
   error: Color(0xFFBA1A1A),
@@ -113,8 +115,10 @@ const greyDarkColorScheme = ColorScheme(
   onSecondary: Color(0xFF8A8B8B),
   secondaryContainer: Color(0xFF081E26),
   onSecondaryContainer: Color(0xFFCFE6F2),
-  tertiary: Color(0xFFBBBDBD),
-  onTertiary: Color(0xFF000000),
+  tertiary: Color(0xFF001F29),
+  onTertiary: Color(0xFFBBE9FF),
+  // tertiary: Color(0xFFBBBDBD),
+  // onTertiary: Color(0xFF000000),
   tertiaryContainer: Color(0xFF001F29),
   onTertiaryContainer: Color(0xFFBAEAFF),
   error: Color(0xFFFFDAD6),
@@ -207,7 +211,7 @@ const greenDarkColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
-// Default (Blue)
+// Blue
 
 const blueLightColorScheme = ColorScheme(
   brightness: Brightness.light,
