@@ -1,4 +1,8 @@
+import 'dart:collection';
+
+import 'package:aid_app/person.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Dark/Light Theme
@@ -87,6 +91,43 @@ class SelectedIdProvider with ChangeNotifier {
   set selectedId(int id) {
     _selectedId = id;
     selectedIdPreference.setSelectedId(id);
+    notifyListeners();
+  }
+}
+
+class HiveServiceProvider extends ChangeNotifier {
+  List<Person> _people = [];
+  UnmodifiableListView<Person> get people => UnmodifiableListView(_people);
+  final String personHiveBox = 'personList';
+
+  // Create new record for person.
+  Future<void> createItem(Person person) async {
+    Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+    await box.add(person);
+    _people.add(person);
+    _people = box.values.toList();
+    notifyListeners();
+  }
+
+  Future<void> getItems() async {
+    Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+    _people = box.values.toList();
+
+    notifyListeners();
+  }
+
+  // remove a record of person
+  Future<void> deleteItem(int index) async {
+    Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+    await box.deleteAt(index);
+    _people = box.values.toList();
+    notifyListeners();
+  }
+
+  Future<void> updateItem(int id, Person person) async {
+    Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+    await box.putAt(id, person);
+    _people = box.values.toList();
     notifyListeners();
   }
 }

@@ -1,6 +1,5 @@
 import 'package:aid_app/person.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -119,7 +118,11 @@ class ChartPageState extends State<ChartPage> {
                         const TextSpan(text: ' ريال')
                       ]),
                 ))),
-        Center(child: Text("عدد  المساعدات الكلي :${peopleDataList.length}"))
+        Center(
+            child: Text(
+          "عدد  المساعدات الكلي :${peopleDataList.length}",
+          style: const TextStyle(fontFamily: 'ibmPlexSansArabic'),
+        ))
       ]))
     ]));
   }

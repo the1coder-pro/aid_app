@@ -56,11 +56,11 @@ dependencies:
   flutter_markdown: ^0.6.20
   markdown: ^7.2.1
   syncfusion_flutter_core: ^24.2.8
-  # share_plus: ^7.2.2
 
 
   intl: any
   pdf: any
+  url_launcher: ^6.2.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,12 +1,9 @@
 import 'dart:convert';
 import "package:universal_html/html.dart" as html;
 import 'dart:io';
-
 import 'package:aid_app/person.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -99,7 +96,8 @@ class _PrintPageState extends State<PrintPage> {
                                       Theme.of(context).colorScheme.primary,
                                   rangeSelectionColor: Theme.of(context)
                                       .colorScheme
-                                      .primaryContainer,
+                                      .primaryContainer
+                                      .withOpacity(0.5),
                                   selectionMode:
                                       DateRangePickerSelectionMode.range,
                                   confirmText: "تأكيد",
@@ -185,7 +183,8 @@ class _PrintPageState extends State<PrintPage> {
                                       Theme.of(context).colorScheme.primary,
                                   rangeSelectionColor: Theme.of(context)
                                       .colorScheme
-                                      .primaryContainer,
+                                      .primaryContainer
+                                      .withOpacity(0.5),
                                   selectionMode:
                                       DateRangePickerSelectionMode.range,
                                   confirmText: "تأكيد",
@@ -407,7 +406,10 @@ class _PrintPageState extends State<PrintPage> {
                   pw.Center(
                       child: pw.Text("فترة المساعدات",
                           textDirection: pw.TextDirection.rtl,
-                          style: pw.TextStyle(font: font, fontSize: 25))),
+                          style: pw.TextStyle(
+                              font: font,
+                              fontSize: 25,
+                              fontWeight: pw.FontWeight.bold))),
                 ]),
             pw.SizedBox(height: 5),
             pw.Directionality(
