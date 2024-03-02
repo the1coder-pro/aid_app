@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hive/hive.dart';
 import 'package:pdf/pdf.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
@@ -169,17 +170,16 @@ class _DetailsPageState extends State<DetailsPage> {
                         // IconButton(
                         //     icon: const Icon(Icons.share_outlined),
                         //     onPressed: () {
-                        //       // Share.share("""
-                        //       //    ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
-                        //       //    ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
-                        //       //    ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
-                        //       //    ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
-                        //       //    ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
-                        //       //    ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
-                        //       //    مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
-                        //       //    الملاحظات: ${person.notes}\n
-
-                        //       // """);
+                        //       Share.share("""
+                        //          ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
+                        //          ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
+                        //          ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
+                        //          ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
+                        //          ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
+                        //          ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
+                        //          مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
+                        //          الملاحظات: ${person.notes}\n
+                        //       """);
                         //     })
                       ],
                       pinned: true,
@@ -502,7 +502,16 @@ class _DetailsPageState extends State<DetailsPage> {
                           Card(
                             child: ListTile(
                               onTap: () {
-                                //share
+                                Share.share("""
+                                الاسم: ${person.name}
+رقم الهوية: ${person.idNumber}
+رقم الهاتف: ${person.phoneNumber}
+تاريخ المساعدة: ${isDateHijri ? hijriDateRangeView : dateRangeView}
+نوع المساعدة: ${person.aidType}
+مقدار المساعدة: ${person.aidAmount} ريال
+مدة المساعدة: ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}
+ملاحظات: ${person.notes.isNotEmpty ? person.notes : 'لا توجد'}
+                              """);
                               },
                               title: const Text("مشاركة هذه المساعدة"),
                               subtitle: const Text("مشاركة"),
