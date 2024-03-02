@@ -61,6 +61,8 @@ dependencies:
   intl: any
   pdf: any
   url_launcher: ^6.2.5
+  syncfusion_flutter_xlsio: ^24.2.8
+  community_material_icon: ^5.9.55
 dev_dependencies:
   flutter_test:
     sdk: flutter

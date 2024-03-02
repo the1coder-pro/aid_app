@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:aid_app/pages/details_page.dart';
+import 'package:aid_app/themes.dart';
+import 'package:provider/provider.dart';
 import "package:universal_html/html.dart" as html;
 import 'dart:io';
 import 'package:aid_app/person.dart';
@@ -30,6 +33,7 @@ class _PrintPageState extends State<PrintPage> {
 
   @override
   Widget build(BuildContext context) {
+    final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
     return Scaffold(
         body: CustomScrollView(slivers: <Widget>[
       const SliverAppBar.large(
@@ -83,79 +87,93 @@ class _PrintPageState extends State<PrintPage> {
                         context: context,
                         builder: (context) => Directionality(
                               textDirection: TextDirection.rtl,
-                              child: SfDateRangePicker(
-                                  initialSelectedRange: dateRange.isNotEmpty
-                                      ? PickerDateRange(
-                                          dateRange[0], dateRange[1])
-                                      : null,
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.background,
-                                  startRangeSelectionColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  endRangeSelectionColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  rangeSelectionColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                      .withOpacity(0.5),
-                                  selectionMode:
-                                      DateRangePickerSelectionMode.range,
-                                  confirmText: "تأكيد",
-                                  cancelText: "إلغاء",
-                                  onCancel: () {
-                                    Navigator.pop(context);
-                                  },
-                                  onSubmit: (Object? value) {
-                                    if (value is PickerDateRange) {
-                                      dateRange.clear();
-                                      dateRange.add(value.startDate!);
-                                      dateRange.add(value.endDate!);
-                                      setState(() {});
+                              child: Dialog(
+                                child: SizedBox(
+                                  width: 800,
+                                  height: 400,
+                                  child: SfDateRangePicker(
+                                      initialSelectedRange: dateRange.isNotEmpty
+                                          ? PickerDateRange(
+                                              dateRange[0], dateRange[1])
+                                          : null,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .background,
+                                      startRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      endRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      rangeSelectionColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withOpacity(0.5),
+                                      selectionMode:
+                                          DateRangePickerSelectionMode.range,
+                                      confirmText: "تأكيد",
+                                      cancelText: "إلغاء",
+                                      onCancel: () {
+                                        Navigator.pop(context);
+                                      },
+                                      onSubmit: (Object? value) {
+                                        if (value is PickerDateRange) {
+                                          dateRange.clear();
+                                          dateRange.add(value.startDate!);
+                                          dateRange.add(value.endDate!);
+                                          setState(() {});
 
-                                      debugPrint(
-                                          "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                      debugPrint(
-                                          "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                      setState(() {
-                                        dateRangeIncludedPersonList.clear();
-                                        for (int i = 0; i < box.length; i++) {
-                                          Person? person = box.getAt(i);
-                                          if (dateRange.isNotEmpty) {
-                                            DateTime startDate = dateRange[0];
-                                            DateTime endDate = dateRange[1];
-                                            if (person != null &&
-                                                person.aidDates.isNotEmpty) {
-                                              DateTime personStartDate =
-                                                  person.aidDates[0];
-                                              DateTime personEndDate =
-                                                  person.aidDates[1];
+                                          debugPrint(
+                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                          debugPrint(
+                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                          setState(() {
+                                            dateRangeIncludedPersonList.clear();
+                                            for (int i = 0;
+                                                i < box.length;
+                                                i++) {
+                                              Person? person = box.getAt(i);
+                                              if (dateRange.isNotEmpty) {
+                                                DateTime startDate =
+                                                    dateRange[0];
+                                                DateTime endDate = dateRange[1];
+                                                if (person != null &&
+                                                    person
+                                                        .aidDates.isNotEmpty) {
+                                                  DateTime personStartDate =
+                                                      person.aidDates[0];
+                                                  DateTime personEndDate =
+                                                      person.aidDates[1];
 
-                                              if (personStartDate.isSameOrAfter(
-                                                      startDate) &&
-                                                  personEndDate.isSameOrBefore(
-                                                      endDate)) {
-                                                dateRangeIncludedPersonList
-                                                    .add(person);
-                                                //
+                                                  if (personStartDate
+                                                          .isSameOrAfter(
+                                                              startDate) &&
+                                                      personEndDate
+                                                          .isSameOrBefore(
+                                                              endDate)) {
+                                                    dateRangeIncludedPersonList
+                                                        .add(person);
+                                                    //
+                                                  }
+                                                }
                                               }
                                             }
+                                          });
+                                          Navigator.pop(context);
+                                          if (dateRangeIncludedPersonList
+                                              .isEmpty) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "لا توجد مساعدات في هذه التواريخ.")));
                                           }
                                         }
-                                      });
-                                      Navigator.pop(context);
-                                      if (dateRangeIncludedPersonList.isEmpty) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                        .colorScheme
-                                                        .primary,
-                                                content: const Text(
-                                                    "لا توجد مساعدات في هذه التواريخ.")));
-                                      }
-                                    }
-                                  },
-                                  showActionButtons: true),
+                                      },
+                                      showActionButtons: true),
+                                ),
+                              ),
                             ));
                   }),
               // const SizedBox(width: 10),
@@ -167,84 +185,98 @@ class _PrintPageState extends State<PrintPage> {
                         context: context,
                         builder: (context) => Directionality(
                               textDirection: TextDirection.rtl,
-                              child: SfHijriDateRangePicker(
-                                  initialSelectedRange: dateRange.isNotEmpty
-                                      ? HijriDateRange(
-                                          HijriDateTime.fromDateTime(
-                                              dateRange[0]),
-                                          HijriDateTime.fromDateTime(
-                                              dateRange[1]))
-                                      : null,
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.background,
-                                  startRangeSelectionColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  endRangeSelectionColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  rangeSelectionColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                      .withOpacity(0.5),
-                                  selectionMode:
-                                      DateRangePickerSelectionMode.range,
-                                  confirmText: "تأكيد",
-                                  cancelText: "إلغاء",
-                                  onCancel: () {
-                                    Navigator.pop(context);
-                                  },
-                                  onSubmit: (Object? value) {
-                                    if (value is HijriDateRange) {
-                                      dateRange.clear();
-                                      dateRange
-                                          .add(value.startDate!.toDateTime());
-                                      dateRange
-                                          .add(value.endDate!.toDateTime());
-                                      setState(() {});
+                              child: Dialog(
+                                child: SizedBox(
+                                  width: 800,
+                                  height: 400,
+                                  child: SfHijriDateRangePicker(
+                                      initialSelectedRange: dateRange.isNotEmpty
+                                          ? HijriDateRange(
+                                              HijriDateTime.fromDateTime(
+                                                  dateRange[0]),
+                                              HijriDateTime.fromDateTime(
+                                                  dateRange[1]))
+                                          : null,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .background,
+                                      startRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      endRangeSelectionColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      rangeSelectionColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withOpacity(0.5),
+                                      selectionMode:
+                                          DateRangePickerSelectionMode.range,
+                                      confirmText: "تأكيد",
+                                      cancelText: "إلغاء",
+                                      onCancel: () {
+                                        Navigator.pop(context);
+                                      },
+                                      onSubmit: (Object? value) {
+                                        if (value is HijriDateRange) {
+                                          dateRange.clear();
+                                          dateRange.add(
+                                              value.startDate!.toDateTime());
+                                          dateRange
+                                              .add(value.endDate!.toDateTime());
+                                          setState(() {});
 
-                                      debugPrint(
-                                          "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                      debugPrint(
-                                          "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                      setState(() {
-                                        dateRangeIncludedPersonList.clear();
-                                        for (int i = 0; i < box.length; i++) {
-                                          Person? person = box.getAt(i);
-                                          if (dateRange.isNotEmpty) {
-                                            DateTime startDate = dateRange[0];
-                                            DateTime endDate = dateRange[1];
-                                            if (person != null &&
-                                                person.aidDates.isNotEmpty) {
-                                              DateTime personStartDate =
-                                                  person.aidDates[0];
-                                              DateTime personEndDate =
-                                                  person.aidDates[1];
+                                          debugPrint(
+                                              "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                          debugPrint(
+                                              "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                          setState(() {
+                                            dateRangeIncludedPersonList.clear();
+                                            for (int i = 0;
+                                                i < box.length;
+                                                i++) {
+                                              Person? person = box.getAt(i);
+                                              if (dateRange.isNotEmpty) {
+                                                DateTime startDate =
+                                                    dateRange[0];
+                                                DateTime endDate = dateRange[1];
+                                                if (person != null &&
+                                                    person
+                                                        .aidDates.isNotEmpty) {
+                                                  DateTime personStartDate =
+                                                      person.aidDates[0];
+                                                  DateTime personEndDate =
+                                                      person.aidDates[1];
 
-                                              if (personStartDate.isSameOrAfter(
-                                                      startDate) &&
-                                                  personEndDate.isSameOrBefore(
-                                                      endDate)) {
-                                                dateRangeIncludedPersonList
-                                                    .add(person);
-                                                //
+                                                  if (personStartDate
+                                                          .isSameOrAfter(
+                                                              startDate) &&
+                                                      personEndDate
+                                                          .isSameOrBefore(
+                                                              endDate)) {
+                                                    dateRangeIncludedPersonList
+                                                        .add(person);
+                                                    //
+                                                  }
+                                                }
                                               }
                                             }
+                                          });
+                                          Navigator.pop(context);
+                                          if (dateRangeIncludedPersonList
+                                              .isEmpty) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "لا توجد مساعدات في هذه التواريخ.")));
                                           }
                                         }
-                                      });
-                                      Navigator.pop(context);
-                                      if (dateRangeIncludedPersonList.isEmpty) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                        .colorScheme
-                                                        .primary,
-                                                content: const Text(
-                                                    "لا توجد مساعدات في هذه التواريخ.")));
-                                      }
-                                    }
-                                  },
-                                  showActionButtons: true),
+                                      },
+                                      showActionButtons: true),
+                                ),
+                              ),
                             ));
                   }),
             ]),
@@ -259,6 +291,10 @@ class _PrintPageState extends State<PrintPage> {
                     child: DataTable(
                         rows: dateRangeIncludedPersonList
                             .map((record) => DataRow(cells: [
+                                  DataCell(Text((dateRangeIncludedPersonList
+                                              .indexOf(record) +
+                                          1)
+                                      .toString())),
                                   DataCell(Text(record.name)),
                                   DataCell(Text(intl.DateFormat('yyyy-MM-dd')
                                       .format(record.aidDates[0]))),
@@ -270,18 +306,28 @@ class _PrintPageState extends State<PrintPage> {
                                   DataCell(Text(record.isContinuousAid
                                       ? 'مستمرة'
                                       : 'منقطعة')),
-                                  DataCell(Text(record.phoneNumber.toString()))
+                                  DataCell(Text(record.phoneNumber.toString())),
+                                  DataCell(IconButton(
+                                    icon: const Icon(Icons.visibility_outlined),
+                                    onPressed: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DetailsPage(id: record.key))),
+                                  )),
                                 ]))
                             .toList(),
                         columns: [
-                          'الإسم',
+                          '#'
+                              'الاسم',
                           'تاريخ البداية',
                           'تاريخ النهاية',
                           'رقم الهوية',
                           'النوع',
                           'المقدار',
                           'المدة',
-                          'رقم الهاتف'
+                          'رقم الهاتف',
+                          'عرض'
                         ]
                             .map((label) => DataColumn(label: Text(label)))
                             .toList()),
@@ -333,7 +379,6 @@ class _PrintPageState extends State<PrintPage> {
                                   await FilePicker.platform.getDirectoryPath();
 
                               if (selectedDirectory == null) {
-                                // User canceled the picker
                                 debugPrint("User canceled the picker");
                               } else {
                                 final file = File(
@@ -462,7 +507,7 @@ class _PrintPageState extends State<PrintPage> {
                       ]),
                       pw.Column(children: [
                         pw.Padding(
-                            child: pw.Text('الإسم', style: tableHeaderStyle),
+                            child: pw.Text('الاسم', style: tableHeaderStyle),
                             padding: const pw.EdgeInsets.all(4))
                       ]),
                     ]),

@@ -1,5 +1,10 @@
-import 'package:aid_app/chart_page.dart';
-import 'package:aid_app/print_page.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:aid_app/pages/chart_page.dart';
+import 'package:aid_app/pages/print_page.dart';
+import 'package:community_material_icon/community_material_icon.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -11,13 +16,14 @@ import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:pdf/widgets.dart' as pw;
-
-import 'pages/details.dart';
-import 'pages/register.dart';
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xcel;
+import 'pages/details_page.dart';
+import 'pages/register_page.dart';
 import 'person.dart';
 import 'search_widget.dart';
 import 'themes.dart';
 import 'color_schemes.g.dart';
+import "package:universal_html/html.dart" as html;
 
 // ignore: non_constant_identifier_names
 String VERSION_NUMBER = "0.70";
@@ -383,6 +389,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             person.name.split(' ').length > 3
                                                 ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
                                                 : person.name,
+                                            textDirection: TextDirection.rtl,
                                             style: const TextStyle(
                                                 fontFamily: "ibmPlexSansArabic",
                                                 fontSize: 18),
@@ -507,14 +514,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 color:
                                     Theme.of(context).colorScheme.onPrimary)),
                         onPressed: () {
-                          // Future<bool?> newRecord = showDialog<bool>(
-                          //     context: context,
-                          //     builder: (context) => RegisterPage());
-                          // newRecord.then((value) {
-                          //   if (value == true) {
-                          //     setState(() {});
-                          //   }
-                          // });
                           showDialog(
                               context: context,
                               builder: (context) => RegisterPage());
@@ -545,7 +544,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> settingsPage(BuildContext context, TheThemeProvider themeChange,
       ThemeColorProvider colorChangeProvider) {
-    final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
+    final hiveServiceProvider =
+        Provider.of<HiveServiceProvider>(context, listen: false);
     return showModalBottomSheet<void>(
         context: context,
         elevation: 1,
@@ -631,16 +631,243 @@ class _MyHomePageState extends State<MyHomePage> {
                       childrenPadding: const EdgeInsets.all(10),
                       children: [
                         const SizedBox(height: 20),
-                        OutlinedButton.icon(
-                            onPressed: () async {
-                              pw.Document pdf = await generatePdfForAllRecords(
-                                  hiveServiceProvider);
-                              await Printing.sharePdf(
-                                  bytes: await pdf.save(),
-                                  filename: 'file_all.pdf');
-                            },
-                            icon: const Icon(Icons.print_outlined),
-                            label: const Text("استخراج البيانات")),
+                        const Text("استخراج جميع البيانات"),
+                        const SizedBox(height: 10),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              OutlinedButton(
+                                onPressed: () async {
+                                  pw.Document pdf =
+                                      await generatePdfForAllRecords(
+                                          hiveServiceProvider);
+                                  try {
+                                    // which os is it?
+                                    if (Platform.isMacOS ||
+                                        Platform.isLinux ||
+                                        Platform.isWindows) {
+                                      String? outputFile =
+                                          await FilePicker.platform.saveFile(
+                                        dialogTitle:
+                                            'Please select an output file:',
+                                        fileName: 'file_all.pdf',
+                                      );
+
+                                      if (outputFile == null) {
+                                        debugPrint("User canceled the picker");
+                                      } else {
+                                        final file = File(outputFile);
+                                        await file
+                                            .writeAsBytes(await pdf.save())
+                                            .then((value) {
+                                          Navigator.pop(context);
+
+                                          return ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration: const Duration(
+                                                      milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم حفظ الملف بنجاح",
+                                                      style: TextStyle(
+                                                          fontSize: 15))));
+                                        });
+                                      }
+                                    } else if (Platform.isAndroid ||
+                                        Platform.isIOS) {
+                                      String? selectedDirectory =
+                                          await FilePicker.platform
+                                              .getDirectoryPath();
+
+                                      if (selectedDirectory == null) {
+                                        debugPrint("User canceled the picker");
+                                      } else {
+                                        final file = File(
+                                            "$selectedDirectory/file_all.pdf");
+                                        await file
+                                            .writeAsBytes(await pdf.save())
+                                            .then((value) {
+                                          Navigator.pop(context);
+                                          return ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration: const Duration(
+                                                      milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم حفظ الملف بنجاح",
+                                                      style: TextStyle(
+                                                          fontSize: 15))));
+                                        });
+                                      }
+                                    }
+                                  } catch (e) {
+                                    var savedFile = await pdf.save();
+                                    List<int> fileInts = List.from(savedFile);
+                                    html.AnchorElement(
+                                        href:
+                                            "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+                                      ..setAttribute("download", "file_all.pdf")
+                                      ..click();
+                                    Navigator.pop(context);
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم حفظ الملف بنجاح",
+                                                style:
+                                                    TextStyle(fontSize: 15))));
+                                  }
+                                },
+                                child: const Icon(CommunityMaterialIcons
+                                    .file_pdf_box_outline),
+                              ),
+                              OutlinedButton(
+                                child: const Icon(CommunityMaterialIcons
+                                    .file_excel_box_outline),
+                                onPressed: () async {
+                                  // excel
+                                  final xcel.Workbook workbook =
+                                      xcel.Workbook();
+                                  final xcel.Worksheet sheet =
+                                      workbook.worksheets[0];
+                                  final labels = [
+                                    'الاسم',
+                                    'تاريخ البداية',
+                                    'تاريخ النهاية',
+                                    'رقم الهوية',
+                                    'رقم الهاتف',
+                                    'النوع',
+                                    'المقدار',
+                                    'المدة',
+                                    'رقم الهاتف'
+                                  ];
+                                  labels.asMap().forEach((index, label) {
+                                    int columnIndex = index + 1;
+                                    sheet
+                                        .getRangeByIndex(1, columnIndex)
+                                        .setText(label);
+                                  });
+                                  for (var i = 0;
+                                      i < hiveServiceProvider.people.length;
+                                      i++) {
+                                    final record =
+                                        hiveServiceProvider.people[i];
+                                    sheet
+                                        .getRangeByIndex(i + 2, 1)
+                                        .setText(record.name);
+                                    sheet.getRangeByIndex(i + 2, 2).setText(
+                                        intl.DateFormat('yyyy-MM-dd')
+                                            .format(record.aidDates[0]));
+                                    sheet.getRangeByIndex(i + 2, 3).setText(
+                                        intl.DateFormat('yyyy-MM-dd')
+                                            .format(record.aidDates[1]));
+                                    sheet
+                                        .getRangeByIndex(i + 2, 4)
+                                        .setText(record.idNumber);
+                                    sheet
+                                        .getRangeByIndex(i + 2, 5)
+                                        .setText(record.aidType);
+                                    sheet
+                                        .getRangeByIndex(i + 2, 6)
+                                        .setText(record.aidAmount.toString());
+                                    sheet.getRangeByIndex(i + 2, 7).setText(
+                                        record.isContinuousAid
+                                            ? 'مستمرة'
+                                            : 'منقطعة');
+                                    sheet
+                                        .getRangeByIndex(i + 2, 8)
+                                        .setText(record.phoneNumber.toString());
+                                  }
+                                  final List<int> bytes =
+                                      workbook.saveAsStream();
+//Dispose the workbook.
+
+                                  try {
+                                    // which os is it?
+                                    if (Platform.isMacOS ||
+                                        Platform.isLinux ||
+                                        Platform.isWindows) {
+                                      String? outputFile =
+                                          await FilePicker.platform.saveFile(
+                                              dialogTitle:
+                                                  'Please select an output file:',
+                                              fileName: 'file_all.xlsx');
+
+                                      if (outputFile == null) {
+                                        debugPrint("User canceled the picker");
+                                      } else {
+                                        final file = File(outputFile);
+                                        await file
+                                            .writeAsBytes(bytes)
+                                            .then((value) {
+                                          Navigator.pop(context);
+
+                                          return ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  duration: const Duration(
+                                                      milliseconds: 1000),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
+                                                  content: const Text(
+                                                      "تم حفظ الملف بنجاح",
+                                                      style: TextStyle(
+                                                          fontSize: 15))));
+                                        });
+                                      }
+                                    } else if (Platform.isAndroid ||
+                                        Platform.isIOS) {
+                                      String? selectedDirectory =
+                                          await FilePicker.platform
+                                              .getDirectoryPath();
+
+                                      if (selectedDirectory == null) {
+                                        debugPrint("User canceled the picker");
+                                      } else {
+                                        final file = File(
+                                            "$selectedDirectory/file_all.xlsx");
+                                        await file.writeAsBytes(bytes).then(
+                                            (value) => ScaffoldMessenger.of(
+                                                    context)
+                                                .showSnackBar(SnackBar(
+                                                    duration: const Duration(
+                                                        milliseconds: 1000),
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "تم حفظ الملف بنجاح",
+                                                        style: TextStyle(
+                                                            fontSize: 15)))));
+                                      }
+                                    }
+                                  } catch (e) {
+                                    var savedFile = bytes;
+                                    List<int> fileInts = List.from(savedFile);
+                                    html.AnchorElement(
+                                        href:
+                                            "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+                                      ..setAttribute(
+                                          "download", "file_all.xlsx")
+                                      ..click();
+                                  }
+                                  workbook.dispose();
+                                },
+                              )
+                            ]),
                         const SizedBox(height: 20),
                       ]),
                 ],
@@ -736,7 +963,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       ]),
                       pw.Column(children: [
                         pw.Padding(
-                            child: pw.Text('الإسم', style: tableHeaderStyle),
+                            child: pw.Text('الاسم', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('#', style: tableHeaderStyle),
                             padding: const pw.EdgeInsets.all(4))
                       ]),
                     ]),
@@ -798,6 +1030,15 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: pw.Text(person.name,
                                   style: tableStyle.copyWith(fontSize: 10)))
                         ]),
+                        pw.Column(children: [
+                          pw.Padding(
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  (hiveServiceProvider.people.indexOf(person) +
+                                          1)
+                                      .toString(),
+                                  style: tableStyle.copyWith(fontSize: 10)))
+                        ]),
                       ]),
                   ],
                 )),
@@ -822,7 +1063,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   TextButton(
                       child: const Text("إلغاء"),
                       onPressed: () => Navigator.pop(context)),
-                  TextButton(
+                  OutlinedButton(
                       child: const Text("نعم"),
                       onPressed: () {
                         box.values.isNotEmpty

@@ -13,7 +13,7 @@ import 'package:syncfusion_flutter_core/core.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../person.dart';
-import 'register.dart';
+import 'register_page.dart';
 
 class DetailsPage extends StatefulWidget {
   final int? id;
@@ -36,7 +36,7 @@ class _DetailsPageState extends State<DetailsPage> {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
     Person? person = (selectedIdProvider.selectedId != -1 ||
-            widget.id! >= 0 && box.get(widget.id!)!.isInBox)
+            widget.id! >= 0 && box.getAt(widget.id!)!.isInBox)
         ? box.getAt(widget.id!)
         : null;
     if (person != null) {
@@ -56,6 +56,7 @@ class _DetailsPageState extends State<DetailsPage> {
     } else {
       isLargeScreen = false;
     }
+    debugPrint("${hiveServiceProvider.people}");
     return Directionality(
         textDirection: TextDirection.rtl,
         child: !(hiveServiceProvider.people.isNotEmpty && person != null)
@@ -165,21 +166,21 @@ class _DetailsPageState extends State<DetailsPage> {
                                     RegisterPage(id: widget.id));
                           },
                         ),
-                        IconButton(
-                            icon: const Icon(Icons.share_outlined),
-                            onPressed: () {
-                              // Share.share("""
-                              //    ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
-                              //    ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
-                              //    ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
-                              //    ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
-                              //    ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
-                              //    ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
-                              //    مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
-                              //    الملاحظات: ${person.notes}\n
+                        // IconButton(
+                        //     icon: const Icon(Icons.share_outlined),
+                        //     onPressed: () {
+                        //       // Share.share("""
+                        //       //    ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
+                        //       //    ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
+                        //       //    ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
+                        //       //    ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
+                        //       //    ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
+                        //       //    ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
+                        //       //    مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
+                        //       //    الملاحظات: ${person.notes}\n
 
-                              // """);
-                            })
+                        //       // """);
+                        //     })
                       ],
                       pinned: true,
                       snap: true,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'pages/details.dart';
+import 'pages/details_page.dart';
 import 'person.dart';
 
 class SearchWidget extends SearchDelegate<Person> {
