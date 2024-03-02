@@ -1,3 +1,3 @@
-# Aid App
+# Aid App (WIP 🚧)
 
-An App that Help Managers.
+An application to help managers with they're very heavy and time consuming work.
