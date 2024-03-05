@@ -43,8 +43,8 @@ class ChartPageState extends State<ChartPage> {
       totalAmount += value;
     }
 
-    debugPrint(chartAidMap.toString());
-    debugPrint(peopleDataList.length.toString());
+    // debugPrint(chartAidMap.toString());
+    // debugPrint(peopleDataList.length.toString());
   }
 
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');

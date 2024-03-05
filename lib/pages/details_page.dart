@@ -36,9 +36,9 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
-    Person? person = (selectedIdProvider.selectedId != -1 ||
-            widget.id! >= 0 && box.get(widget.id!)!.isInBox)
-        ? box.getAt(widget.id!)
+    Person? person = (selectedIdProvider.selectedId != -1 || widget.id! >= 0)
+        // widget.id! >= 0 &&  box.get(widget.id!)!.isInBox)
+        ? hiveServiceProvider.getItem(widget.id!)
         : null;
     // Person? person = (selected)
     if (person != null) {
@@ -168,20 +168,6 @@ class _DetailsPageState extends State<DetailsPage> {
                                     RegisterPage(id: widget.id));
                           },
                         ),
-                        // IconButton(
-                        //     icon: const Icon(Icons.share_outlined),
-                        //     onPressed: () {
-                        //       Share.share("""
-                        //          ${person.name.isNotEmpty ? 'الأسم : ${person.name}' : ''}\n
-                        //          ${person.idNumber.isNotEmpty ? 'رقم الهوية : ${person.idNumber}' : ''}\n
-                        //          ${person.phoneNumber != 0 ? 'رقم الجوال : ${person.phoneNumber}' : ''}\n
-                        //          ${person.aidDates.isNotEmpty ? 'تاريخ المساعدة : ${isDateHijri ? hijriDateRangeView : dateRangeView}' : ''}\n
-                        //          ${person.aidType.isNotEmpty ? 'نوع المساعدة : ${person.aidType}' : ''}\n
-                        //          ${person.aidAmount != 0 ? 'مقدار المساعدة : ${person.aidAmount} ريال' : ''}\n
-                        //          مدة المساعدة : ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}\n
-                        //          الملاحظات: ${person.notes}\n
-                        //       """);
-                        //     })
                       ],
                       pinned: true,
                       snap: true,
@@ -416,27 +402,53 @@ class _DetailsPageState extends State<DetailsPage> {
                               }
                             },
                           )),
-                          Card(
-                              child: ListTile(
-                            leading: const Icon(Icons.attach_money_outlined),
-                            title: Text("${person.aidAmount} ريال"),
-                            subtitle: const Text("مقدار المساعدة"),
-                            onLongPress: () async {
-                              await Clipboard.setData(ClipboardData(
-                                      text: person.aidAmount.toString()))
-                                  .then((value) => ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                          duration: const Duration(
-                                              milliseconds: 1000),
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          content: const Text(
-                                              "تم نسخ مقدار المساعدة",
-                                              style:
-                                                  TextStyle(fontSize: 15)))));
-                            },
-                          )),
+                          person.aidType != 'عينية' &&
+                                  person.aidType != 'رمضانية'
+                              ? Card(
+                                  child: ListTile(
+                                  leading:
+                                      const Icon(Icons.attach_money_outlined),
+                                  title: Text("${person.aidAmount} ريال"),
+                                  subtitle: const Text("مقدار المساعدة"),
+                                  onLongPress: () async {
+                                    await Clipboard.setData(ClipboardData(
+                                            text: person.aidAmount.toString()))
+                                        .then((value) => ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                duration: const Duration(
+                                                    milliseconds: 1000),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                content: const Text(
+                                                    "تم نسخ مقدار المساعدة",
+                                                    style: TextStyle(
+                                                        fontSize: 15)))));
+                                  },
+                                ))
+                              : Card(
+                                  child: ListTile(
+                                  leading: const Icon(Icons.kitchen_outlined),
+                                  title: Text(person.aidTypeDetails!),
+                                  subtitle: const Text("تفاصيل المساعدة"),
+                                  onLongPress: () async {
+                                    await Clipboard.setData(ClipboardData(
+                                            text: person.aidTypeDetails!))
+                                        .then((value) => ScaffoldMessenger.of(
+                                                context)
+                                            .showSnackBar(SnackBar(
+                                                duration: const Duration(
+                                                    milliseconds: 1000),
+                                                backgroundColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                content: const Text(
+                                                    "تم نسخ تفاصيل المساعدة",
+                                                    style:
+                                                        TextStyle(fontSize: 15)))));
+                                  },
+                                )),
                           Card(
                               child: ListTile(
                             leading: const Icon(Icons.update_outlined),
@@ -618,20 +630,38 @@ class _DetailsPageState extends State<DetailsPage> {
                             padding: const pw.EdgeInsets.all(4))
                       ]),
                     ]),
-                    pw.TableRow(children: [
-                      pw.Column(children: [
-                        pw.Padding(
-                            child: pw.Text("${personRecord.aidAmount} ريال",
-                                style: tableStyle),
-                            padding: const pw.EdgeInsets.all(4))
-                      ]),
-                      pw.Column(children: [
-                        pw.Padding(
-                            child: pw.Text('مقدار المساعدة',
-                                style: tableHeaderStyle),
-                            padding: const pw.EdgeInsets.all(4))
-                      ]),
-                    ]),
+                    personRecord.aidType != 'عينية' &&
+                            personRecord.aidType != 'رمضانية'
+                        ? pw.TableRow(children: [
+                            pw.Column(children: [
+                              pw.Padding(
+                                  child: pw.Text(
+                                      "${personRecord.aidAmount} ريال",
+                                      style: tableStyle),
+                                  padding: const pw.EdgeInsets.all(4))
+                            ]),
+                            pw.Column(children: [
+                              pw.Padding(
+                                  child: pw.Text('مقدار المساعدة',
+                                      style: tableHeaderStyle),
+                                  padding: const pw.EdgeInsets.all(4))
+                            ]),
+                          ])
+                        : pw.TableRow(children: [
+                            pw.Column(children: [
+                              pw.Padding(
+                                  child: pw.Text(
+                                      "${personRecord.aidTypeDetails}",
+                                      style: tableStyle),
+                                  padding: const pw.EdgeInsets.all(4))
+                            ]),
+                            pw.Column(children: [
+                              pw.Padding(
+                                  child: pw.Text('تفاصيل المساعدة',
+                                      style: tableHeaderStyle),
+                                  padding: const pw.EdgeInsets.all(4))
+                            ]),
+                          ]),
                     pw.TableRow(children: [
                       pw.Column(children: [
                         pw.Padding(

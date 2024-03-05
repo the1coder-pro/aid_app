@@ -8,6 +8,7 @@ class JsonRecord {
   String? aidType;
   bool? isContinuousAid;
   String? aidDates;
+  String? aidTypeDetails;
 
   JsonRecord(
       {this.name,
@@ -15,6 +16,7 @@ class JsonRecord {
       this.aidAmount,
       this.aidDates,
       this.aidType,
+      this.aidTypeDetails,
       this.isContinuousAid,
       this.phoneNumber,
       this.notes});
@@ -27,6 +29,7 @@ class JsonRecord {
         isContinuousAid: json['helpDuration'] == 'مستمرة' ? true : false,
         aidDates: json['helpDate'],
         aidType: json['helpType'],
+        aidTypeDetails: json['helpTypeDetails'],
         notes: json['notes'],
         phoneNumber: json['phoneNumber']);
   }

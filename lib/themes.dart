@@ -105,24 +105,23 @@ class HiveServiceProvider extends ChangeNotifier {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     await box.add(person);
     _people.add(person);
-    _people = box.values.toList();
+    _people = box.values.toList().toList();
     notifyListeners();
   }
 
   Future<void> getItems() async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
-    _people = box.values.toList();
+    _people = box.values.toList().reversed.toList();
 
     notifyListeners();
   }
 
-  // Future<Person> getItem(id) async {
-  //   Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+  Person getItem(int index) {
+    // Box<Person> box = await Hive.openBox<Person>(personHiveBox);
+    // _people = box.values.toList();
 
-  //   box.get()
-
-  //   notifyListeners();
-  // }
+    return _people[index];
+  }
 
   // remove a record of person
   Future<void> deleteItem(int index) async {

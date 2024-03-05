@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:convert' show base64, jsonDecode, utf8;
 import 'dart:io';
 
 import 'package:aid_app/json_compiler.dart';
@@ -6,6 +6,7 @@ import 'package:aid_app/pages/chart_page.dart';
 import 'package:aid_app/pages/print_page.dart';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 // import 'package:flutter/services.dart';
@@ -328,7 +329,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     // reverse: true,
                                     itemCount: hiveProvider.people.length,
                                     itemBuilder: (context, i) {
-                                      var person = hiveService.people[i];
+                                      // var person = hiveService.people[i];
+                                      var person = hiveProvider.getItem(i);
                                       return Slidable(
                                         // Specify a key if the Slidable is dismissible.
                                         key: const ValueKey(0),
@@ -379,6 +381,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                         child: ListTile(
                                           leading: CircleAvatar(
+                                            backgroundColor: colorChangeProvider
+                                                        .colorTheme ==
+                                                    0
+                                                ? const Color(0xFFe9e9ea)
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                            foregroundColor: colorChangeProvider
+                                                        .colorTheme ==
+                                                    0
+                                                ? const Color(0xFF191c1e)
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimary,
                                             child: Text(
                                               (person.name)
                                                   .toString()
@@ -415,8 +431,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 else
                                                   const TextSpan(),
                                                 TextSpan(
-                                                    text:
-                                                        "${person.aidAmount} ريال",
+                                                    text: person.aidType !=
+                                                                'عينية' &&
+                                                            person.aidType !=
+                                                                'رمضانية'
+                                                        ? "${person.aidAmount} ريال"
+                                                        : person.aidTypeDetails,
                                                     style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold)),
@@ -424,7 +444,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 TextSpan(
                                                     text: person.aidType.isEmpty
                                                         ? 'لا يوجد'
-                                                        : person.aidType,
+                                                        : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''} ${person.aidType}",
                                                     style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold)),
@@ -647,7 +667,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   pw.Document pdfFile = pw.Document();
                                   pw.Document pdf =
                                       await generatePdfForAllRecords(
-                                          hiveServiceProvider, pdfFile);
+                                          hiveServiceProvider);
                                   try {
                                     // which os is it?
                                     if (Platform.isMacOS ||
@@ -740,6 +760,108 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: const Icon(CommunityMaterialIcons
                                     .file_pdf_box_outline),
                               ),
+                              OutlinedButton(
+                                  onPressed: () async {
+                                    // File file = File
+                                    // File file = File();
+                                    List recordsOfJson = [];
+                                    for (var record in hiveServiceProvider
+                                        .people
+                                        .getRange(0, 10)) {
+                                      recordsOfJson.add(record.toJson());
+                                    }
+                                    // await file.writeAsString("$recordsOfJson");
+                                    // try {
+                                    // which os is it?
+                                    // if (Platform.isMacOS ||
+                                    //     Platform.isLinux ||
+                                    //     Platform.isWindows) {
+                                    //   String? outputFile =
+                                    //       await FilePicker.platform.saveFile(
+                                    //     dialogTitle:
+                                    //         'Please select an output file:',
+                                    //     fileName: 'data.json',
+                                    //   );
+
+                                    //   if (outputFile == null) {
+                                    //     debugPrint("User canceled the picker");
+                                    //   } else {
+                                    //     final file = File(outputFile);
+                                    //     await file
+                                    //         .writeAsBytes(await file)
+                                    //         .then((value) {
+                                    //       Navigator.pop(context);
+
+                                    //       return ScaffoldMessenger.of(context)
+                                    //           .showSnackBar(SnackBar(
+                                    //               duration: const Duration(
+                                    //                   milliseconds: 1000),
+                                    //               backgroundColor:
+                                    //                   Theme.of(context)
+                                    //                       .colorScheme
+                                    //                       .primary,
+                                    //               content: const Text(
+                                    //                   "تم حفظ الملف بنجاح",
+                                    //                   style: TextStyle(
+                                    //                       fontSize: 15))));
+                                    //     });
+                                    //   }
+                                    // } else if (Platform.isAndroid ||
+                                    //     Platform.isIOS) {
+                                    //   String? selectedDirectory =
+                                    //       await FilePicker.platform
+                                    //           .getDirectoryPath();
+
+                                    //   if (selectedDirectory == null) {
+                                    //     debugPrint("User canceled the picker");
+                                    //   } else {
+                                    //     final file = File(
+                                    //         "$selectedDirectory/file_all.pdf");
+                                    //     await file
+                                    //         .writeAsBytes(await pdf.save())
+                                    //         .then((value) {
+                                    //       Navigator.pop(context);
+                                    //       return ScaffoldMessenger.of(context)
+                                    //           .showSnackBar(SnackBar(
+                                    //               duration: const Duration(
+                                    //                   milliseconds: 1000),
+                                    //               backgroundColor:
+                                    //                   Theme.of(context)
+                                    //                       .colorScheme
+                                    //                       .primary,
+                                    //               content: const Text(
+                                    //                   "تم حفظ الملف بنجاح",
+                                    //                   style: TextStyle(
+                                    //                       fontSize: 15))));
+                                    //     });
+                                    //   }
+                                    // }
+                                    // } catch (e) {
+                                    // var savedFile = await file.save();
+                                    var file = utf8.encode("$recordsOfJson");
+                                    List<int> fileInts = List.from(file);
+                                    html.AnchorElement(
+                                        href:
+                                            "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+                                      ..setAttribute("download", "data.json")
+                                      ..click();
+
+                                    Navigator.pop(context);
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            duration: const Duration(
+                                                milliseconds: 1000),
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: const Text(
+                                                "تم حفظ الملف بنجاح",
+                                                style:
+                                                    TextStyle(fontSize: 15))));
+                                  },
+                                  child: const Icon(CommunityMaterialIcons
+                                      .file_export_outline)),
                               OutlinedButton(
                                 child: const Icon(CommunityMaterialIcons
                                     .file_excel_box_outline),
@@ -887,77 +1009,70 @@ class _MyHomePageState extends State<MyHomePage> {
                             OutlinedButton(
                                 onPressed: () async {
                                   FilePickerResult? result =
-                                      await FilePicker.platform.pickFiles();
+                                      await FilePicker.platform.pickFiles(
+                                          // allowedExtensions: ['json'],
+                                          type: FileType.any);
                                   if (result != null) {
-                                    File file = File(result.files.single.path!);
-                                    if (file.path.contains('.json')) {
-                                      final response =
-                                          await file.readAsString();
-                                      List<JsonRecord> records = (jsonDecode(
-                                              response) as List<dynamic>)
-                                          .map((e) => JsonRecord.fromJson(e))
-                                          .toList();
+                                    var response;
+                                    if (kIsWeb) {
+                                      var file = utf8
+                                          .decode(result.files.single.bytes!);
+                                      response = file;
 
-                                      for (var record in records) {
-                                        var splitedDates =
-                                            record.aidDates != null
-                                                ? record.aidDates!.split(' - ')
-                                                : [];
-                                        // String years1 = record.aidDates!
-                                        //     .split(" - ")[0]
-                                        //     .split('/')[2];
-                                        // String months1 = record.aidDates!
-                                        //     .split(" - ")[0]
-                                        //     .split('/')[1];
-                                        // String days1 = record.aidDates!
-                                        //     .split(" - ")[0]
-                                        //     .split('/')[0];
-
-                                        // String years2 = record.aidDates!
-                                        //     .split(" - ")[1]
-                                        //     .split('/')[2];
-                                        // String months2 = record.aidDates!
-                                        //     .split(" - ")[1]
-                                        //     .split('/')[1];
-                                        // String days2 = record.aidDates!
-                                        //     .split(" - ")[1]
-                                        //     .split('/')[0];
-
-                                        await hiveServiceProvider.createItem(
-                                            Person(
-                                                name: record.name ?? 'لا يوجد',
-                                                idNumber: record.idNumber ?? '',
-                                                phoneNumber:
-                                                    record.phoneNumber ?? '0',
-                                                aidDates: splitedDates
-                                                        .isNotEmpty
-                                                    ? [
-                                                        intl.DateFormat(
-                                                                "dd/MM/yyyy")
-                                                            .parse(splitedDates[
-                                                                0]),
-                                                        intl.DateFormat(
-                                                                "dd/MM/yyyy")
-                                                            .parse(splitedDates[
-                                                                1]),
-                                                      ]
-                                                    : [],
-                                                aidType: record.aidType ??
-                                                    'غير محدد',
-                                                aidAmount:
-                                                    record.aidAmount ?? 0.0,
-                                                isContinuousAid:
-                                                    record.isContinuousAid ??
-                                                        true,
-                                                notes:
-                                                    record.notes ?? 'لا يوجد'));
-                                      }
-
-                                      // debugPrint(records[0].name);
+                                      debugPrint(file);
+                                    } else {
+                                      File file =
+                                          File(result.files.single.path!);
+                                      response = await file.readAsString();
                                     }
-                                  } else {
-                                    // User canceled the picker
+
+                                    // File file = File(result.files.single.path!);
+                                    // if (file.path.contains('.json')) {
+                                    // if (file != null)
+                                    List<JsonRecord> records =
+                                        (jsonDecode(response) as List<dynamic>)
+                                            .map((e) => JsonRecord.fromJson(e))
+                                            .toList();
+
+                                    for (var record in records) {
+                                      var splitedDates = record.aidDates != null
+                                          ? record.aidDates!.split(' - ')
+                                          : [];
+
+                                      await hiveServiceProvider.createItem(
+                                          Person(
+                                              name: record.name ?? 'لا يوجد',
+                                              idNumber: record.idNumber ?? '',
+                                              phoneNumber:
+                                                  record.phoneNumber ?? '0',
+                                              aidDates: splitedDates.isNotEmpty
+                                                  ? [
+                                                      intl.DateFormat(
+                                                              "dd/MM/yyyy")
+                                                          .parse(
+                                                              splitedDates[0]),
+                                                      intl.DateFormat(
+                                                              "dd/MM/yyyy")
+                                                          .parse(
+                                                              splitedDates[1]),
+                                                    ]
+                                                  : [],
+                                              aidType:
+                                                  record.aidType ?? 'غير محدد',
+                                              aidAmount:
+                                                  record.aidAmount ?? 0.0,
+                                              isContinuousAid:
+                                                  record.isContinuousAid ??
+                                                      true,
+                                              notes:
+                                                  record.notes ?? 'لا يوجد'));
+                                    }
+
+                                    // debugPrint(records[0].name);
                                   }
+                                  // } else {
+                                  //   // User canceled the picker
+                                  // }
                                 },
                                 child: const Icon(
                                     CommunityMaterialIcons.file_import_outline))
@@ -972,184 +1087,191 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<pw.Document> generatePdfForAllRecords(
-      HiveServiceProvider hiveServiceProvider, pw.Document pdf) async {
+      HiveServiceProvider hiveServiceProvider) async {
     final font =
         await fontFromAssetBundle('fonts/IBMPlexSansArabic-Regular.ttf');
     final boldFont =
         await fontFromAssetBundle('fonts/IBMPlexSansArabic-Bold.ttf');
 
-    // final pdf = pw.Document();
-    int numberOfPages =
-        int.parse((hiveServiceProvider.people.length / 39).toString());
-    for (var i = 0; i < numberOfPages; i++) {
-      // Iterable<Person> recordsOfPage = hiveServiceProvider.people.getRange(i, i + 39);
+    final pdf = pw.Document();
+    pw.TextStyle tableStyle = pw.TextStyle(fontSize: 10.0, font: font);
 
-      pdf.addPage(pw.Page(
-          margin: const pw.EdgeInsets.all(10),
-          pageFormat: PdfPageFormat.a4,
-          textDirection: pw.TextDirection.rtl,
-          build: (pw.Context context) {
-            pw.TextStyle tableStyle = pw.TextStyle(fontSize: 20.0, font: font);
+    pw.TextStyle tableHeaderStyle = pw.TextStyle(
+        fontSize: 8, font: boldFont, fontWeight: pw.FontWeight.bold);
+    // debugPrint(hiveServiceProvider.people.toString());
 
-            pw.TextStyle tableHeaderStyle = pw.TextStyle(
-                fontSize: 10, font: boldFont, fontWeight: pw.FontWeight.bold);
-            debugPrint(hiveServiceProvider.people.toString());
-            return pw.Column(children: [
-              pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+    var recordsToPrint = hiveServiceProvider.people;
+
+    pdf.addPage(pw.MultiPage(
+        maxPages: 40,
+        margin: const pw.EdgeInsets.all(10),
+        pageFormat: PdfPageFormat.a4,
+        textDirection: pw.TextDirection.rtl,
+        build: (pw.Context context) {
+          return [
+            pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Center(
+                      child: pw.Text("جميع المساعدات المسجلة",
+                          textDirection: pw.TextDirection.rtl,
+                          style: pw.TextStyle(
+                              font: font,
+                              fontSize: 25,
+                              fontWeight: pw.FontWeight.bold))),
+                  pw.SizedBox(height: 5),
+                  pw.Center(
+                      child: pw.Text(
+                          "عدد المساعدات: ${hiveServiceProvider.people.length}",
+                          style: pw.TextStyle(font: font, fontSize: 20))),
+                ]),
+            pw.SizedBox(height: 5),
+            pw.Directionality(
+                textDirection: pw.TextDirection.rtl,
+                child: pw.Table(
+                  border: pw.TableBorder.all(
+                      color: PdfColors.black,
+                      style: pw.BorderStyle.solid,
+                      width: 1),
                   children: [
-                    pw.Center(
-                        child: pw.Text("جميع المساعدات المسجلة",
-                            textDirection: pw.TextDirection.rtl,
-                            style: pw.TextStyle(
-                                font: font,
-                                fontSize: 25,
-                                fontWeight: pw.FontWeight.bold))),
-                    pw.SizedBox(height: 5),
-                    pw.Center(
-                        child: pw.Text(
-                            "عدد المساعدات: ${hiveServiceProvider.people.length}",
-                            style: pw.TextStyle(font: font, fontSize: 20))),
-                  ]),
-              pw.SizedBox(height: 5),
-              pw.Directionality(
-                  textDirection: pw.TextDirection.rtl,
-                  child: pw.Table(
-                    border: pw.TableBorder.all(
-                        color: PdfColors.black,
-                        style: pw.BorderStyle.solid,
-                        width: 1),
-                    children: [
+                    pw.TableRow(children: [
+                      pw.Column(children: [
+                        pw.Padding(
+                            child:
+                                pw.Text('رقم الهاتف', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('المدة', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('المقدار', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('النوع', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.only(
+                                top: 4, bottom: 4, right: 2, left: 2))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child:
+                                pw.Text('رقم الهوية', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('تاريخ النهاية',
+                                style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('تاريخ البداية',
+                                style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('الاسم', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('#', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                    ]),
+                    for (var person in recordsToPrint
+                        .getRange(0, 38)
+                        .toList()
+                        .reversed
+                        .toList()
+                        .asMap()
+                        .entries)
                       pw.TableRow(children: [
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('رقم الهاتف',
-                                  style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  person.value.phoneNumber.toString(),
+                                  style: tableStyle.copyWith(fontSize: 10)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('المدة', style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  person.value.isContinuousAid
+                                      ? 'مستمرة'
+                                      : 'منقطعة',
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child:
-                                  pw.Text('المقدار', style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  person.value.aidType != 'عينية' &&
+                                          person.value.aidType != 'رمضانية'
+                                      ? person.value.aidAmount.toString()
+                                      : person.value.aidTypeDetails.toString(),
+                                  style: tableStyle.copyWith(fontSize: 8)))
+                        ]),
+                        pw.Column(mainAxisSize: pw.MainAxisSize.min, children: [
+                          pw.Padding(
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(person.value.aidType,
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('النوع', style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.only(
-                                  top: 4, bottom: 4, right: 2, left: 2))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  person.value.idNumber == ''
+                                      ? '-'
+                                      : person.value.idNumber.toString(),
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('رقم الهوية',
-                                  style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  person.value.aidDates.length > 1
+                                      ? intl.DateFormat('yyyy/MM/dd')
+                                          .format(person.value.aidDates[1])
+                                      : '-',
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('تاريخ النهاية',
-                                  style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(
+                                  intl.DateFormat('yyyy/MM/dd')
+                                      .format(person.value.aidDates[0]),
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('تاريخ البداية',
-                                  style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text(person.value.name,
+                                  style: tableStyle.copyWith(fontSize: 8)))
                         ]),
                         pw.Column(children: [
                           pw.Padding(
-                              child: pw.Text('الاسم', style: tableHeaderStyle),
-                              padding: const pw.EdgeInsets.all(4))
+                              padding: const pw.EdgeInsets.all(2),
+                              child: pw.Text("${person.key + 1}",
+                                  style: tableStyle.copyWith(fontSize: 10)))
                         ]),
                       ]),
-                      for (Person person
-                          in hiveServiceProvider.people.getRange(i, i + 39))
-                        pw.TableRow(children: [
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(person.phoneNumber.toString(),
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(
-                                    person.isContinuousAid
-                                        ? 'مستمرة'
-                                        : 'منقطعة',
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(person.aidAmount.toString(),
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(
-                              mainAxisSize: pw.MainAxisSize.min,
-                              children: [
-                                pw.Padding(
-                                    padding: const pw.EdgeInsets.all(2),
-                                    child: pw.Text(person.aidType,
-                                        style:
-                                            tableStyle.copyWith(fontSize: 10)))
-                              ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(
-                                    person.idNumber == ''
-                                        ? '-'
-                                        : person.idNumber.toString(),
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(
-                                    person.aidDates.length > 1
-                                        ? intl.DateFormat('yyyy/MM/dd')
-                                            .format(person.aidDates[1])
-                                        : '-',
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(
-                                    intl.DateFormat('yyyy/MM/dd')
-                                        .format(person.aidDates[0]),
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          pw.Column(children: [
-                            pw.Padding(
-                                padding: const pw.EdgeInsets.all(2),
-                                child: pw.Text(person.name,
-                                    style: tableStyle.copyWith(fontSize: 10)))
-                          ]),
-                          // pw.Column(children: [
-                          //   pw.Padding(
-                          //       padding: const pw.EdgeInsets.all(2),
-                          //       child: pw.Text(
-                          //           (hiveServiceProvider.people.indexOf(person) +
-                          //                   1)
-                          //               .toString(),
-                          //           style: tableStyle.copyWith(fontSize: 10)))
-                          // ]),
-                        ]),
-                    ],
-                  )),
-            ]); // Center
-          }));
-    }
+                  ],
+                )),
+          ]; // Center
+        }));
+
     return pdf;
   }
 

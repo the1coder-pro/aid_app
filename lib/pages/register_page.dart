@@ -1,6 +1,7 @@
 import 'package:aid_app/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:markdown_editable_textinput/format_markdown.dart';
 import 'package:markdown_editable_textinput/markdown_text_input.dart';
@@ -28,6 +29,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _typeDetailsController = TextEditingController();
+
   final TextEditingController _notesController = TextEditingController();
 
   String description = '';
@@ -69,7 +72,6 @@ class _RegisterPageState extends State<RegisterPage> {
       // "${fullName[1]} ${fullName.last != fullName[1] ? fullName.join('') : ''}";
       _phoneController.text = loadPerson.phoneNumber.toString();
       _idNumberController.text = loadPerson.idNumber.toString();
-      _amountController.text = loadPerson.aidAmount.toString();
       dateRange = loadPerson.aidDates;
       if (aidTypes.contains(loadPerson.aidType)) {
         aidType = loadPerson.aidType;
@@ -77,6 +79,13 @@ class _RegisterPageState extends State<RegisterPage> {
       } else {
         aidType = aidTypes.last;
         _typeController.text = loadPerson.aidType;
+      }
+      if (loadPerson.aidType == 'عينية' || loadPerson.aidType == 'رمضانية') {
+        if (loadPerson.aidTypeDetails != null) {
+          _typeDetailsController.text = loadPerson.aidTypeDetails!;
+        }
+      } else {
+        _amountController.text = loadPerson.aidAmount.toString();
       }
       _duration = loadPerson.isContinuousAid
           ? AidDuration.continuous
@@ -130,9 +139,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               aidType: aidType == aidTypes.last
                                   ? _typeController.text
                                   : aidType ?? aidTypes.last,
-                              aidAmount: _amountController.text.isNotEmpty
+                              aidAmount: aidType != 'عينية' &&
+                                      aidType != 'رمضانية' &&
+                                      _amountController.text.isNotEmpty
                                   ? double.parse(_amountController.text)
                                   : 0.0,
+                              aidTypeDetails:
+                                  aidType == 'عينية' || aidType == 'رمضانية'
+                                      ? _typeDetailsController.text
+                                      : 'غير مسجل',
                               isContinuousAid:
                                   _duration == AidDuration.continuous
                                       ? true
@@ -150,9 +165,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           aidType: aidType == aidTypes.last
                               ? _typeController.text.trim()
                               : (aidType ?? aidTypes[5]),
-                          aidAmount: _amountController.text.trim().isNotEmpty
+                          aidAmount: aidType != 'عينية' &&
+                                  aidType != 'رمضانية' &&
+                                  _amountController.text.trim().isNotEmpty
                               ? double.parse(_amountController.text.trim())
                               : 0.0,
+                          aidTypeDetails:
+                              aidType == 'عينية' || aidType == 'رمضانية'
+                                  ? _typeDetailsController.text
+                                  : 'غير مسجل',
                           isContinuousAid: _duration == AidDuration.continuous
                               ? true
                               : false,
@@ -408,17 +429,36 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 15),
-            ListTile(
-              title: TextFormField(
-                decoration: InputDecoration(
-                    suffixIcon: clearButton(_amountController),
-                    label: const Text("مقدار المساعدة"),
-                    border: const OutlineInputBorder(),
-                    isDense: true),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.next,
+
+            Visibility(
+              visible: aidType == 'عينية' || aidType == 'رمضانية',
+              child: ListTile(
+                title: TextFormField(
+                  decoration: InputDecoration(
+                      suffixIcon: clearButton(_typeController),
+                      label: const Text("تفاصيل"),
+                      border: const OutlineInputBorder(),
+                      isDense: true),
+                  controller: _typeDetailsController,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Visibility(
+              visible: aidType != 'عينية' && aidType != 'رمضانية',
+              child: ListTile(
+                title: TextFormField(
+                  decoration: InputDecoration(
+                      suffixIcon: clearButton(_amountController),
+                      label: const Text("مقدار المساعدة"),
+                      border: const OutlineInputBorder(),
+                      isDense: true),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
+                ),
               ),
             ),
             const SizedBox(height: 12),
