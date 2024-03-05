@@ -1,7 +1,10 @@
 import 'package:aid_app/person.dart';
+import 'package:aid_app/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:numeral/numeral.dart';
 
 class ChartPage extends StatefulWidget {
   // ignore: prefer_const_constructors_in_immutables
@@ -32,99 +35,155 @@ class ChartPageState extends State<ChartPage> {
       }
     }
     for (MapEntry<String, double> entry in chartAidMap.entries) {
-      peopleDataList.add(ChartAidData(entry.key, entry.value));
+      if (entry.value > 0 && entry.key.toString().trim().isNotEmpty) {
+        peopleDataList.add(ChartAidData(entry.key, entry.value));
+      }
     }
     for (double value in chartAidMap.values) {
       totalAmount += value;
     }
 
     debugPrint(chartAidMap.toString());
+    debugPrint(peopleDataList.length.toString());
   }
 
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
   String Function(Match) mathFunc = (Match match) => '${match[1]},';
+  String formatAmount(double amount) =>
+      "\u202B${(double.parse(amount.toString())).numeral().replaceAll('K', ' ألف').replaceAll('M', ' مليون').replaceAll('B', ' مليار').replaceAll('T', ' ترليون ')}\u202C ريال\n";
+
+  late ZoomPanBehavior _zoomPanBehavior;
 
   @override
   void initState() {
     super.initState();
+    _zoomPanBehavior = ZoomPanBehavior(
 
+        // Enables pinch zooming
+        enablePinching: true,
+        enableDoubleTapZooming: true);
     loadData();
   }
 
   @override
   Widget build(BuildContext context) {
+    final hiveServiceProivder = Provider.of<HiveServiceProvider>(context);
     return Scaffold(
-        body: CustomScrollView(slivers: <Widget>[
-      const SliverAppBar.large(
-        pinned: true,
-        snap: true,
-        floating: true,
-        expandedHeight: 160.0,
-        title: Text("الرسم البياني"),
+      appBar: AppBar(
+        title: const Text("الرسم البياني"),
+        centerTitle: true,
       ),
-      SliverList(
-          delegate: SliverChildListDelegate([
-        Center(
-            child: SfCartesianChart(
-                title: const ChartTitle(
-                    text: 'تقرير لمجموع أنواع المساعدة',
-                    textStyle: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'ibmPlexSansArabic')),
-                legend: const Legend(isVisible: false),
-                primaryXAxis:
-                    const CategoryAxis(labelStyle: TextStyle(fontSize: 15)),
-                series: <CartesianSeries<ChartAidData, String>>[
-              // Renders column chart
-              ColumnSeries<ChartAidData, String>(
-                  dataSource: peopleDataList,
-                  xValueMapper: (ChartAidData data, _) => data.type,
-                  yValueMapper: (ChartAidData data, _) => data.amount,
-                  dataLabelMapper: (ChartAidData data, _) => "${data.amount}",
-                  dataLabelSettings: const DataLabelSettings(
-                      isVisible: true,
+      body: Column(
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height / 1.5,
+              width: 1000,
+              child: SfCartesianChart(
+                  zoomPanBehavior: _zoomPanBehavior,
+                  title: const ChartTitle(
+                      text: 'تقرير لمجموع أنواع المساعدة',
                       textStyle: TextStyle(
-                          fontSize: 20, fontFamily: 'ibmPlexSansArabic')),
-                  color: Theme.of(context).colorScheme.primary),
-            ])),
-        const SizedBox(height: 15),
-        const Center(
-            child: Text("المجموع كامل",
-                style:
-                    TextStyle(fontSize: 20, fontFamily: 'ibmPlexSansArabic'))),
-        Center(
-            child: Container(
-                margin: const EdgeInsets.all(15.0),
-                padding: const EdgeInsets.all(3.0),
-                decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(2)),
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.primary)),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'ibmPlexSansArabic')),
+                  legend: const Legend(isVisible: false),
+                  primaryXAxis:
+                      const CategoryAxis(labelStyle: TextStyle(fontSize: 20)),
+                  series: <CartesianSeries<ChartAidData, String>>[
+                    // Renders column chart
+                    ColumnSeries<ChartAidData, String>(
+                        dataSource: peopleDataList,
+                        xValueMapper: (ChartAidData data, _) => data.type,
+                        yValueMapper: (ChartAidData data, _) => data.amount,
+                        dataLabelMapper: (ChartAidData data, _) =>
+                            formatAmount(data.amount),
+                        dataLabelSettings: const DataLabelSettings(
+                            isVisible: true,
+                            textStyle: TextStyle(
+                                fontSize: 20, fontFamily: 'ibmPlexSansArabic')),
+                        color: Theme.of(context).colorScheme.primary),
+                  ]),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Divider(height: 2, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(height: 10),
+          rowOfDetails(context, hiveServiceProivder)
+        ],
+      ),
+    );
+
+    // return Scaffold(
+    //     body: CustomScrollView(slivers: <Widget>[
+    //   const SliverAppBar.large(
+    //     pinned: true,
+    //     snap: true,
+    //     floating: true,
+    //     expandedHeight: 160.0,
+    //     title: Text("الرسم البياني"),
+    //   ),
+    //   SliverList(
+    //       delegate: SliverChildListDelegate([
+    //         // chart
+    //     const SizedBox(height: 10),
+    //     rowOfDetails(context, hiveServiceProivder),
+    //   ]))
+    // ]));
+  }
+
+  Row rowOfDetails(
+      BuildContext context, HiveServiceProvider hiveServiceProivder) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Column(
+          children: [
+            const Center(
+                child: Text("المجموع كامل",
+                    style: TextStyle(
+                        fontSize: 20, fontFamily: 'ibmPlexSansArabic'))),
+            Center(
                 child: RichText(
-                  textDirection: TextDirection.rtl,
-                  text: TextSpan(
-                      style: TextStyle(
-                          color:
-                              Theme.of(context).textTheme.displayLarge!.color,
-                          fontSize: 30,
-                          fontFamily: 'ibmPlexSansArabic'),
-                      children: [
-                        TextSpan(
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                            text: totalAmount
-                                .toString()
-                                .replaceAllMapped(reg, mathFunc)),
-                        const TextSpan(text: ' ريال')
-                      ]),
-                ))),
-        Center(
-            child: Text(
-          "عدد  المساعدات الكلي :${peopleDataList.length}",
-          style: const TextStyle(fontFamily: 'ibmPlexSansArabic'),
-        ))
-      ]))
-    ]));
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.displayLarge!.color,
+                      fontSize: 30,
+                      fontFamily: 'ibmPlexSansArabic'),
+                  children: [
+                    TextSpan(
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        text: formatAmount(totalAmount)),
+                    TextSpan(
+                        style: const TextStyle(fontSize: 20),
+                        text:
+                            "${totalAmount.toString().replaceAllMapped(reg, mathFunc)} ريال"),
+                  ]),
+            )),
+          ],
+        ),
+        Column(
+          children: [
+            const Center(
+                child: Text("عدد  المساعدات الكلي",
+                    style: TextStyle(
+                        fontSize: 20, fontFamily: 'ibmPlexSansArabic'))),
+            Center(
+                child: Text(
+              hiveServiceProivder.people.length.toString(),
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.displayLarge!.color,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'ibmPlexSansArabic'),
+            ))
+          ],
+        )
+      ],
+    );
   }
 }
 

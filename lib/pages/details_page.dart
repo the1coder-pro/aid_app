@@ -37,9 +37,10 @@ class _DetailsPageState extends State<DetailsPage> {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
     Person? person = (selectedIdProvider.selectedId != -1 ||
-            widget.id! >= 0 && box.getAt(widget.id!)!.isInBox)
+            widget.id! >= 0 && box.get(widget.id!)!.isInBox)
         ? box.getAt(widget.id!)
         : null;
+    // Person? person = (selected)
     if (person != null) {
       if (person.aidDates.length >= 2) {
         dateRangeView =
@@ -57,7 +58,7 @@ class _DetailsPageState extends State<DetailsPage> {
     } else {
       isLargeScreen = false;
     }
-    debugPrint("${hiveServiceProvider.people}");
+    // debugPrint("${hiveServiceProvider.people}");
     return Directionality(
         textDirection: TextDirection.rtl,
         child: !(hiveServiceProvider.people.isNotEmpty && person != null)
@@ -234,7 +235,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           Card(
                               child: ListTile(
                             onLongPress: () async {
-                              if (person.phoneNumber == 0) {
+                              if (person.phoneNumber.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         duration:
@@ -265,24 +266,28 @@ class _DetailsPageState extends State<DetailsPage> {
                             leading: IconButton(
                                 icon: const Icon(Icons.phone_outlined),
                                 onPressed: () async {
-                                  var url =
-                                      Uri.parse('tel:${person.phoneNumber}');
-                                  if (!await launchUrl(url)) {
-                                    throw Exception('Could not launch $url');
+                                  if (person.phoneNumber.isNotEmpty) {
+                                    var url =
+                                        Uri.parse('tel:${person.phoneNumber}');
+                                    if (!await launchUrl(url)) {
+                                      throw Exception('Could not launch $url');
+                                    }
                                   }
                                 }),
                             trailing: IconButton(
                                 icon: const Icon(Icons.message_outlined),
                                 onPressed: () async {
-                                  var url =
-                                      Uri.parse('sms:${person.phoneNumber}');
-                                  if (!await launchUrl(url)) {
-                                    throw Exception('Could not launch $url');
+                                  if (person.phoneNumber.isNotEmpty) {
+                                    var url =
+                                        Uri.parse('sms:${person.phoneNumber}');
+                                    if (!await launchUrl(url)) {
+                                      throw Exception('Could not launch $url');
+                                    }
                                   }
                                 }),
-                            title: Text(person.phoneNumber == 0
+                            title: Text(person.phoneNumber.isEmpty
                                 ? "لا يوجد"
-                                : "${person.phoneNumber}"),
+                                : person.phoneNumber),
                             subtitle: const Text("رقم الهاتف"),
                           )),
                           Card(

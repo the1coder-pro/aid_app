@@ -64,6 +64,7 @@ dependencies:
   url_launcher: ^6.2.5
   syncfusion_flutter_xlsio: ^24.2.8
   community_material_icon: ^5.9.55
+  numeral: ^3.0.0
 
 
 dev_dependencies:

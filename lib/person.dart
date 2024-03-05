@@ -8,14 +8,14 @@ class Person extends HiveObject {
   String name;
   @HiveField(1)
   String idNumber;
-  @HiveField(2)
-  int phoneNumber;
+  @HiveField(11)
+  String phoneNumber;
   @HiveField(3)
   List<DateTime> aidDates;
   @HiveField(4)
   String aidType;
-  @HiveField(5)
-  int aidAmount;
+  @HiveField(10)
+  double aidAmount; // TODO: maybe change this to double
   @HiveField(6)
   bool isContinuousAid;
   @HiveField(7)

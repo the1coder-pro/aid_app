@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:aid_app/pages/details_page.dart';
-import 'package:aid_app/themes.dart';
-import 'package:provider/provider.dart';
+// import 'package:aid_app/themes.dart';
+// import 'package:provider/provider.dart';
 import "package:universal_html/html.dart" as html;
 import 'dart:io';
 import 'package:aid_app/person.dart';
@@ -33,7 +33,7 @@ class _PrintPageState extends State<PrintPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
+    // final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
     return Scaffold(
         body: CustomScrollView(slivers: <Widget>[
       const SliverAppBar.large(
@@ -318,8 +318,8 @@ class _PrintPageState extends State<PrintPage> {
                                 ]))
                             .toList(),
                         columns: [
-                          '#'
-                              'الاسم',
+                          '#',
+                          'الاسم',
                           'تاريخ البداية',
                           'تاريخ النهاية',
                           'رقم الهوية',
@@ -431,6 +431,8 @@ class _PrintPageState extends State<PrintPage> {
 
           pw.TextStyle tableHeaderStyle = pw.TextStyle(
               fontSize: 10, font: boldFont, fontWeight: pw.FontWeight.bold);
+          debugPrint(dateRangeIncludedPersonList.toString());
+
           return pw.Column(children: [
             pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.center,

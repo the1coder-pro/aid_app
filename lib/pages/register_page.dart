@@ -36,7 +36,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   AidDuration? _duration = AidDuration.continuous;
 
-  String? aidType = aidTypes[5];
+  String? aidType = aidTypes[7];
 
   List<DateTime> dateRange = [];
 
@@ -125,16 +125,14 @@ class _RegisterPageState extends State<RegisterPage> {
                               name:
                                   "${_firstNameController.text} ${_lastNameController.text}",
                               idNumber: _idNumberController.text,
-                              phoneNumber: _phoneController.text.isNotEmpty
-                                  ? int.parse(_phoneController.text)
-                                  : 0,
+                              phoneNumber: _phoneController.text,
                               aidDates: dateRange,
                               aidType: aidType == aidTypes.last
                                   ? _typeController.text
                                   : aidType ?? aidTypes.last,
                               aidAmount: _amountController.text.isNotEmpty
-                                  ? int.parse(_amountController.text)
-                                  : 0,
+                                  ? double.parse(_amountController.text)
+                                  : 0.0,
                               isContinuousAid:
                                   _duration == AidDuration.continuous
                                       ? true
@@ -147,16 +145,14 @@ class _RegisterPageState extends State<RegisterPage> {
                           name:
                               "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
                           idNumber: _idNumberController.text.trim(),
-                          phoneNumber: _phoneController.text.trim().isNotEmpty
-                              ? int.parse(_phoneController.text.trim())
-                              : 0,
+                          phoneNumber: _phoneController.text.trim(),
                           aidDates: dateRange,
                           aidType: aidType == aidTypes.last
                               ? _typeController.text.trim()
                               : (aidType ?? aidTypes[5]),
                           aidAmount: _amountController.text.trim().isNotEmpty
-                              ? int.parse(_amountController.text.trim())
-                              : 0,
+                              ? double.parse(_amountController.text.trim())
+                              : 0.0,
                           isContinuousAid: _duration == AidDuration.continuous
                               ? true
                               : false,

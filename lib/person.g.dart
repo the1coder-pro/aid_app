@@ -19,10 +19,10 @@ class PersonAdapter extends TypeAdapter<Person> {
     return Person(
       name: fields[0] as String,
       idNumber: fields[1] as String,
-      phoneNumber: fields[2] as int,
+      phoneNumber: fields[11] as String,
       aidDates: (fields[3] as List).cast<DateTime>(),
       aidType: fields[4] as String,
-      aidAmount: fields[5] as int,
+      aidAmount: fields[10] as double,
       isContinuousAid: fields[6] as bool,
       notes: fields[7] as String,
     );
@@ -36,13 +36,13 @@ class PersonAdapter extends TypeAdapter<Person> {
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.idNumber)
-      ..writeByte(2)
+      ..writeByte(11)
       ..write(obj.phoneNumber)
       ..writeByte(3)
       ..write(obj.aidDates)
       ..writeByte(4)
       ..write(obj.aidType)
-      ..writeByte(5)
+      ..writeByte(10)
       ..write(obj.aidAmount)
       ..writeByte(6)
       ..write(obj.isContinuousAid)
