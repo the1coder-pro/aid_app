@@ -105,13 +105,13 @@ class HiveServiceProvider extends ChangeNotifier {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     await box.add(person);
     _people.add(person);
-    _people = box.values.toList().toList();
+    _people = box.values.toList();
     notifyListeners();
   }
 
   Future<void> getItems() async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
-    _people = box.values.toList().reversed.toList();
+    _people = box.values.toList();
 
     notifyListeners();
   }
@@ -134,7 +134,7 @@ class HiveServiceProvider extends ChangeNotifier {
   Future<void> updateItem(int id, Person person) async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     await box.putAt(id, person);
-    _people = box.values.toList();
+    _people = box.values.toList().reversed.toList();
     notifyListeners();
   }
 }

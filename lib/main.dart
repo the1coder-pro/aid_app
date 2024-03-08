@@ -200,6 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     isSelected = getIsSelected(colorChangeProvider);
     final hiveProvider = Provider.of<HiveServiceProvider>(context);
+    // hiveProvider.getItems();
     return Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
@@ -596,7 +597,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       value: themeChange.darkTheme,
                       onChanged: (bool value) => themeChange.darkTheme = value),
-
                   const SizedBox(height: 10),
                   const Center(
                     child: Text('السمات',
@@ -648,8 +648,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                   ),
-
-                  // TODO: "Export Data" Button
                   const SizedBox(height: 10),
                   ExpansionTile(
                       title: const Text("اعدادات متقدمة",
@@ -664,7 +662,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                               OutlinedButton(
                                 onPressed: () async {
-                                  pw.Document pdfFile = pw.Document();
                                   pw.Document pdf =
                                       await generatePdfForAllRecords(
                                           hiveServiceProvider);
@@ -741,20 +738,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                             "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
                                       ..setAttribute("download", "file_all.pdf")
                                       ..click();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
 
-                                    Navigator.pop(context);
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            duration: const Duration(
-                                                milliseconds: 1000),
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            content: const Text(
-                                                "تم حفظ الملف بنجاح",
-                                                style:
-                                                    TextStyle(fontSize: 15))));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              duration: const Duration(
+                                                  milliseconds: 1000),
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              content: const Text(
+                                                  "تم حفظ الملف بنجاح",
+                                                  style: TextStyle(
+                                                      fontSize: 15))));
+                                    }
                                   }
                                 },
                                 child: const Icon(CommunityMaterialIcons
@@ -762,103 +760,106 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                               OutlinedButton(
                                   onPressed: () async {
-                                    // File file = File
-                                    // File file = File();
                                     List recordsOfJson = [];
                                     for (var record in hiveServiceProvider
                                         .people
                                         .getRange(0, 10)) {
                                       recordsOfJson.add(record.toJson());
                                     }
-                                    // await file.writeAsString("$recordsOfJson");
-                                    // try {
-                                    // which os is it?
-                                    // if (Platform.isMacOS ||
-                                    //     Platform.isLinux ||
-                                    //     Platform.isWindows) {
-                                    //   String? outputFile =
-                                    //       await FilePicker.platform.saveFile(
-                                    //     dialogTitle:
-                                    //         'Please select an output file:',
-                                    //     fileName: 'data.json',
-                                    //   );
 
-                                    //   if (outputFile == null) {
-                                    //     debugPrint("User canceled the picker");
-                                    //   } else {
-                                    //     final file = File(outputFile);
-                                    //     await file
-                                    //         .writeAsBytes(await file)
-                                    //         .then((value) {
-                                    //       Navigator.pop(context);
-
-                                    //       return ScaffoldMessenger.of(context)
-                                    //           .showSnackBar(SnackBar(
-                                    //               duration: const Duration(
-                                    //                   milliseconds: 1000),
-                                    //               backgroundColor:
-                                    //                   Theme.of(context)
-                                    //                       .colorScheme
-                                    //                       .primary,
-                                    //               content: const Text(
-                                    //                   "تم حفظ الملف بنجاح",
-                                    //                   style: TextStyle(
-                                    //                       fontSize: 15))));
-                                    //     });
-                                    //   }
-                                    // } else if (Platform.isAndroid ||
-                                    //     Platform.isIOS) {
-                                    //   String? selectedDirectory =
-                                    //       await FilePicker.platform
-                                    //           .getDirectoryPath();
-
-                                    //   if (selectedDirectory == null) {
-                                    //     debugPrint("User canceled the picker");
-                                    //   } else {
-                                    //     final file = File(
-                                    //         "$selectedDirectory/file_all.pdf");
-                                    //     await file
-                                    //         .writeAsBytes(await pdf.save())
-                                    //         .then((value) {
-                                    //       Navigator.pop(context);
-                                    //       return ScaffoldMessenger.of(context)
-                                    //           .showSnackBar(SnackBar(
-                                    //               duration: const Duration(
-                                    //                   milliseconds: 1000),
-                                    //               backgroundColor:
-                                    //                   Theme.of(context)
-                                    //                       .colorScheme
-                                    //                       .primary,
-                                    //               content: const Text(
-                                    //                   "تم حفظ الملف بنجاح",
-                                    //                   style: TextStyle(
-                                    //                       fontSize: 15))));
-                                    //     });
-                                    //   }
-                                    // }
-                                    // } catch (e) {
-                                    // var savedFile = await file.save();
                                     var file = utf8.encode("$recordsOfJson");
                                     List<int> fileInts = List.from(file);
-                                    html.AnchorElement(
-                                        href:
-                                            "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
-                                      ..setAttribute("download", "data.json")
-                                      ..click();
+                                    // File file = File
+                                    // File file = File();
+                                    try {
+                                      if (Platform.isMacOS ||
+                                          Platform.isLinux ||
+                                          Platform.isWindows) {
+                                        String? outputFile =
+                                            await FilePicker.platform.saveFile(
+                                          dialogTitle:
+                                              'Please select an output file:',
+                                          fileName: 'file_all.json',
+                                        );
 
-                                    Navigator.pop(context);
+                                        if (outputFile == null) {
+                                          debugPrint(
+                                              "User canceled the picker");
+                                        } else {
+                                          final file = File(outputFile);
+                                          await file
+                                              .writeAsBytes(fileInts)
+                                              .then((value) {
+                                            Navigator.pop(context);
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            duration: const Duration(
-                                                milliseconds: 1000),
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            content: const Text(
-                                                "تم حفظ الملف بنجاح",
-                                                style:
-                                                    TextStyle(fontSize: 15))));
+                                            return ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    duration: const Duration(
+                                                        milliseconds: 1000),
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "تم حفظ الملف بنجاح",
+                                                        style: TextStyle(
+                                                            fontSize: 15))));
+                                          });
+                                        }
+                                      } else if (Platform.isAndroid ||
+                                          Platform.isIOS) {
+                                        String? selectedDirectory =
+                                            await FilePicker.platform
+                                                .getDirectoryPath();
+
+                                        if (selectedDirectory == null) {
+                                          debugPrint(
+                                              "User canceled the picker");
+                                        } else {
+                                          final file = File(
+                                              "$selectedDirectory/file_all.json");
+                                          await file
+                                              .writeAsBytes(fileInts)
+                                              .then((value) {
+                                            Navigator.pop(context);
+                                            return ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    duration: const Duration(
+                                                        milliseconds: 1000),
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                    content: const Text(
+                                                        "تم حفظ الملف بنجاح",
+                                                        style: TextStyle(
+                                                            fontSize: 15))));
+                                          });
+                                        }
+                                      }
+                                    } catch (e) {
+                                      html.AnchorElement(
+                                          href:
+                                              "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+                                        ..setAttribute("download", "data.json")
+                                        ..click();
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                duration: const Duration(
+                                                    milliseconds: 1000),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                content: const Text(
+                                                    "تم حفظ الملف بنجاح",
+                                                    style: TextStyle(
+                                                        fontSize: 15))));
+                                      }
+                                    }
                                   },
                                   child: const Icon(CommunityMaterialIcons
                                       .file_export_outline)),
@@ -1013,7 +1014,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           // allowedExtensions: ['json'],
                                           type: FileType.any);
                                   if (result != null) {
-                                    var response;
+                                    String response;
                                     if (kIsWeb) {
                                       var file = utf8
                                           .decode(result.files.single.bytes!);
@@ -1187,13 +1188,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             padding: const pw.EdgeInsets.all(4))
                       ]),
                     ]),
-                    for (var person in recordsToPrint
-                        .getRange(0, 38)
-                        .toList()
-                        .reversed
-                        .toList()
-                        .asMap()
-                        .entries)
+                    for (var person in recordsToPrint.toList().asMap().entries)
                       pw.TableRow(children: [
                         pw.Column(children: [
                           pw.Padding(

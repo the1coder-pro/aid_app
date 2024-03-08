@@ -1,6 +1,8 @@
+import 'package:aid_app/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'pages/details_page.dart';
 import 'person.dart';
 
@@ -61,6 +63,8 @@ class SearchFinder extends StatelessWidget {
   const SearchFinder({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
+    final hiveProvider = Provider.of<HiveServiceProvider>(context);
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: ValueListenableBuilder(
@@ -117,8 +121,9 @@ class SearchFinder extends StatelessWidget {
 
                     return ListTile(
                       onTap: () {
-                        var selectedPersonIndex =
-                            contactsBox.values.toList().indexOf(personListItem);
+                        var selectedPersonIndex = hiveProvider.people
+                            .toList()
+                            .indexOf(personListItem);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -144,6 +149,7 @@ class SearchFinderResults extends StatelessWidget {
   const SearchFinderResults({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
+    final hiveProvider = Provider.of<HiveServiceProvider>(context);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: ValueListenableBuilder(
@@ -250,7 +256,7 @@ class SearchFinderResults extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) {
-                            var selectedPersonIndex = contactsBox.values
+                            var selectedPersonIndex = hiveProvider.people
                                 .toList()
                                 .indexOf(personListItem);
                             return DetailsPage(id: selectedPersonIndex);

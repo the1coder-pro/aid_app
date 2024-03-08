@@ -1,10 +1,7 @@
 import 'package:aid_app/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
-import 'package:markdown_editable_textinput/format_markdown.dart';
-import 'package:markdown_editable_textinput/markdown_text_input.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -486,28 +483,41 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
             const SizedBox(height: 10),
-            MarkdownTextInput(
-              (String value) {
-                if (description != value) {
-                  setState(() => description = value);
-                }
-              },
-              description,
-              label: 'الملاحظات',
-              textDirection: TextDirection.rtl,
-              maxLines: null,
-              actions: const [
-                MarkdownType.bold,
-                MarkdownType.italic,
-                MarkdownType.list,
-                MarkdownType.blockquote,
-                MarkdownType.title,
-                MarkdownType.strikethrough,
-                MarkdownType.separator
-              ],
-              controller: _notesController,
-              textStyle: const TextStyle(fontSize: 16),
-            ),
+            // MarkdownTextInput(
+            //   (String value) {
+            //     if (description != value) {
+            //       setState(() => description = value);
+            //     }
+            //   },
+            //   description,
+            //   label: 'الملاحظات',
+            //   textDirection: TextDirection.rtl,
+            //   maxLines: null,
+            //   actions: const [
+            //     MarkdownType.bold,
+            //     MarkdownType.italic,
+            //     MarkdownType.list,
+            //     MarkdownType.blockquote,
+            //     MarkdownType.title,
+            //     MarkdownType.strikethrough,
+            //     MarkdownType.separator
+            //   ],
+            //   controller: _notesController,
+            //   textStyle: const TextStyle(fontSize: 16),
+            // ),
+            ListTile(
+              title: TextFormField(
+                maxLines: null,
+                minLines: 5,
+                keyboardType: TextInputType.multiline,
+                controller: _notesController,
+                decoration: InputDecoration(
+                    suffixIcon: clearButton(_amountController),
+                    label: const Text("الملاحظات"),
+                    border: const OutlineInputBorder(),
+                    isDense: true),
+              ),
+            )
           ]),
         ));
   }

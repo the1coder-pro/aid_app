@@ -423,8 +423,10 @@ class _PrintPageState extends State<PrintPage> {
     final boldFont =
         await fontFromAssetBundle('fonts/IBMPlexSansArabic-Bold.ttf');
     pdf = pw.Document();
-    pdf.addPage(pw.Page(
+    pdf.addPage(pw.MultiPage(
+        maxPages: 40,
         margin: const pw.EdgeInsets.all(20),
+        textDirection: pw.TextDirection.rtl,
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           pw.TextStyle tableStyle = pw.TextStyle(fontSize: 20.0, font: font);
@@ -433,7 +435,7 @@ class _PrintPageState extends State<PrintPage> {
               fontSize: 10, font: boldFont, fontWeight: pw.FontWeight.bold);
           debugPrint(dateRangeIncludedPersonList.toString());
 
-          return pw.Column(children: [
+          return [
             pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -574,7 +576,7 @@ class _PrintPageState extends State<PrintPage> {
                       ]),
                   ],
                 )),
-          ]); // Center
+          ];
         }));
   }
 }

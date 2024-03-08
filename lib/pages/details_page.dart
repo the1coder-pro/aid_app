@@ -1,14 +1,14 @@
 import 'package:aid_app/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+// import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hive/hive.dart';
 import 'package:pdf/pdf.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:markdown/markdown.dart' as md;
+// import 'package:markdown/markdown.dart' as md;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -498,22 +498,26 @@ class _DetailsPageState extends State<DetailsPage> {
                                 }),
                             title: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: MarkdownBody(
-                                shrinkWrap: false,
-                                softLineBreak: true,
-                                selectable: true,
-                                data: person.notes.isEmpty
-                                    ? 'لا يوجد'
-                                    : person.notes,
-                                extensionSet: md.ExtensionSet(
-                                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                                  <md.InlineSyntax>[
-                                    md.EmojiSyntax(),
-                                    ...md.ExtensionSet.gitHubFlavored
-                                        .inlineSyntaxes
-                                  ],
-                                ),
-                              ),
+                              child: Text(person.notes.isNotEmpty
+                                  ? person.notes
+                                  : 'لا يوجد'),
+
+                              // MarkdownBody(
+                              //   shrinkWrap: false,
+                              //   softLineBreak: true,
+                              //   selectable: true,
+                              //   data: person.notes.isEmpty
+                              //       ? 'لا يوجد'
+                              //       : person.notes,
+
+                              // extensionSet: md.ExtensionSet(
+                              //   md.ExtensionSet..blockSyntaxes,
+                              //   <md.InlineSyntax>[
+                              //     md.EmojiSyntax(),
+                              //     ...md.ExtensionSet.gitHubFlavored
+                              //         .inlineSyntaxes
+                              //   ],
+                              // ),
                             ),
                           )),
                           Card(
