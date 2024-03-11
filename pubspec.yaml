@@ -1,4 +1,4 @@
-name: aid_app
+name: aidapp
 description: تطبيق لمساعدة في تنظيم توزيع المساعدات المالية
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -65,6 +65,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^24.2.8
   community_material_icon: ^5.9.55
   numeral: ^3.0.0
+  change_app_package_name: ^1.1.0
 
 
 dev_dependencies:

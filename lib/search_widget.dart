@@ -1,4 +1,4 @@
-import 'package:aid_app/themes.dart';
+import 'package:aidapp/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';

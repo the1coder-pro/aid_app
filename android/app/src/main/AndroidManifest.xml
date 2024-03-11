@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.orange.aidapp.aid_app">
+    package="com.orange.aidapp">
    <application
         android:label="تطبيق المساعدات"
         android:name="${applicationName}"

@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:aid_app/pages/details_page.dart';
+import 'package:aidapp/pages/details_page.dart';
 // import 'package:aid_app/themes.dart';
 // import 'package:provider/provider.dart';
 import "package:universal_html/html.dart" as html;
 import 'dart:io';
-import 'package:aid_app/person.dart';
+import 'package:aidapp/person.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';

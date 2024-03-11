@@ -1,4 +1,4 @@
-package com.orange.aidapp.aid_app
+package com.orange.aidapp
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,5 +1,5 @@
-import 'package:aid_app/person.dart';
-import 'package:aid_app/themes.dart';
+import 'package:aidapp/person.dart';
+import 'package:aidapp/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';

@@ -1,9 +1,9 @@
 import 'dart:convert' show base64, jsonDecode, utf8;
 import 'dart:io';
 
-import 'package:aid_app/json_compiler.dart';
-import 'package:aid_app/pages/chart_page.dart';
-import 'package:aid_app/pages/print_page.dart';
+import 'package:aidapp/json_compiler.dart';
+import 'package:aidapp/pages/chart_page.dart';
+import 'package:aidapp/pages/print_page.dart';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -29,7 +29,6 @@ import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
 
 // ignore: non_constant_identifier_names
-String VERSION_NUMBER = "0.70";
 List<String> colorSchemes = [
   "Default",
   "Blue",
@@ -192,6 +191,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return isSelected;
   }
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1035,6 +1036,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                             .map((e) => JsonRecord.fromJson(e))
                                             .toList();
 
+                                    // isLoading = true;
+
                                     for (var record in records) {
                                       var splitedDates = record.aidDates != null
                                           ? record.aidDates!.split(' - ')
@@ -1067,6 +1070,34 @@ class _MyHomePageState extends State<MyHomePage> {
                                                       true,
                                               notes:
                                                   record.notes ?? 'لا يوجد'));
+                                    }
+                                    // setState(() {
+                                    //   isLoading = false;
+                                    // });
+
+                                    if (context.mounted) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: AlertDialog(
+                                                icon: const Icon(Icons
+                                                    .check_circle_outlined),
+                                                title: const Text(
+                                                    "تمت الاستيراد بنجاح"),
+                                                content: Text(
+                                                    "تمت اضافة (${hiveServiceProvider.people.length}) مساعدة"),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                      child: const Text("حسنا"))
+                                                ],
+                                              ),
+                                            );
+                                          });
                                     }
 
                                     // debugPrint(records[0].name);

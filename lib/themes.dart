@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:aid_app/person.dart';
+import 'package:aidapp/person.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
