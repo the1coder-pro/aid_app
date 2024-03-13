@@ -67,119 +67,117 @@ class _DetailsPageState extends State<DetailsPage> {
                 body: CustomScrollView(
                   slivers: <Widget>[
                     SliverAppBar.large(
-                      leading: isLargeScreen
-                          ? IconButton(
-                              icon: const Icon(
-                                  Icons.keyboard_arrow_down_outlined),
-                              onPressed: () {
-                                setState(() {
-                                  selectedIdProvider.selectedId = -1;
-                                });
-                                Navigator.pushReplacementNamed(context, '/');
-                              })
-                          : const BackButton(),
-                      actions: [
-                        IconButton(
-                            icon: const Icon(Icons.contact_page_outlined),
-                            onPressed: () async {
-                              // print record pdf
-                              final pdf = await generatePersonRecordPdf(person);
+                        leading: isLargeScreen
+                            ? IconButton(
+                                icon: const Icon(
+                                    Icons.keyboard_arrow_down_outlined),
+                                onPressed: () {
+                                  setState(() {
+                                    selectedIdProvider.selectedId = -1;
+                                  });
+                                  Navigator.pushReplacementNamed(context, '/');
+                                })
+                            : const BackButton(),
+                        actions: [
+                          IconButton(
+                              icon: const Icon(Icons.contact_page_outlined),
+                              onPressed: () async {
+                                // print record pdf
+                                final pdf =
+                                    await generatePersonRecordPdf(person);
 
-                              await Printing.sharePdf(
-                                  bytes: await pdf.save(),
-                                  filename: 'file_${person.name}.pdf');
-                            }),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => Directionality(
-                                      textDirection: TextDirection.rtl,
-                                      child: AlertDialog(
-                                        icon: const Icon(
-                                            Icons.delete_forever_outlined),
-                                        title: Text("حذف ${person.name}؟"),
-                                        content: const Text(
-                                            "هل انت متأكد انك تريد حذف هذا الشخص؟"),
-                                        actions: [
-                                          TextButton(
-                                              child: const Text("إلغاء"),
-                                              onPressed: () =>
-                                                  Navigator.pop(context)),
-                                          TextButton(
-                                              child: const Text("نعم"),
-                                              onPressed: () async {
-                                                if (hiveServiceProvider
-                                                    .people.isNotEmpty) {
-                                                  hiveServiceProvider
-                                                      .deleteItem(widget.id!)
-                                                      .then((value) {
-                                                    // selectedIdProvider
-                                                    //     .selectedId = -1;
+                                await Printing.sharePdf(
+                                    bytes: await pdf.save(),
+                                    filename: 'file_${person.name}.pdf');
+                              }),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: AlertDialog(
+                                          icon: const Icon(
+                                              Icons.delete_forever_outlined),
+                                          title: Text("حذف ${person.name}؟"),
+                                          content: const Text(
+                                              "هل انت متأكد انك تريد حذف هذا الشخص؟"),
+                                          actions: [
+                                            TextButton(
+                                                child: const Text("إلغاء"),
+                                                onPressed: () =>
+                                                    Navigator.pop(context)),
+                                            TextButton(
+                                                child: const Text("نعم"),
+                                                onPressed: () async {
+                                                  if (hiveServiceProvider
+                                                      .people.isNotEmpty) {
+                                                    hiveServiceProvider
+                                                        .deleteItem(widget.id!)
+                                                        .then((value) {
+                                                      // selectedIdProvider
+                                                      //     .selectedId = -1;
 
-                                                    setState(() {
-                                                      selectedIdProvider
-                                                          .selectedId = -1;
+                                                      setState(() {
+                                                        selectedIdProvider
+                                                            .selectedId = -1;
+                                                      });
+
+                                                      if (isLargeScreen) {
+                                                        setState(() {});
+                                                        Navigator.pop(context);
+                                                      } else {
+                                                        setState(() {});
+
+                                                        Navigator.pop(context);
+
+                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                            duration:
+                                                                const Duration(
+                                                                    milliseconds:
+                                                                        1000),
+                                                            backgroundColor:
+                                                                Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .primary,
+                                                            content: Text(
+                                                                "تم حذف ${person.name} بنجاح",
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                        15))));
+                                                      }
                                                     });
-
-                                                    if (isLargeScreen) {
-                                                      setState(() {});
-                                                      Navigator.pop(context);
-                                                    } else {
-                                                      setState(() {});
-
-                                                      Navigator.pop(context);
-
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(SnackBar(
-                                                              duration:
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          1000),
-                                                              backgroundColor:
-                                                                  Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .primary,
-                                                              content: Text(
-                                                                  "تم حذف ${person.name} بنجاح",
-                                                                  style: const TextStyle(
-                                                                      fontSize:
-                                                                          15))));
-                                                    }
-                                                  });
-                                                } else {
-                                                  Navigator.pop(context);
-                                                }
-                                              })
-                                        ],
-                                      ),
-                                    ));
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) =>
-                                    RegisterPage(id: widget.id));
-                          },
-                        ),
-                      ],
-                      pinned: true,
-                      snap: true,
-                      floating: true,
-                      expandedHeight: 160.0,
-                      title: Text(
-                          person.name.split(' ').length > 3
-                              ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
-                              : person.name,
-                          softWrap: true,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ),
+                                                  } else {
+                                                    Navigator.pop(context);
+                                                  }
+                                                })
+                                          ],
+                                        ),
+                                      ));
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      RegisterPage(id: widget.id));
+                            },
+                          ),
+                        ],
+                        pinned: true,
+                        snap: true,
+                        floating: true,
+                        expandedHeight: 160.0,
+                        title: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(person.name,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                        )),
                     SliverList(
                       delegate: SliverChildListDelegate(
                         [

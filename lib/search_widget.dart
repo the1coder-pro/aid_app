@@ -72,17 +72,15 @@ class SearchFinder extends StatelessWidget {
         builder: (context, Box<Person> contactsBox, _) {
           ///* this is where we filter data
           var results = query.isEmpty
-              ? contactsBox.values.toList() // whole list
-              : contactsBox.values
+              ? hiveProvider.people.toList() // whole list
+              : hiveProvider.people
                   .where((c) =>
                       c.name.toLowerCase().contains(query) ||
                       c.idNumber.toLowerCase().contains(query) ||
                       c.phoneNumber.toString().contains(query) ||
                       c.aidAmount.toString().contains(query) ||
                       c.aidType.toLowerCase().contains(query) ||
-                      (c.isContinuousAid ? "مستمرة" : "منقطعة")
-                          .contains(query) ||
-                      c.notes.toLowerCase().contains(query))
+                      (c.isContinuousAid ? "مستمرة" : "منقطعة").contains(query))
 
                   // .where((c) => c.isContinuousAid.toLowerCase().contains(query))
 
@@ -157,17 +155,15 @@ class SearchFinderResults extends StatelessWidget {
         builder: (context, Box<Person> contactsBox, _) {
           ///* this is where we filter data
           var results = query.isEmpty
-              ? contactsBox.values.toList() // whole list
-              : contactsBox.values
+              ? hiveProvider.people.toList() // whole list
+              : hiveProvider.people
                   .where((c) =>
                       c.name.toLowerCase().contains(query) ||
                       c.idNumber.toLowerCase().contains(query) ||
                       c.phoneNumber.toString().contains(query) ||
                       c.aidAmount.toString().contains(query) ||
                       c.aidType.toLowerCase().contains(query) ||
-                      (c.isContinuousAid ? "مستمرة" : "منقطعة")
-                          .contains(query) ||
-                      c.notes.toLowerCase().contains(query))
+                      (c.isContinuousAid ? "مستمرة" : "منقطعة").contains(query))
 
                   // .where((c) => c.aidDates.toLowerCase().contains(query))
 

@@ -483,30 +483,10 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
             const SizedBox(height: 10),
-            // MarkdownTextInput(
-            //   (String value) {
-            //     if (description != value) {
-            //       setState(() => description = value);
-            //     }
-            //   },
-            //   description,
-            //   label: 'الملاحظات',
-            //   textDirection: TextDirection.rtl,
-            //   maxLines: null,
-            //   actions: const [
-            //     MarkdownType.bold,
-            //     MarkdownType.italic,
-            //     MarkdownType.list,
-            //     MarkdownType.blockquote,
-            //     MarkdownType.title,
-            //     MarkdownType.strikethrough,
-            //     MarkdownType.separator
-            //   ],
-            //   controller: _notesController,
-            //   textStyle: const TextStyle(fontSize: 16),
-            // ),
+
             ListTile(
               title: TextFormField(
+                textDirection: TextDirection.rtl,
                 maxLines: null,
                 minLines: 5,
                 keyboardType: TextInputType.multiline,
