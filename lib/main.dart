@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:aidapp/json_compiler.dart';
 import 'package:aidapp/pages/chart_page.dart';
-import 'package:aidapp/pages/print_page.dart';
+import 'package:aidapp/pages/printing_page.dart';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-// import 'package:flutter/services.dart';
+import 'package:animations/animations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -28,7 +28,8 @@ import 'themes.dart';
 import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
 
-// ignore: non_constant_identifier_names
+// add and use the animations package to make the app feel more smoother and natural (https://pub.dev/packages/animations)
+
 List<String> colorSchemes = [
   "Default",
   "Blue",
@@ -200,314 +201,362 @@ class _MyHomePageState extends State<MyHomePage> {
     final colorChangeProvider = Provider.of<ThemeColorProvider>(context);
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     isSelected = getIsSelected(colorChangeProvider);
+
     final hiveProvider = Provider.of<HiveServiceProvider>(context);
     // hiveProvider.getItems();
+
     return Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'المساعدات',
-              style: TextStyle(fontFamily: "ScheherazadeNew"),
-              // style: GoogleFonts.ibmPlexSansArabic(),
-            ),
-            centerTitle: true,
-            actions: hiveProvider.people.isEmpty
-                ? [
-                    IconButton(
-                        icon: const Icon(Icons.settings_outlined),
-                        onPressed: () async {
-                          return await settingsPage(
-                              context, themeChange, colorChangeProvider);
-                        })
-                  ]
-                : [
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: SearchWidget(),
-                        );
+            appBar: AppBar(
+              title: const Text(
+                'المساعدات',
+                style: TextStyle(fontFamily: "ScheherazadeNew"),
+                // style: GoogleFonts.ibmPlexSansArabic(),
+              ),
+              centerTitle: true,
+              actions: [
+                hiveProvider.people.isEmpty
+                    ? Container()
+                    : IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          showSearch(
+                            context: context,
+                            delegate: SearchWidget(),
+                          );
+                        },
+                      )
+              ],
+              leading: hiveProvider.people.isEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.settings_outlined),
+                      onPressed: () async {
+                        return await settingsPage(
+                            context, themeChange, colorChangeProvider);
+                      })
+                  : PopupMenuButton<PopupMenuItemsEnum>(
+                      tooltip: 'صفحات اضافية',
+                      // Callback that sets the selected popup menu item.
+                      onSelected: (PopupMenuItemsEnum item) {
+                        setState(() {
+                          selectedMenu = item;
+                          switch (selectedMenu!) {
+                            // Chart Page
+                            case PopupMenuItemsEnum.chartPage:
+                              Navigator.push(
+                                  context,
+                                  PageTransition(
+                                      child: Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: ChartPage()),
+                                      type: PageTransitionType.rightToLeft));
+
+                              break;
+                            // Printing Page
+                            case PopupMenuItemsEnum.printingPage:
+                              Navigator.push(
+                                  context,
+                                  PageTransition(
+                                      child: const Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: PrintingPage()),
+                                      type: PageTransitionType.rightToLeft));
+                              break;
+
+                            // Settings Page
+                            case PopupMenuItemsEnum.settingsPage:
+                              settingsPage(
+                                  context, themeChange, colorChangeProvider);
+                              break;
+                          }
+                        });
                       },
-                    ),
-                  ],
-            leading: hiveProvider.people.isEmpty
-                ? Container()
-                : PopupMenuButton<PopupMenuItemsEnum>(
-                    tooltip: 'صفحات اضافية',
-                    // Callback that sets the selected popup menu item.
-                    onSelected: (PopupMenuItemsEnum item) {
-                      setState(() {
-                        selectedMenu = item;
-                        switch (selectedMenu!) {
-                          // Chart Page
-                          case PopupMenuItemsEnum.chartPage:
-                            Navigator.push(
-                                context,
-                                PageTransition(
-                                    child: Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: ChartPage()),
-                                    type: PageTransitionType.rightToLeft));
-
-                            break;
-                          // Printing Page
-                          case PopupMenuItemsEnum.printingPage:
-                            Navigator.push(
-                                context,
-                                PageTransition(
-                                    child: const Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: PrintPage()),
-                                    type: PageTransitionType.rightToLeft));
-                            break;
-
-                          // Settings Page
-                          case PopupMenuItemsEnum.settingsPage:
-                            settingsPage(
-                                context, themeChange, colorChangeProvider);
-                            break;
-                        }
-                      });
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<PopupMenuItemsEnum>>[
-                      const PopupMenuItem<PopupMenuItemsEnum>(
-                        value: PopupMenuItemsEnum.chartPage,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.poll_outlined),
-                            Spacer(),
-                            Text('الرسم البياني'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem<PopupMenuItemsEnum>(
-                        value: PopupMenuItemsEnum.printingPage,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.print_outlined),
-                            Spacer(),
-                            Text('الطباعة'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<PopupMenuItemsEnum>(
-                        value: PopupMenuItemsEnum.settingsPage,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.settings_outlined),
-                            Spacer(),
-                            Text('الإعدادات'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: const Icon(Icons.more_vert),
-                  ),
-          ),
-          body: OrientationBuilder(builder: (context, orientation) {
-            if (MediaQuery.of(context).size.width > 600) {
-              isLargeScreen = true;
-            } else {
-              isLargeScreen = false;
-            }
-            if (hiveProvider.people.isNotEmpty) {
-              return Center(
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Center(
-                          child: Consumer<HiveServiceProvider>(
-                            builder: (context, hiveService, _) =>
-                                ListView.builder(
-                                    // reverse: true,
-                                    itemCount: hiveProvider.people.length,
-                                    itemBuilder: (context, i) {
-                                      // var person = hiveService.people[i];
-                                      var person = hiveProvider.getItem(i);
-                                      return Slidable(
-                                        // Specify a key if the Slidable is dismissible.
-                                        key: const ValueKey(0),
-
-                                        // The start action pane is the one at the left or the top side.
-                                        startActionPane: ActionPane(
-                                          // A motion is a widget used to control how the pane animates.
-                                          motion: const ScrollMotion(),
-
-                                          // All actions are defined in the children parameter.
-                                          children: [
-                                            // A SlidableAction can have an icon and/or a label.
-
-                                            SlidableAction(
-                                              onPressed: (context) =>
-                                                  showDialog(
-                                                      context: context,
-                                                      builder: (context) =>
-                                                          RegisterPage(id: i)),
-                                              backgroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .tertiary,
-                                              foregroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .onTertiary,
-                                              icon: Icons.edit,
-                                              label: 'تعديل',
-                                            ),
-                                            SlidableAction(
-                                              onPressed: (context) =>
-                                                  deleteDialog(
-                                                      context,
-                                                      person,
-                                                      box,
-                                                      i,
-                                                      selectedIdProvider),
-                                              backgroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .errorContainer,
-                                              foregroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .onErrorContainer,
-                                              icon: Icons.delete,
-                                              label: 'حذف',
-                                            ),
-                                          ],
-                                        ),
-
-                                        child: ListTile(
-                                          leading: CircleAvatar(
-                                            backgroundColor: colorChangeProvider
-                                                        .colorTheme ==
-                                                    0
-                                                ? const Color(0xFFe9e9ea)
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                            foregroundColor: colorChangeProvider
-                                                        .colorTheme ==
-                                                    0
-                                                ? const Color(0xFF191c1e)
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .onPrimary,
-                                            child: Text(
-                                              (person.name)
-                                                  .toString()
-                                                  .substring(0, 1),
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  const TextStyle(fontSize: 20),
-                                            ),
-                                          ),
-                                          title: Text(
-                                            person.name.split(' ').length > 3
-                                                ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
-                                                : person.name,
-                                            textDirection: TextDirection.rtl,
-                                            style: const TextStyle(
-                                                fontFamily: "ibmPlexSansArabic",
-                                                fontSize: 18),
-                                          ),
-                                          subtitle: RichText(
-                                              text: TextSpan(
-                                                  style: DefaultTextStyle.of(
-                                                          context)
-                                                      .style
-                                                      .copyWith(
-                                                          fontFamily:
-                                                              "ibmPlexSansArabic"),
-                                                  children: [
-                                                if (person.phoneNumber.isNotEmpty)
-                                                  TextSpan(
-                                                      text:
-                                                          "${person.phoneNumber}\n",
-                                                      style: const TextStyle(
-                                                          fontSize: 15))
-                                                else
-                                                  const TextSpan(),
-                                                TextSpan(
-                                                    text: person.aidType !=
-                                                                'عينية' &&
-                                                            person.aidType !=
-                                                                'رمضانية'
-                                                        ? "${person.aidAmount} ريال"
-                                                        : person.aidTypeDetails,
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                const TextSpan(text: " لأجل "),
-                                                TextSpan(
-                                                    text: person.aidType.isEmpty
-                                                        ? 'لا يوجد'
-                                                        : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''} ${person.aidType}",
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                const TextSpan(text: " لفترة "),
-                                                TextSpan(
-                                                    text: person.isContinuousAid
-                                                        ? "مستمرة"
-                                                        : "منقطعة",
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ])),
-                                          isThreeLine: true,
-                                          onTap: () {
-                                            if (isLargeScreen) {
-                                              // selectedId = (box.length > i ? i : -1);
-                                              selectedIdProvider.selectedId = i;
-                                              setState(() {});
-                                            } else {
-                                              selectedIdProvider.selectedId = i;
-                                              setState(() {});
-                                              Navigator.push(
-                                                  context,
-                                                  PageTransition(
-                                                      child: DetailsPage(
-                                                          id: selectedIdProvider
-                                                              .selectedId),
-                                                      type: PageTransitionType
-                                                          .bottomToTop,
-                                                      duration: const Duration(
-                                                          milliseconds: 300)));
-                                            }
-                                          },
-                                        ),
-                                      );
-                                    }),
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<PopupMenuItemsEnum>>[
+                        const PopupMenuItem<PopupMenuItemsEnum>(
+                          value: PopupMenuItemsEnum.chartPage,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.poll_outlined),
+                              Spacer(),
+                              Text('الرسم البياني',
+                                  style: TextStyle(
+                                      fontFamily: "IbmPlexSansArabic")),
+                            ],
                           ),
                         ),
-                      ),
-                      if (isLargeScreen &&
-                          box.values.isNotEmpty &&
-                          selectedIdProvider.selectedId != -1 &&
-                          box.getAt(selectedIdProvider.selectedId)!.isInBox)
+                        const PopupMenuItem<PopupMenuItemsEnum>(
+                          value: PopupMenuItemsEnum.printingPage,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.print_outlined),
+                              Spacer(),
+                              Text('الطباعة',
+                                  style: TextStyle(
+                                      fontFamily: "IbmPlexSansArabic")),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem<PopupMenuItemsEnum>(
+                          value: PopupMenuItemsEnum.settingsPage,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.settings_outlined),
+                              Spacer(),
+                              Text('الإعدادات',
+                                  style: TextStyle(
+                                      fontFamily: "IbmPlexSansArabic")),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: const Icon(Icons.more_vert),
+                    ),
+            ),
+            body: OrientationBuilder(builder: (context, orientation) {
+              if (MediaQuery.of(context).size.width > 600) {
+                isLargeScreen = true;
+              } else {
+                isLargeScreen = false;
+              }
+              if (hiveProvider.people.isNotEmpty) {
+                return Center(
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         Expanded(
-                            flex: 3,
-                            child:
-                                DetailsPage(id: selectedIdProvider.selectedId))
-                      else
-                        Container(),
-                    ]),
-              );
-            } else {
-              return Padding(
-                padding: const EdgeInsets.only(top: 100, right: 20, left: 20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                          height: 250, width: 250, child: SvgPicture.string('''
+                          flex: 2,
+                          child: Center(
+                            child: Consumer<HiveServiceProvider>(
+                              builder: (context, hiveService, _) =>
+                                  ListView.builder(
+                                      // reverse: true,
+                                      itemCount: hiveProvider.people.length,
+                                      itemBuilder: (context, i) {
+                                        // var person = hiveService.people[i];
+                                        var person = hiveProvider.getItem(i);
+                                        return Slidable(
+                                          // Specify a key if the Slidable is dismissible.
+                                          key: const ValueKey(0),
+
+                                          // The start action pane is the one at the left or the top side.
+                                          startActionPane: ActionPane(
+                                            // A motion is a widget used to control how the pane animates.
+                                            motion: const ScrollMotion(),
+
+                                            // All actions are defined in the children parameter.
+                                            children: [
+                                              // A SlidableAction can have an icon and/or a label.
+
+                                              SlidableAction(
+                                                onPressed: (context) =>
+                                                    showDialog(
+                                                        context: context,
+                                                        builder: (context) =>
+                                                            RegisterPage(
+                                                                id: i)),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .tertiary,
+                                                foregroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .onTertiary,
+                                                icon: Icons.edit,
+                                                label: 'تعديل',
+                                              ),
+                                              SlidableAction(
+                                                onPressed: (context) =>
+                                                    deleteDialog(
+                                                        context,
+                                                        person,
+                                                        box,
+                                                        i,
+                                                        selectedIdProvider),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .errorContainer,
+                                                foregroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .onErrorContainer,
+                                                icon: Icons.delete,
+                                                label: 'حذف',
+                                              ),
+                                            ],
+                                          ),
+
+                                          child: OpenContainer(
+                                            closedColor: Theme.of(context)
+                                                .colorScheme
+                                                .background,
+                                            openBuilder: (context, _) =>
+                                                DetailsPage(id: i),
+                                            closedBuilder: (context, _) =>
+                                                Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: ListTile(
+                                                leading: CircleAvatar(
+                                                  backgroundColor:
+                                                      colorChangeProvider
+                                                                  .colorTheme ==
+                                                              0
+                                                          ? const Color(
+                                                              0xFFe9e9ea)
+                                                          : Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                  foregroundColor:
+                                                      colorChangeProvider
+                                                                  .colorTheme ==
+                                                              0
+                                                          ? const Color(
+                                                              0xFF191c1e)
+                                                          : Theme.of(context)
+                                                              .colorScheme
+                                                              .onPrimary,
+                                                  child: Text(
+                                                    (person.name)
+                                                        .toString()
+                                                        .substring(0, 1),
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                        fontSize: 20),
+                                                  ),
+                                                ),
+                                                title: Text(
+                                                  person.name
+                                                              .split(' ')
+                                                              .length >
+                                                          3
+                                                      ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
+                                                      : person.name,
+                                                  textDirection:
+                                                      TextDirection.rtl,
+                                                  style: const TextStyle(
+                                                      fontFamily:
+                                                          "ibmPlexSansArabic",
+                                                      fontSize: 18),
+                                                ),
+                                                subtitle: RichText(
+                                                    text: TextSpan(
+                                                        style: DefaultTextStyle
+                                                                .of(context)
+                                                            .style
+                                                            .copyWith(
+                                                                fontFamily:
+                                                                    "ibmPlexSansArabic"),
+                                                        children: [
+                                                      if (person.phoneNumber
+                                                          .isNotEmpty)
+                                                        TextSpan(
+                                                            text:
+                                                                "${person.phoneNumber}\n",
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        15))
+                                                      else
+                                                        const TextSpan(),
+                                                      TextSpan(
+                                                          text: person.aidType !=
+                                                                      'عينية' &&
+                                                                  person.aidType !=
+                                                                      'رمضانية'
+                                                              ? "${person.aidAmount} ريال"
+                                                              : person
+                                                                  .aidTypeDetails,
+                                                          style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                      const TextSpan(
+                                                          text: " لأجل "),
+                                                      TextSpan(
+                                                          text: person.aidType
+                                                                  .isEmpty
+                                                              ? 'لا يوجد'
+                                                              : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''} ${person.aidType}",
+                                                          style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                      const TextSpan(
+                                                          text: " لفترة "),
+                                                      TextSpan(
+                                                          text: person
+                                                                  .isContinuousAid
+                                                              ? "مستمرة"
+                                                              : "منقطعة",
+                                                          style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                    ])),
+                                                isThreeLine: true,
+                                                // onTap: () {
+                                                //   if (isLargeScreen) {
+                                                //     // selectedId = (box.length > i ? i : -1);
+                                                //     selectedIdProvider.selectedId =
+                                                //         i;
+                                                //     setState(() {});
+                                                //   } else {
+                                                //     selectedIdProvider.selectedId =
+                                                //         i;
+                                                //     setState(() {});
+                                                //     Navigator.push(
+                                                //         context,
+                                                //         PageTransition(
+                                                //             child: DetailsPage(
+                                                //                 id: selectedIdProvider
+                                                //                     .selectedId),
+                                                //             type: PageTransitionType
+                                                //                 .bottomToTop,
+                                                //             duration:
+                                                //                 const Duration(
+                                                //                     milliseconds:
+                                                //                         300)));
+                                                //   }
+                                                // },
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                            ),
+                          ),
+                        ),
+                        if (isLargeScreen &&
+                            box.values.isNotEmpty &&
+                            selectedIdProvider.selectedId != -1 &&
+                            box.getAt(selectedIdProvider.selectedId)!.isInBox)
+                          Expanded(
+                              flex: 3,
+                              child: DetailsPage(
+                                  id: selectedIdProvider.selectedId))
+                        else
+                          Container(),
+                      ]),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 100, right: 20, left: 20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: SvgPicture.string('''
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1080px" height="1080px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M -0.5,-0.5 C 359.5,-0.5 719.5,-0.5 1079.5,-0.5C 1079.5,359.5 1079.5,719.5 1079.5,1079.5C 719.5,1079.5 359.5,1079.5 -0.5,1079.5C -0.5,719.5 -0.5,359.5 -0.5,-0.5 Z"/></g>
                   <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 954.5,579.5 C 955.492,587.316 955.826,595.316 955.5,603.5C 840.184,669.826 724.851,736.159 609.5,802.5C 423.707,695.435 238.041,588.102 52.5,480.5C 51.1667,472.5 51.1667,464.5 52.5,456.5C 56.0608,458.779 59.7274,460.779 63.5,462.5C 63.56,463.043 63.8933,463.376 64.5,463.5C 65.4909,459.555 65.8242,455.555 65.5,451.5C 180.24,385.379 295.074,319.379 410,253.5C 444.698,268.733 480.531,280.566 517.5,289C 561.181,302.506 601.181,322.839 637.5,350C 653.058,362.39 666.724,376.557 678.5,392.5C 724.36,403.263 767.694,420.429 808.5,444C 821.729,452.561 834.396,461.895 846.5,472C 865.5,492.333 884.5,512.667 903.5,533C 918.059,545.556 933.726,556.556 950.5,566C 950,566.5 949.5,567 949,567.5C 948.171,572.533 948.338,577.533 949.5,582.5C 951.36,581.74 953.027,580.74 954.5,579.5 Z"/></g>
@@ -522,52 +571,52 @@ class _MyHomePageState extends State<MyHomePage> {
                   <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 1008.5,654.5 C 1014.18,654.334 1019.84,654.501 1025.5,655C 1026.02,655.561 1026.36,656.228 1026.5,657C 1019.95,669.555 1010.61,679.555 998.5,687C 921.167,731.667 843.833,776.333 766.5,821C 757.216,826.987 750.049,825.153 745,815.5C 742.72,807.565 745.22,801.731 752.5,798C 829.833,753.333 907.167,708.667 984.5,664C 992.186,659.722 1000.19,656.556 1008.5,654.5 Z"/></g>
                   </svg>
                       ''')),
-                      const Center(
-                        child: Text("لا توجد مساعدات مسجلة",
-                            style:
-                                TextStyle(fontSize: 25, fontFamily: "Amiri")),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: FilledButton.icon(
-                          style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(
-                                  Theme.of(context).colorScheme.primary)),
-                          icon: Icon(Icons.add,
-                              color: Theme.of(context).colorScheme.onPrimary),
-                          label: Text("إضافة مساعدة",
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary)),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => RegisterPage());
-                          },
+                        const Center(
+                          child: Text("لا توجد مساعدات مسجلة",
+                              style:
+                                  TextStyle(fontSize: 25, fontFamily: "Amiri")),
                         ),
-                      )
-                    ],
+                        const SizedBox(height: 20),
+                        Center(
+                          child: FilledButton.icon(
+                            style: ButtonStyle(
+                                backgroundColor: MaterialStatePropertyAll(
+                                    Theme.of(context).colorScheme.primary)),
+                            icon: Icon(Icons.add,
+                                color: Theme.of(context).colorScheme.onPrimary),
+                            label: Text("إضافة مساعدة",
+                                style: TextStyle(
+                                    fontSize: 25,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary)),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => RegisterPage());
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }
-          }),
-          floatingActionButton: hiveProvider.people.isEmpty
-              ? Container()
-              : FloatingActionButton(
-                  child: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        PageTransition(
-                            child: RegisterPage(),
-                            type: PageTransitionType.bottomToTop,
-                            duration: const Duration(milliseconds: 300))
-                        // MaterialPageRoute(builder: (context) => RegisterPage())
-                        );
-                  }),
-        ));
+                );
+              }
+            }),
+            floatingActionButton: hiveProvider.people.isEmpty
+                ? Container()
+                : OpenContainer(
+                    closedElevation: 0,
+                    closedColor: Theme.of(context).colorScheme.background,
+                    transitionDuration: const Duration(milliseconds: 500),
+                    closedBuilder: (context, _) => const FloatingActionButton(
+                      elevation: 0,
+                      onPressed: null,
+                      child: Icon(Icons.add),
+                    ),
+                    openBuilder: (context, _) => RegisterPage(),
+                    tappable: true,
+                  )));
   }
 
   Future<void> settingsPage(BuildContext context, TheThemeProvider themeChange,
@@ -1036,7 +1085,25 @@ class _MyHomePageState extends State<MyHomePage> {
                                             .map((e) => JsonRecord.fromJson(e))
                                             .toList();
 
-                                    // isLoading = true;
+                                    // TODO: add Loading indecator while uploading data.
+
+                                    // show a circular progress indicator
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+
+                                    showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) {
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary,
+                                            ),
+                                          );
+                                        });
 
                                     for (var record in records) {
                                       var splitedDates = record.aidDates != null
@@ -1071,10 +1138,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                               notes:
                                                   record.notes ?? 'لا يوجد'));
                                     }
-                                    // setState(() {
-                                    //   isLoading = false;
-                                    // });
-
+                                    setState(() {
+                                      isLoading = false;
+                                      Navigator.pop(context);
+                                    });
                                     if (context.mounted) {
                                       showDialog(
                                           context: context,
@@ -1082,20 +1149,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                             return Directionality(
                                               textDirection: TextDirection.rtl,
                                               child: AlertDialog(
-                                                icon: const Icon(Icons
-                                                    .check_circle_outlined),
-                                                title: const Text(
-                                                    "تمت الاستيراد بنجاح"),
-                                                content: Text(
-                                                    "تمت اضافة (${hiveServiceProvider.people.length}) مساعدة"),
-                                                actions: [
-                                                  TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context),
-                                                      child: const Text("حسنا"))
-                                                ],
-                                              ),
+                                                  icon: const Icon(Icons
+                                                      .check_circle_outlined),
+                                                  title: const Text(
+                                                      "تمت الاستيراد بنجاح"),
+                                                  content: const Text(
+                                                      "تمت اضافة المساعدات بنجاح"),
+                                                  actions: [
+                                                    TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context),
+                                                        child:
+                                                            const Text("حسنا"))
+                                                  ]),
                                             );
                                           });
                                     }

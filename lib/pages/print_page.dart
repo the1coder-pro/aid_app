@@ -281,58 +281,50 @@ class _PrintPageState extends State<PrintPage> {
                   }),
             ]),
         dateRangeIncludedPersonList.isNotEmpty
-            ? SizedBox(
-                height: 250,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                      child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                        rows: dateRangeIncludedPersonList
-                            .map((record) => DataRow(cells: [
-                                  DataCell(Text((dateRangeIncludedPersonList
-                                              .indexOf(record) +
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                    rows: dateRangeIncludedPersonList
+                        .map((record) => DataRow(cells: [
+                              DataCell(Text(
+                                  (dateRangeIncludedPersonList.indexOf(record) +
                                           1)
                                       .toString())),
-                                  DataCell(Text(record.name)),
-                                  DataCell(Text(intl.DateFormat('yyyy-MM-dd')
-                                      .format(record.aidDates[0]))),
-                                  DataCell(Text(intl.DateFormat('yyyy-MM-dd')
-                                      .format(record.aidDates[1]))),
-                                  DataCell(Text(record.idNumber)),
-                                  DataCell(Text(record.aidType)),
-                                  DataCell(Text(record.aidAmount.toString())),
-                                  DataCell(Text(record.isContinuousAid
-                                      ? 'مستمرة'
-                                      : 'منقطعة')),
-                                  DataCell(Text(record.phoneNumber.toString())),
-                                  DataCell(IconButton(
-                                    icon: const Icon(Icons.visibility_outlined),
-                                    onPressed: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                DetailsPage(id: record.key))),
-                                  )),
-                                ]))
-                            .toList(),
-                        columns: [
-                          '#',
-                          'الاسم',
-                          'تاريخ البداية',
-                          'تاريخ النهاية',
-                          'رقم الهوية',
-                          'النوع',
-                          'المقدار',
-                          'المدة',
-                          'رقم الهاتف',
-                          'عرض'
-                        ]
-                            .map((label) => DataColumn(label: Text(label)))
-                            .toList()),
-                  )),
-                ))
+                              DataCell(Text(record.name)),
+                              DataCell(Text(intl.DateFormat('yyyy-MM-dd')
+                                  .format(record.aidDates[0]))),
+                              DataCell(Text(intl.DateFormat('yyyy-MM-dd')
+                                  .format(record.aidDates[1]))),
+                              DataCell(Text(record.idNumber)),
+                              DataCell(Text(record.aidType)),
+                              DataCell(Text(record.aidAmount.toString())),
+                              DataCell(Text(record.isContinuousAid
+                                  ? 'مستمرة'
+                                  : 'منقطعة')),
+                              DataCell(Text(record.phoneNumber.toString())),
+                              DataCell(IconButton(
+                                icon: const Icon(Icons.visibility_outlined),
+                                onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            DetailsPage(id: record.key))),
+                              )),
+                            ]))
+                        .toList(),
+                    columns: [
+                      '#',
+                      'الاسم',
+                      'تاريخ البداية',
+                      'تاريخ النهاية',
+                      'رقم الهوية',
+                      'النوع',
+                      'المقدار',
+                      'المدة',
+                      'رقم الهاتف',
+                      'عرض'
+                    ].map((label) => DataColumn(label: Text(label))).toList()),
+              )
             : Container(),
         dateRangeIncludedPersonList.isEmpty
             ? Container()

@@ -40,7 +40,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
   List<DateTime> dateRange = [];
 
-  late FocusNode myFocusNode;
+  // make a focusnode for every field
+  FocusNode firstNameFocus = FocusNode();
+  FocusNode lastNameFocus = FocusNode();
+  FocusNode phoneFocus = FocusNode();
+  FocusNode idNumberFocus = FocusNode();
+  FocusNode amountFocus = FocusNode();
+  FocusNode typeFocus = FocusNode();
+  FocusNode dateFocus = FocusNode();
+  FocusNode hijriDateFocus = FocusNode();
+  FocusNode otherTypeFocus = FocusNode();
+  FocusNode typeDetailsFocus = FocusNode();
+  FocusNode firstDurationFocus = FocusNode();
+  FocusNode lastDurationFocus = FocusNode();
+  FocusNode notesFocus = FocusNode();
 
   @override
   void initState() {
@@ -49,13 +62,30 @@ class _RegisterPageState extends State<RegisterPage> {
     Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
     loadData(loadPerson);
 
-    myFocusNode = FocusNode();
+    // Add listeners to the focus nodes
+    firstNameFocus.addListener(() {
+      if (!firstNameFocus.hasFocus) {
+        _firstNameController.text = _firstNameController.text.trim();
+      }
+    });
   }
 
   @override
   void dispose() {
     // Clean up the focus node when the Form is disposed.
-    myFocusNode.dispose();
+    firstNameFocus.dispose();
+    lastNameFocus.dispose();
+    phoneFocus.dispose();
+    idNumberFocus.dispose();
+    amountFocus.dispose();
+    typeFocus.dispose();
+    dateFocus.dispose();
+    hijriDateFocus.dispose();
+    typeDetailsFocus.dispose();
+    firstDurationFocus.dispose();
+    lastDurationFocus.dispose();
+    otherTypeFocus.dispose();
+    notesFocus.dispose();
 
     super.dispose();
   }
@@ -190,12 +220,19 @@ class _RegisterPageState extends State<RegisterPage> {
           padding: const EdgeInsets.all(8.0),
           child: ListView(children: [
             // const SizedBox(height: 15),
-            textFieldListTile('الاسم الأول', _firstNameController),
-            const SizedBox(height: 5),
-            textFieldListTile('الاسم الأخير', _lastNameController),
-            const SizedBox(height: 5),
+            textFieldListTile('الاسم الأول', _firstNameController,
+                firstNameFocus, lastNameFocus),
+            const SizedBox(height: 2),
+            textFieldListTile('الاسم الأخير', _lastNameController,
+                lastNameFocus, idNumberFocus),
+            // const SizedBox(height: 2),
             ListTile(
               title: TextFormField(
+                focusNode: idNumberFocus,
+                onFieldSubmitted: (value) {
+                  idNumberFocus.unfocus();
+                  FocusScope.of(context).requestFocus(phoneFocus);
+                },
                 decoration: InputDecoration(
                     suffixIcon: clearButton(_idNumberController),
                     label: const Text("رقم الهوية"),
@@ -208,9 +245,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 textInputAction: TextInputAction.next,
               ),
             ),
-            const SizedBox(height: 5),
+            // const SizedBox(height: 2),
             ListTile(
               title: TextFormField(
+                focusNode: phoneFocus,
+                onFieldSubmitted: (value) {
+                  phoneFocus.unfocus();
+                  FocusScope.of(context).requestFocus(dateFocus);
+                },
                 decoration: InputDecoration(
                     suffixIcon: clearButton(_phoneController),
                     label: const Text("رقم الهاتف"),
@@ -254,143 +296,167 @@ class _RegisterPageState extends State<RegisterPage> {
                     )),
                   ),
             const SizedBox(height: 10),
-            Row(
-                textDirection: TextDirection.rtl,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  OutlinedButton.icon(
-                      icon: const Icon(Icons.calendar_month_outlined),
-                      label: const Text("تاريخ (ميلادي)"),
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: Dialog(
-                                    child: SizedBox(
-                                      width: 800,
-                                      height: 400,
-                                      child: SfDateRangePicker(
-                                          initialSelectedRange: dateRange
-                                                  .isNotEmpty
-                                              ? PickerDateRange(
-                                                  dateRange[0], dateRange[1])
-                                              : null,
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .background,
-                                          startRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          endRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          rangeSelectionColor: Theme.of(context)
-                                              .colorScheme
-                                              .primaryContainer
-                                              .withOpacity(0.5),
-                                          selectionMode:
-                                              DateRangePickerSelectionMode
-                                                  .range,
-                                          confirmText: "تأكيد",
-                                          cancelText: "إلغاء",
-                                          onCancel: () {
-                                            Navigator.pop(context);
-                                          },
-                                          onSubmit: (Object? value) {
-                                            if (value is PickerDateRange) {
-                                              dateRange.clear();
-                                              dateRange.add(value.startDate!);
-                                              dateRange.add(value.endDate!);
-                                              setState(() {});
+            ListTile(
+              trailing: IconButton(
+                icon: const Icon(Icons.calendar_month_outlined),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Dialog(
+                              child: SizedBox(
+                                width: 800,
+                                height: 400,
+                                child: SfDateRangePicker(
+                                    initialSelectedRange: dateRange.isNotEmpty
+                                        ? PickerDateRange(
+                                            dateRange[0], dateRange[1])
+                                        : null,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    startRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    endRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    rangeSelectionColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withOpacity(0.2),
+                                    selectionMode:
+                                        DateRangePickerSelectionMode.range,
+                                    confirmText: "تأكيد",
+                                    cancelText: "إلغاء",
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onSubmit: (Object? value) {
+                                      if (value is PickerDateRange) {
+                                        dateRange.clear();
+                                        dateRange.add(value.startDate!);
+                                        // check if the end date is null
+                                        if (value.endDate != null) {
+                                          dateRange.add(value.endDate!);
+                                        } else {
+                                          dateRange.add(value.startDate!
+                                              .add(const Duration(days: 10)));
+                                        }
 
-                                              // debugPrint(
-                                              //     "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                              // debugPrint(
-                                              //     "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          showActionButtons: true),
-                                    ),
-                                  ),
-                                ));
-                      }),
-                  // const SizedBox(width: 10),
-                  OutlinedButton.icon(
-                      icon: const Icon(Icons.calendar_month_outlined),
-                      label: const Text("تاريخ (هجري)"),
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) => Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: Dialog(
-                                    child: SizedBox(
-                                      width: 800,
-                                      height: 400,
-                                      child: SfHijriDateRangePicker(
-                                          initialSelectedRange: dateRange
-                                                  .isNotEmpty
-                                              ? HijriDateRange(
-                                                  HijriDateTime.fromDateTime(
-                                                      dateRange[0]),
-                                                  HijriDateTime.fromDateTime(
-                                                      dateRange[1]))
-                                              : null,
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .background,
-                                          startRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          endRangeSelectionColor:
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                          rangeSelectionColor: Theme.of(context)
-                                              .colorScheme
-                                              .primaryContainer
-                                              .withOpacity(0.5),
-                                          selectionMode:
-                                              DateRangePickerSelectionMode
-                                                  .range,
-                                          confirmText: "تأكيد",
-                                          cancelText: "إلغاء",
-                                          onCancel: () {
-                                            Navigator.pop(context);
-                                          },
-                                          onSubmit: (Object? value) {
-                                            if (value is HijriDateRange) {
-                                              dateRange.clear();
-                                              dateRange.add(value.startDate!
-                                                  .toDateTime());
-                                              dateRange.add(
-                                                  value.endDate!.toDateTime());
-                                              setState(() {});
+                                        setState(() {});
 
-                                              debugPrint(
-                                                  "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                              debugPrint(
-                                                  "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          showActionButtons: true),
-                                    ),
-                                  ),
-                                ));
-                      }),
-                ]),
+                                        // debugPrint(
+                                        //     "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                        // debugPrint(
+                                        //     "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    showActionButtons: true),
+                              ),
+                            ),
+                          ));
+                },
+              ),
+              title: TextFormField(
+                focusNode: dateFocus,
+                decoration: const InputDecoration(
+                    label: Text("تاريخ (ميلادي)"),
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: TextEditingController(
+                    text: dateRange.isNotEmpty
+                        ? "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}"
+                        : ''),
+                onFieldSubmitted: (value) {
+                  dateFocus.unfocus();
+                  FocusScope.of(context).requestFocus(hijriDateFocus);
+                },
+              ),
+            ),
+            const SizedBox(height: 5),
+            ListTile(
+              trailing: IconButton(
+                icon: const Icon(Icons.calendar_month_outlined),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Dialog(
+                              child: SizedBox(
+                                width: 800,
+                                height: 400,
+                                child: SfHijriDateRangePicker(
+                                    initialSelectedRange: dateRange.isNotEmpty
+                                        ? HijriDateRange(
+                                            HijriDateTime.fromDateTime(
+                                                dateRange[0]),
+                                            HijriDateTime.fromDateTime(
+                                                dateRange[1]))
+                                        : null,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    startRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    endRangeSelectionColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    rangeSelectionColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withOpacity(0.2),
+                                    selectionMode:
+                                        DateRangePickerSelectionMode.range,
+                                    confirmText: "تأكيد",
+                                    cancelText: "إلغاء",
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onSubmit: (Object? value) {
+                                      if (value is HijriDateRange) {
+                                        dateRange.clear();
+                                        dateRange
+                                            .add(value.startDate!.toDateTime());
+                                        dateRange
+                                            .add(value.endDate!.toDateTime());
+                                        setState(() {});
+
+                                        debugPrint(
+                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
+                                        debugPrint(
+                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    showActionButtons: true),
+                              ),
+                            ),
+                          ));
+                },
+              ),
+              title: TextFormField(
+                focusNode: hijriDateFocus,
+                decoration: const InputDecoration(
+                    label: Text("تاريخ (هجري)"),
+                    border: OutlineInputBorder(),
+                    isDense: true),
+                controller: TextEditingController(
+                    text: dateRange.isNotEmpty
+                        ? "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}"
+                        : ''),
+                onFieldSubmitted: (value) {
+                  hijriDateFocus.unfocus();
+                  FocusScope.of(context).requestFocus(typeFocus);
+                },
+              ),
+            ),
             const SizedBox(height: 20),
 
             Padding(
               padding: const EdgeInsets.only(left: 24, right: 16),
               child: DropdownButtonFormField(
+                focusNode: typeFocus,
                 value: (aidTypes.contains(loadPerson?.aidType) ||
                         aidTypes.contains(aidType))
                     ? aidType
@@ -406,8 +472,31 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: const TextStyle(fontSize: 15),
                         )))
                     .toList(),
-                onChanged: (value) => setState(() => aidType = value),
-                onTap: () => TextInputAction.next,
+                onChanged: (value) {
+                  setState(() => aidType = value);
+                  if (aidType == aidTypes.last) {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(otherTypeFocus);
+                  } else if (aidType == 'عينية' || aidType == 'رمضانية') {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(typeDetailsFocus);
+                  } else {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(amountFocus);
+                  }
+                },
+                onTap: () {
+                  if (aidType == aidTypes.last) {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(otherTypeFocus);
+                  } else if (aidType == 'عينية' || aidType == 'رمضانية') {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(typeDetailsFocus);
+                  } else {
+                    typeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(amountFocus);
+                  }
+                },
               ),
             ),
             const SizedBox(height: 2),
@@ -415,6 +504,11 @@ class _RegisterPageState extends State<RegisterPage> {
               visible: aidType == aidTypes.last,
               child: ListTile(
                 title: TextFormField(
+                  focusNode: otherTypeFocus,
+                  onFieldSubmitted: (value) {
+                    otherTypeFocus.unfocus();
+                    FocusScope.of(context).requestFocus(firstDurationFocus);
+                  },
                   decoration: InputDecoration(
                       suffixIcon: clearButton(_typeController),
                       label: const Text("نوع اخر"),
@@ -425,12 +519,17 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 2),
 
             Visibility(
               visible: aidType == 'عينية' || aidType == 'رمضانية',
               child: ListTile(
                 title: TextFormField(
+                  focusNode: typeDetailsFocus,
+                  onFieldSubmitted: (value) {
+                    typeDetailsFocus.unfocus();
+                    FocusScope.of(context).requestFocus(amountFocus);
+                  },
                   decoration: InputDecoration(
                       suffixIcon: clearButton(_typeController),
                       label: const Text("تفاصيل"),
@@ -446,6 +545,11 @@ class _RegisterPageState extends State<RegisterPage> {
               visible: aidType != 'عينية' && aidType != 'رمضانية',
               child: ListTile(
                 title: TextFormField(
+                  focusNode: amountFocus,
+                  onFieldSubmitted: (value) {
+                    amountFocus.unfocus();
+                    FocusScope.of(context).requestFocus(firstDurationFocus);
+                  },
                   decoration: InputDecoration(
                       suffixIcon: clearButton(_amountController),
                       label: const Text("مقدار المساعدة"),
@@ -463,6 +567,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Text("مدة المساعدة",
                     style: TextStyle(fontWeight: FontWeight.bold))),
             RadioListTile<AidDuration>(
+              focusNode: firstDurationFocus,
+              onFocusChange: (value) {
+                if (!value) {
+                  firstDurationFocus.unfocus();
+                  FocusScope.of(context).requestFocus(lastDurationFocus);
+                }
+              },
               title: const Text('مستمرة'),
               value: AidDuration.continuous,
               groupValue: _duration,
@@ -473,6 +584,13 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
             RadioListTile<AidDuration>(
+              focusNode: lastDurationFocus,
+              onFocusChange: (value) {
+                if (!value) {
+                  lastDurationFocus.unfocus();
+                  FocusScope.of(context).requestFocus(notesFocus);
+                }
+              },
               title: const Text('منقطعة'),
               value: AidDuration.interrupted,
               groupValue: _duration,
@@ -486,6 +604,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
             ListTile(
               title: TextFormField(
+                focusNode: notesFocus,
                 textDirection: TextDirection.rtl,
                 maxLines: null,
                 minLines: 5,
@@ -502,9 +621,16 @@ class _RegisterPageState extends State<RegisterPage> {
         ));
   }
 
-  ListTile textFieldListTile(String label, TextEditingController controller) {
+  ListTile textFieldListTile(String label, TextEditingController controller,
+      FocusNode focusNode, FocusNode nextFocusNode) {
     return ListTile(
       title: TextFormField(
+        autofocus: true,
+        focusNode: focusNode,
+        onFieldSubmitted: (value) {
+          focusNode.unfocus();
+          FocusScope.of(context).requestFocus(nextFocusNode);
+        },
         textDirection: TextDirection.rtl,
         decoration: InputDecoration(
             suffixIcon: clearButton(controller),

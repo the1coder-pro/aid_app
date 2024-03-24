@@ -95,6 +95,7 @@ class SelectedIdProvider with ChangeNotifier {
   }
 }
 
+// fix this provider and make it work with Hive better (https://github.com/singlesoup/contacts_app/blob/master/lib/provider/db_provider.dart)
 class HiveServiceProvider extends ChangeNotifier {
   List<Person> _people = [];
   UnmodifiableListView<Person> get people => UnmodifiableListView(_people);

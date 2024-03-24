@@ -1,5 +1,4 @@
 import 'package:aidapp/themes.dart';
-import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -82,6 +81,9 @@ class SearchFinder extends StatelessWidget {
                       c.aidAmount.toString().contains(query) ||
                       c.aidType.toLowerCase().contains(query) ||
                       (c.isContinuousAid ? "مستمرة" : "منقطعة").contains(query))
+
+                  // .where((c) => c.isContinuousAid.toLowerCase().contains(query))
+
                   .toList();
 
           return results.isEmpty
@@ -115,22 +117,21 @@ class SearchFinder extends StatelessWidget {
                     // passing as a custom list
                     final Person personListItem = results[index];
 
-                    return OpenContainer(
-                      closedColor: Theme.of(context).colorScheme.background,
-                      openBuilder: (context, _) {
+                    return ListTile(
+                      onTap: () {
                         var selectedPersonIndex = hiveProvider.people
                             .toList()
                             .indexOf(personListItem);
-                        return DetailsPage(id: selectedPersonIndex);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailsPage(id: selectedPersonIndex)),
+                        );
                       },
-                      closedBuilder: (context, _) => ListTile(
-                        title: Directionality(
-                          textDirection: TextDirection.rtl,
-                          child: Text(personListItem.name,
-                              style: const TextStyle(
-                                  fontFamily: 'ibmPlexSansArabic')),
-                        ),
-                      ),
+                      title: Text(personListItem.name,
+                          style:
+                              const TextStyle(fontFamily: 'ibmPlexSansArabic')),
                     );
                   },
                 );
@@ -163,6 +164,9 @@ class SearchFinderResults extends StatelessWidget {
                       c.aidAmount.toString().contains(query) ||
                       c.aidType.toLowerCase().contains(query) ||
                       (c.isContinuousAid ? "مستمرة" : "منقطعة").contains(query))
+
+                  // .where((c) => c.aidDates.toLowerCase().contains(query))
+
                   .toList();
 
           return results.isEmpty
@@ -196,68 +200,65 @@ class SearchFinderResults extends StatelessWidget {
                     // passing as a custom list
                     final Person personListItem = results[index];
 
-                    return OpenContainer(
-                      openBuilder: (context, _) {
-                        var selectedPersonIndex = hiveProvider.people
-                            .toList()
-                            .indexOf(personListItem);
-                        return DetailsPage(id: selectedPersonIndex);
-                      },
-                      closedColor: Theme.of(context).colorScheme.background,
-                      closedBuilder: (context, _) => Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            child: Text(
-                              (personListItem.name).toString().substring(0, 1),
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                          ),
-                          title: Text(
-                            personListItem.name,
-                            style: const TextStyle(
-                                fontSize: 15, fontFamily: 'ibmPlexSansArabic'),
-                          ),
-                          subtitle: RichText(
-                              text: TextSpan(
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .copyWith(
-                                          fontFamily: 'ibmPlexSansArabic'),
-                                  children: [
-                                TextSpan(
-                                    text: "${personListItem.aidAmount} ريال",
-                                    style: TextStyle(
-                                        fontWeight: personListItem.aidAmount
-                                                .toString()
-                                                .contains(query)
-                                            ? FontWeight.bold
-                                            : FontWeight.normal)),
-                                const TextSpan(text: " لأجل "),
-                                TextSpan(
-                                    text: personListItem.aidType,
-                                    style: TextStyle(
-                                        fontWeight: personListItem.aidType
-                                                .contains(query)
-                                            ? FontWeight.bold
-                                            : FontWeight.normal)),
-                                const TextSpan(text: " لفترة "),
-                                TextSpan(
-                                    text: personListItem.isContinuousAid
-                                        ? "مستمرة"
-                                        : "منقطعة",
-                                    style: TextStyle(
-                                        fontWeight:
-                                            (personListItem.isContinuousAid
-                                                        ? "مستمرة"
-                                                        : "منقطعة")
-                                                    .contains(query)
-                                                ? FontWeight.bold
-                                                : FontWeight.normal)),
-                              ])),
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          (personListItem.name).toString().substring(0, 1),
+                          style: const TextStyle(fontSize: 20),
                         ),
                       ),
+                      title: Text(
+                        personListItem.name,
+                        style: const TextStyle(
+                            fontSize: 15, fontFamily: 'ibmPlexSansArabic'),
+                      ),
+                      subtitle: RichText(
+                          text: TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .copyWith(fontFamily: 'ibmPlexSansArabic'),
+                              children: [
+                            TextSpan(
+                                text: "${personListItem.aidAmount} ريال",
+                                style: TextStyle(
+                                    fontWeight: personListItem.aidAmount
+                                            .toString()
+                                            .contains(query)
+                                        ? FontWeight.bold
+                                        : FontWeight.normal)),
+                            const TextSpan(text: " لأجل "),
+                            TextSpan(
+                                text: personListItem.aidType,
+                                style: TextStyle(
+                                    fontWeight:
+                                        personListItem.aidType.contains(query)
+                                            ? FontWeight.bold
+                                            : FontWeight.normal)),
+                            const TextSpan(text: " لفترة "),
+                            TextSpan(
+                                text: personListItem.isContinuousAid
+                                    ? "مستمرة"
+                                    : "منقطعة",
+                                style: TextStyle(
+                                    fontWeight: (personListItem.isContinuousAid
+                                                ? "مستمرة"
+                                                : "منقطعة")
+                                            .contains(query)
+                                        ? FontWeight.bold
+                                        : FontWeight.normal)),
+                          ])),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) {
+                            var selectedPersonIndex = hiveProvider.people
+                                .toList()
+                                .indexOf(personListItem);
+                            return DetailsPage(id: selectedPersonIndex);
+                          }),
+                        );
+                      },
                     );
                   },
                 );
