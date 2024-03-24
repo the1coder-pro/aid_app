@@ -25,6 +25,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _hijriDateController = TextEditingController();
+
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _typeDetailsController = TextEditingController();
 
@@ -100,6 +104,10 @@ class _RegisterPageState extends State<RegisterPage> {
       _phoneController.text = loadPerson.phoneNumber.toString();
       _idNumberController.text = loadPerson.idNumber.toString();
       dateRange = loadPerson.aidDates;
+      _dateController.text =
+          "${intl.DateFormat('yyyy-MM-dd').format(dateRange[0])} - ${intl.DateFormat('yyyy-MM-dd').format(dateRange[1])}";
+      _hijriDateController.text =
+          "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}";
       if (aidTypes.contains(loadPerson.aidType)) {
         aidType = loadPerson.aidType;
         debugPrint(aidTypes.contains(loadPerson.aidType).toString());
@@ -120,6 +128,17 @@ class _RegisterPageState extends State<RegisterPage> {
       _notesController.text = loadPerson.notes;
       description = _notesController.text;
     }
+  }
+
+  // getDateRange from controllers
+  List<DateTime> getDateRange() {
+    List<DateTime> dateRange = [];
+    if (_dateController.text.isNotEmpty) {
+      List<String> dates = _dateController.text.split(" - ");
+      dateRange.add(intl.DateFormat('yyyy-MM-dd').parse(dates[0]));
+      dateRange.add(intl.DateFormat('yyyy-MM-dd').parse(dates[1]));
+    }
+    return dateRange;
   }
 
   @override
@@ -188,7 +207,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
                           idNumber: _idNumberController.text.trim(),
                           phoneNumber: _phoneController.text.trim(),
-                          aidDates: dateRange,
+                          aidDates: getDateRange(),
                           aidType: aidType == aidTypes.last
                               ? _typeController.text.trim()
                               : (aidType ?? aidTypes[5]),
@@ -266,36 +285,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 textInputAction: TextInputAction.next,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 5),
             const Center(
                 child: Text("تاريخ المساعدة",
                     style: TextStyle(fontWeight: FontWeight.bold))),
-            const SizedBox(height: 10),
-            dateRange.isEmpty
-                ? Container()
-                : Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                        child: SizedBox(
-                      width: 400,
-                      child: Table(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          TableRow(children: [
-                            const Text("الميلادي"),
-                            Text(
-                                "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
-                          ]),
-                          TableRow(children: [
-                            const Text("الهجري"),
-                            Text(
-                                "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
-                          ]),
-                        ],
-                      ),
-                    )),
-                  ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
+
             ListTile(
               trailing: IconButton(
                 icon: const Icon(Icons.calendar_month_outlined),
@@ -345,10 +340,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                         setState(() {});
 
-                                        // debugPrint(
-                                        //     "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                        // debugPrint(
-                                        //     "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        _dateController.text =
+                                            "${intl.DateFormat('yyyy-MM-dd').format(dateRange[0])} - ${intl.DateFormat('yyyy-MM-dd').format(dateRange[1])}";
+                                        _hijriDateController.text =
+                                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}";
                                         Navigator.pop(context);
                                       }
                                     },
@@ -364,10 +359,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     label: Text("تاريخ (ميلادي)"),
                     border: OutlineInputBorder(),
                     isDense: true),
-                controller: TextEditingController(
-                    text: dateRange.isNotEmpty
-                        ? "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}"
-                        : ''),
+                controller: _dateController,
                 onFieldSubmitted: (value) {
                   dateFocus.unfocus();
                   FocusScope.of(context).requestFocus(hijriDateFocus);
@@ -421,11 +413,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                         dateRange
                                             .add(value.endDate!.toDateTime());
                                         setState(() {});
-
-                                        debugPrint(
-                                            "Saved DateRange is ${dateRange[0]} - ${dateRange[1]} and it's a ${dateRange[1].difference(dateRange[0]).inDays} days journey");
-                                        debugPrint(
-                                            "Saved DateRange is ${HijriDateTime.fromDateTime(dateRange[0])} - ${HijriDateTime.fromDateTime(dateRange[1])}");
+                                        _dateController.text =
+                                            "${intl.DateFormat('yyyy-MM-dd').format(dateRange[0])} - ${intl.DateFormat('yyyy-MM-dd').format(dateRange[1])}";
+                                        _hijriDateController.text =
+                                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}";
                                         Navigator.pop(context);
                                       }
                                     },
@@ -441,10 +432,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     label: Text("تاريخ (هجري)"),
                     border: OutlineInputBorder(),
                     isDense: true),
-                controller: TextEditingController(
-                    text: dateRange.isNotEmpty
-                        ? "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}"
-                        : ''),
+                controller: _hijriDateController,
                 onFieldSubmitted: (value) {
                   hijriDateFocus.unfocus();
                   FocusScope.of(context).requestFocus(typeFocus);

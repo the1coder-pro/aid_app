@@ -2,7 +2,7 @@ name: aidapp
 description: تطبيق لمساعدة في تنظيم توزيع المساعدات المالية
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -30,8 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  
+
   dynamic_color: ^1.6.2
   shared_preferences: ^2.0.20
   provider: ^6.0.5
@@ -58,7 +57,6 @@ dependencies:
   # markdown: ^7.2.1
   syncfusion_flutter_core: ^24.2.8
 
-
   intl: any
   pdf: any
   url_launcher: ^6.2.5
@@ -68,14 +66,12 @@ dependencies:
   change_app_package_name: ^1.1.0
   animations: ^2.0.11
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   hive_generator: ^2.0.0
   build_runner: ^2.3.3
   flutter_launcher_icons: "^0.13.1"
-
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -107,7 +103,6 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -136,17 +131,11 @@ flutter:
           weight: 400
     - family: NotoNaskhArabic
       fonts:
-        - asset: fonts/NotoNaskhArabic-Regular.ttf
-        - asset: fonts/NotoNaskhArabic-Bold.ttf
-          weight: 400
+        - asset: fonts/NotoNaskhArabic-VariableFont_wght.ttf
     - family: ScheherazadeNew
       fonts:
         - asset: fonts/ScheherazadeNew-Regular.ttf
         - asset: fonts/ScheherazadeNew-Bold.ttf
-          weight: 400
-    - family: Amiri
-      fonts:
-        - asset: fonts/Amiri-Regular.ttf
           weight: 400
   #
   # For details regarding fonts from package dependencies,
