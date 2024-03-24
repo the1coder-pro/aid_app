@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:aidapp/pages/details_page.dart';
+import 'package:aidapp/themes.dart';
+import 'package:provider/provider.dart';
+
 // import 'package:aid_app/themes.dart';
 // import 'package:provider/provider.dart';
 import "package:universal_html/html.dart" as html;
@@ -33,15 +36,13 @@ class _PrintingPageState extends State<PrintingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
+    final hiveProvider = Provider.of<HiveServiceProvider>(context);
     return Scaffold(
         appBar: AppBar(title: const Text("طباعة")),
         body: ListView(children: <Widget>[
           const Center(
               child: Text("تاريخ المساعدة",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "IbmPlexSansArabic"))),
+                  style: TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 10),
           dateRange.isEmpty
               ? Container()
@@ -107,11 +108,20 @@ class _PrintingPageState extends State<PrintingPage> {
                                     DataCell(IconButton(
                                       icon:
                                           const Icon(Icons.visibility_outlined),
-                                      onPressed: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  DetailsPage(id: record.key))),
+                                      onPressed: () => Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        var selectedContactIndex =
+                                            Provider.of<HiveServiceProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .peopleBox
+                                                .values
+                                                .toList()
+                                                .indexOf(record);
+                                        hiveProvider.updateSelectedIndex(
+                                            selectedContactIndex);
+                                        return DetailsPage(record);
+                                      })),
                                     )),
                                   ]))
                               .toList(),
@@ -152,8 +162,7 @@ class _PrintingPageState extends State<PrintingPage> {
   OutlinedButton dateButton(BuildContext context) {
     return OutlinedButton.icon(
         icon: const Icon(Icons.calendar_month_outlined),
-        label: const Text("تاريخ (ميلادي)",
-            style: TextStyle(fontFamily: "IbmPlexSansArabic")),
+        label: const Text("تاريخ (ميلادي)"),
         onPressed: () {
           showDialog(
               context: context,
@@ -243,8 +252,7 @@ class _PrintingPageState extends State<PrintingPage> {
   OutlinedButton hijriDateButton(BuildContext context) {
     return OutlinedButton.icon(
         icon: const Icon(Icons.calendar_month_outlined),
-        label: const Text("تاريخ (هجري)",
-            style: TextStyle(fontFamily: "IbmPlexSansArabic")),
+        label: const Text("تاريخ (هجري)"),
         onPressed: () {
           showDialog(
               context: context,

@@ -52,7 +52,7 @@ class SearchWidget extends SearchDelegate<Person> {
 }
 
 extension ColorToHex on Color {
-  String get toHex {
+  String toHex() {
     return "#${value.toRadixString(16).substring(2)}";
   }
 }
@@ -61,6 +61,7 @@ class SearchFinder extends StatelessWidget {
   final String query;
 
   const SearchFinder({super.key, required this.query});
+
   @override
   Widget build(BuildContext context) {
     final hiveProvider = Provider.of<HiveServiceProvider>(context);
@@ -124,9 +125,18 @@ class SearchFinder extends StatelessWidget {
                             .indexOf(personListItem);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailsPage(id: selectedPersonIndex)),
+                          MaterialPageRoute(builder: (context) {
+                            var selectedContactIndex =
+                                Provider.of<HiveServiceProvider>(context,
+                                        listen: false)
+                                    .peopleBox
+                                    .values
+                                    .toList()
+                                    .indexOf(personListItem);
+                            hiveProvider
+                                .updateSelectedIndex(selectedContactIndex);
+                            return DetailsPage(personListItem);
+                          }),
                         );
                       },
                       title: Text(personListItem.name,
@@ -145,6 +155,7 @@ class SearchFinderResults extends StatelessWidget {
   final String query;
 
   const SearchFinderResults({super.key, required this.query});
+
   @override
   Widget build(BuildContext context) {
     final hiveProvider = Provider.of<HiveServiceProvider>(context);
@@ -252,10 +263,16 @@ class SearchFinderResults extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) {
-                            var selectedPersonIndex = hiveProvider.people
-                                .toList()
-                                .indexOf(personListItem);
-                            return DetailsPage(id: selectedPersonIndex);
+                            var selectedContactIndex =
+                                Provider.of<HiveServiceProvider>(context,
+                                        listen: false)
+                                    .peopleBox
+                                    .values
+                                    .toList()
+                                    .indexOf(personListItem);
+                            hiveProvider
+                                .updateSelectedIndex(selectedContactIndex);
+                            return const DetailsPage();
                           }),
                         );
                       },

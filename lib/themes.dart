@@ -97,9 +97,46 @@ class SelectedIdProvider with ChangeNotifier {
 
 // fix this provider and make it work with Hive better (https://github.com/singlesoup/contacts_app/blob/master/lib/provider/db_provider.dart)
 class HiveServiceProvider extends ChangeNotifier {
+  int _selectedIndex = 0;
+
   List<Person> _people = [];
+
   UnmodifiableListView<Person> get people => UnmodifiableListView(_people);
   final String personHiveBox = 'personList';
+  Box<Person> _peopleBox = Hive.box<Person>('personList');
+
+  Person? _selectedPerson;
+
+  Box<Person> get peopleBox => _peopleBox;
+
+  Person get selectedPerson => _selectedPerson!;
+
+  int get selectedIndex => _selectedIndex;
+
+  ///* Updating the current selected index for that contact to pass to read from hive
+  void updateSelectedIndex(int index) {
+    _selectedIndex = index;
+    updateSelectedPerson();
+  }
+
+  ///* Updating the current selected contact from hive
+  void updateSelectedPerson() {
+    _selectedPerson = readFromHive();
+    notifyListeners();
+  }
+
+  ///* reading the current selected contact from hive
+  Person readFromHive() {
+    Person getPerson = _peopleBox.getAt(_selectedIndex)!;
+
+    return getPerson;
+  }
+
+  void deleteFromHive() {
+    _peopleBox.deleteAt(_selectedIndex);
+    _people = _peopleBox.values.toList();
+    notifyListeners();
+  }
 
   // Create new record for person.
   Future<void> createItem(Person person) async {
@@ -136,36 +173,6 @@ class HiveServiceProvider extends ChangeNotifier {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     await box.putAt(id, person);
     _people = box.values.toList().reversed.toList();
-    notifyListeners();
-  }
-}
-
-// shown Date
-
-class TheSelectedDate {
-  // ignore: constant_identifier_names
-  static const SELECTED_DATE = "SELECTEDDATE";
-
-  setSelectedDate(int id) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt(SELECTED_DATE, id);
-  }
-
-  Future<int> getSelectedDate() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(SELECTED_DATE) ?? 0;
-  }
-}
-
-class SelectedDateProvider with ChangeNotifier {
-  TheSelectedDate selectedDatePreference = TheSelectedDate();
-  int _selectedDate = 0;
-
-  int get selectedDate => _selectedDate;
-
-  set selectedDate(int date) {
-    _selectedDate = date;
-    selectedDatePreference.setSelectedDate(date);
     notifyListeners();
   }
 }

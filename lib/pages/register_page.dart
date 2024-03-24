@@ -9,10 +9,10 @@ import 'package:syncfusion_flutter_core/core.dart';
 import '../main.dart';
 import '../person.dart';
 
-// ignore: must_be_immutable
 class RegisterPage extends StatefulWidget {
-  int? id;
-  RegisterPage({super.key, this.id});
+  final int? id;
+
+  const RegisterPage({super.key, this.id});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
