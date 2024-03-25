@@ -118,8 +118,8 @@ class _PrintingPageState extends State<PrintingPage> {
                                                 .values
                                                 .toList()
                                                 .indexOf(record);
-                                        hiveProvider.updateSelectedIndex(
-                                            selectedContactIndex);
+                                        hiveProvider.selectedPersonIndex =
+                                            selectedContactIndex;
                                         return DetailsPage(record);
                                       })),
                                     )),

@@ -65,77 +65,23 @@ class ThemeColorProvider with ChangeNotifier {
   }
 }
 
-// selectedId
-
-class TheSelectedId {
-  // ignore: constant_identifier_names
-  static const SELECTED_ID = "SELECTEDID";
-
-  setSelectedId(int id) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt(SELECTED_ID, id);
-  }
-
-  Future<int> getSelectedId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(SELECTED_ID) ?? -1;
-  }
-}
-
-class SelectedIdProvider with ChangeNotifier {
-  TheSelectedId selectedIdPreference = TheSelectedId();
-  int _selectedId = -1;
-
-  int get selectedId => _selectedId;
-
-  set selectedId(int id) {
-    _selectedId = id;
-    selectedIdPreference.setSelectedId(id);
-    notifyListeners();
-  }
-}
-
 // fix this provider and make it work with Hive better (https://github.com/singlesoup/contacts_app/blob/master/lib/provider/db_provider.dart)
 class HiveServiceProvider extends ChangeNotifier {
-  int _selectedIndex = 0;
-
   List<Person> _people = [];
 
   UnmodifiableListView<Person> get people => UnmodifiableListView(_people);
   final String personHiveBox = 'personList';
-  Box<Person> _peopleBox = Hive.box<Person>('personList');
 
-  Person? _selectedPerson;
+  final Box<Person> peopleBox = Hive.box<Person>('personList');
 
-  Box<Person> get peopleBox => _peopleBox;
+  int get personCount => _people.length;
 
-  Person get selectedPerson => _selectedPerson!;
+  int _selectedPersonIndex = 0;
 
-  int get selectedIndex => _selectedIndex;
+  int get selectedPersonIndex => _selectedPersonIndex;
 
-  ///* Updating the current selected index for that contact to pass to read from hive
-  void updateSelectedIndex(int index) {
-    _selectedIndex = index;
-    updateSelectedPerson();
-  }
-
-  ///* Updating the current selected contact from hive
-  void updateSelectedPerson() {
-    _selectedPerson = readFromHive();
-    notifyListeners();
-  }
-
-  ///* reading the current selected contact from hive
-  Person readFromHive() {
-    Person getPerson = _peopleBox.getAt(_selectedIndex)!;
-
-    return getPerson;
-  }
-
-  void deleteFromHive() {
-    _peopleBox.deleteAt(_selectedIndex);
-    _people = _peopleBox.values.toList();
-    notifyListeners();
+  set selectedPersonIndex(int index) {
+    _selectedPersonIndex = index;
   }
 
   // Create new record for person.
@@ -150,15 +96,7 @@ class HiveServiceProvider extends ChangeNotifier {
   Future<void> getItems() async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     _people = box.values.toList();
-
     notifyListeners();
-  }
-
-  Person getItem(int index) {
-    // Box<Person> box = await Hive.openBox<Person>(personHiveBox);
-    // _people = box.values.toList();
-
-    return _people[index];
   }
 
   // remove a record of person
@@ -169,10 +107,11 @@ class HiveServiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateItem(int id, Person person) async {
+  // update a record of person
+  Future<void> updateItem({required int index, required Person person}) async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
-    await box.putAt(id, person);
-    _people = box.values.toList().reversed.toList();
+    await box.putAt(index, person);
+    _people = box.values.toList();
     notifyListeners();
   }
 }

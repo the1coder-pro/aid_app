@@ -43,9 +43,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(PersonAdapter());
-  final Box<Person> database = await Hive.openBox<Person>('personList');
+  await Hive.openBox<Person>('personList');
 
-  runApp(MyApp(database: database));
+  runApp(ListenableProvider(
+      create: (context) => HiveServiceProvider(), child: const MyApp()));
 }
 
 extension ColorToHex on Color {
@@ -55,9 +56,7 @@ extension ColorToHex on Color {
 }
 
 class MyApp extends StatefulWidget {
-  final Box<Person> database;
-
-  const MyApp({super.key, required this.database});
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -66,7 +65,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   TheThemeProvider themeChangeProvider = TheThemeProvider();
   ThemeColorProvider colorChangeProvider = ThemeColorProvider();
-  SelectedIdProvider selectedIdProvider = SelectedIdProvider();
   HiveServiceProvider hiveServiceProvider = HiveServiceProvider();
 
   @override
@@ -74,7 +72,6 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     getCurrentAppTheme();
     getCurrentColorTheme();
-    getSelectedId();
     getDatabaseData();
   }
 
@@ -90,11 +87,6 @@ class _MyAppState extends State<MyApp> {
   void getCurrentColorTheme() async {
     colorChangeProvider.colorTheme =
         await colorChangeProvider.colorThemePreference.getThemeColor();
-  }
-
-  void getSelectedId() async {
-    selectedIdProvider.selectedId =
-        await selectedIdProvider.selectedIdPreference.getSelectedId();
   }
 
   ColorScheme colorSchemeChooser(int color, bool darkMode,
@@ -124,14 +116,11 @@ class _MyAppState extends State<MyApp> {
         providers: [
           ChangeNotifierProvider(create: (_) => themeChangeProvider),
           ChangeNotifierProvider(create: (_) => colorChangeProvider),
-          ChangeNotifierProvider(create: (_) => selectedIdProvider),
           ChangeNotifierProvider(create: (_) => hiveServiceProvider)
         ],
-        child:
-            Consumer3<TheThemeProvider, ThemeColorProvider, SelectedIdProvider>(
-          builder:
-              (context, themeProvider, colorProvider, selectedIdProvider, _) =>
-                  DynamicColorBuilder(
+        child: Consumer2<TheThemeProvider, ThemeColorProvider>(
+          builder: (context, themeProvider, colorProvider, _) =>
+              DynamicColorBuilder(
             builder: (deviceLightColorScheme, deviceDarkColorScheme) =>
                 MaterialApp(
               debugShowCheckedModeBanner: false,
@@ -175,7 +164,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // int currentPageIndex = 0;
   PopupMenuItemsEnum? selectedMenu;
   final box = Hive.box<Person>('personList');
 
@@ -194,29 +182,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isLoading = false;
 
-  late Box peopleBox;
-
-  @override
-  void initState() {
-    super.initState();
-    // get the previously opened user box
-    peopleBox = Hive.box<Person>('personList');
-  }
-
-  @override
-  void dispose() {
-    Hive.close();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final themeChange = Provider.of<TheThemeProvider>(context);
     final colorChangeProvider = Provider.of<ThemeColorProvider>(context);
-    final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     isSelected = getIsSelected(colorChangeProvider);
 
-    final hiveProvider = Provider.of<HiveServiceProvider>(context);
+    final hiveProvider =
+        Provider.of<HiveServiceProvider>(context, listen: false);
     return Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
@@ -254,25 +227,22 @@ class _MyHomePageState extends State<MyHomePage> {
               scrollDirection: Axis.vertical,
               physics: const BouncingScrollPhysics(),
               child: ValueListenableBuilder(
-                valueListenable: peopleBox.listenable(),
-                builder: (context, hiveService, _) {
-                  if (hiveService.values.isEmpty) {
+                valueListenable: Hive.box<Person>('personList').listenable(),
+                builder: (context, database, _) {
+                  if (database.values.isEmpty) {
                     return noRecordsPage();
                   }
                   return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: hiveProvider.people.length,
-                      itemBuilder: (context, i) {
-                        var person = hiveProvider.getItem(i);
+                      itemBuilder: (context, index) {
+                        final person = database.getAt(index) as Person;
 
-                        return buildListTile(
-                            i,
-                            context,
-                            person,
-                            selectedIdProvider,
-                            hiveProvider,
-                            colorChangeProvider);
+                        // assign index
+
+                        return buildListTile(index, context, person,
+                            hiveProvider, colorChangeProvider);
                       });
                 },
               ),
@@ -290,16 +260,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: null,
                       child: Icon(Icons.add),
                     ),
-                    openBuilder: (context, _) => RegisterPage(),
+                    openBuilder: (context, _) => const RegisterPage(),
                     tappable: true,
                   )));
   }
 
   Slidable buildListTile(
-      int i,
+      int index,
       BuildContext context,
       Person person,
-      SelectedIdProvider selectedIdProvider,
       HiveServiceProvider hiveProvider,
       ThemeColorProvider colorChangeProvider) {
     return Slidable(
@@ -309,15 +278,23 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           SlidableAction(
             onPressed: (context) => showDialog(
-                context: context, builder: (context) => RegisterPage(id: i)),
+                context: context,
+                builder: (context) {
+                  hiveProvider.selectedPersonIndex = index;
+
+                  return RegisterPage(person: person);
+                }),
             backgroundColor: Theme.of(context).colorScheme.tertiary,
             foregroundColor: Theme.of(context).colorScheme.onTertiary,
             icon: Icons.edit,
             label: 'تعديل',
           ),
           SlidableAction(
-            onPressed: (context) =>
-                deleteDialog(context, person, box, i, selectedIdProvider),
+            onPressed: (context) {
+              hiveProvider.selectedPersonIndex = index;
+
+              deleteDialog(context, person);
+            },
             backgroundColor: Theme.of(context).colorScheme.errorContainer,
             foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
             icon: Icons.delete,
@@ -330,13 +307,6 @@ class _MyHomePageState extends State<MyHomePage> {
         openColor: Theme.of(context).colorScheme.background,
         closedColor: Theme.of(context).colorScheme.background,
         openBuilder: (context, _) {
-          // var selectedContactIndex =
-          //  Provider.of<HiveServiceProvider>(context, listen: false)
-          //      .peopleBox
-          //      .values
-          //      .toList()
-          //      .indexOf(person);
-          // hiveProvider.updateSelectedIndex(i);
           return DetailsPage(person);
         },
         closedElevation: 0,
@@ -497,7 +467,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ? const Color(0xFF191c1e)
             : Theme.of(context).colorScheme.onPrimary,
         child: Align(
-          alignment: Alignment.topCenter,
+          alignment: Alignment.center,
           child: Text(
             (person.name).toString().substring(0, 1),
             textAlign: TextAlign.center,
@@ -533,7 +503,7 @@ class _MyHomePageState extends State<MyHomePage> {
             TextSpan(
                 text: person.aidType.isEmpty
                     ? 'لا يوجد'
-                    : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''} ${person.aidType}",
+                    : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''}${person.aidType}",
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const TextSpan(text: " لفترة "),
             TextSpan(
@@ -1038,7 +1008,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           : [];
                                       final peopleBox =
                                           Hive.box<Person>('personList');
-                                      peopleBox.add(Person(
+                                      await peopleBox.add(Person(
                                           name: record.name ?? 'لا يوجد',
                                           idNumber: record.idNumber ?? '',
                                           phoneNumber:
@@ -1076,9 +1046,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                                       "تمت اضافة المساعدات بنجاح"),
                                                   actions: [
                                                     TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                                context),
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                          setState(() {});
+                                                        },
                                                         child:
                                                             const Text("حسنا"))
                                                   ]),
@@ -1282,8 +1254,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return pdf;
   }
 
-  Future<dynamic> deleteDialog(BuildContext context, Person? person,
-      Box<Person> box, int i, SelectedIdProvider selectedIdProvider) {
+  Future<dynamic> deleteDialog(BuildContext context, Person? person) {
     final hiveProvider =
         Provider.of<HiveServiceProvider>(context, listen: false);
     return showDialog(
@@ -1301,10 +1272,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   OutlinedButton(
                       child: const Text("نعم"),
                       onPressed: () {
-                        hiveProvider.updateSelectedIndex(i);
-                        hiveProvider.deleteFromHive();
+                        hiveProvider
+                            .deleteItem(hiveProvider.selectedPersonIndex);
 
                         Navigator.pop(context);
+                        setState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             duration: const Duration(milliseconds: 1000),
                             backgroundColor:

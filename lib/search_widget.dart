@@ -106,14 +106,16 @@ class SearchFinder extends StatelessWidget {
                       openElevation: 0,
                       closedColor: Theme.of(context).colorScheme.background,
                       openBuilder: (context, _) {
-                        // var selectedContactIndex =
-                        //     Provider.of<HiveServiceProvider>(context,
-                        //             listen: false)
-                        //         .peopleBox
-                        //         .values
-                        //         .toList()
-                        //         .indexOf(results[index]);
-                        // hiveProvider.updateSelectedIndex(selectedContactIndex);
+                        // get the person index in database
+                        var selectedContactIndex =
+                            Provider.of<HiveServiceProvider>(context,
+                                    listen: false)
+                                .peopleBox
+                                .values
+                                .toList()
+                                .indexOf(results[index]);
+                        hiveProvider.selectedPersonIndex = selectedContactIndex;
+
                         return DetailsPage(personListItem);
                       },
                       closedBuilder: (context, _) => ListTile(
@@ -185,14 +187,15 @@ class SearchFinderResults extends StatelessWidget {
                       closedElevation: 0,
                       openElevation: 0,
                       openBuilder: (context, _) {
-                        // var selectedContactIndex =
-                        //     Provider.of<HiveServiceProvider>(context,
-                        //             listen: false)
-                        //         .peopleBox
-                        //         .values
-                        //         .toList()
-                        //         .indexOf(results[index]);
-                        // hiveProvider.updateSelectedIndex(selectedContactIndex);
+                        var selectedContactIndex =
+                            Provider.of<HiveServiceProvider>(context,
+                                    listen: false)
+                                .peopleBox
+                                .values
+                                .toList()
+                                .indexOf(results[index]);
+                        hiveProvider.selectedPersonIndex = selectedContactIndex;
+
                         return DetailsPage(personListItem);
                       },
                       closedColor: Theme.of(context).colorScheme.background,

@@ -1,3 +1,4 @@
+import 'package:aidapp/pages/register_page.dart';
 import 'package:aidapp/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,7 +49,7 @@ class _DetailsPageState extends State<DetailsPage> {
             actions: [
               generateRecordPdfButton(person),
               deleteButton(context, person, hiveServiceProvider),
-              editButton(context),
+              editButton(context, hiveServiceProvider),
             ],
           ),
           body: Padding(
@@ -75,28 +76,10 @@ class _DetailsPageState extends State<DetailsPage> {
                 ),
                 const SizedBox(height: 10),
 
-                /*SliverAppBar.large(
-                    actions: [
-                      generateRecordPdfButton(person!),
-                      deleteButton(context, person, hiveServiceProvider,
-                          selectedIdProvider),
-                      editButton(context),
-                    ],
-                    pinned: true,
-                    snap: true,
-                    floating: true,
-                    expandedHeight: 160.0,
-                    title: FittedBox(
-                      fit: BoxFit.fitWidth,
-                      child: Text(person.name,
-                          style: const TextStyle(
-                              fontFamily: "ScheherazadeNew",
-                              fontWeight: FontWeight.bold)),
-                    )),*/
                 Card(
                     child: ListTile(
                   leading: const Icon(Icons.perm_identity_outlined),
-                  title: Text(person!.name, softWrap: true),
+                  title: Text(person.name, softWrap: true),
                   subtitle: const Text("الإسم كامل"),
                   onLongPress: () async {
                     if (person.name.isEmpty) {
@@ -343,15 +326,15 @@ class _DetailsPageState extends State<DetailsPage> {
                   child: ListTile(
                     onTap: () {
                       Share.share("""
-                                    الاسم: ${person.name}
-                        رقم الهوية: ${person.idNumber}
-                        رقم الهاتف: ${person.phoneNumber}
-                        تاريخ المساعدة: ${isDateHijri ? hijriDateRangeView : dateRangeView}
-                        نوع المساعدة: ${person.aidType}
-                        مقدار المساعدة: ${person.aidAmount} ريال
-                        مدة المساعدة: ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}
-                        ملاحظات: ${person.notes.isNotEmpty ? person.notes : 'لا توجد'}
-                                  """);
+                                      الاسم: ${person.name}
+                          رقم الهوية: ${person.idNumber}
+                          رقم الهاتف: ${person.phoneNumber}
+                          تاريخ المساعدة: ${isDateHijri ? hijriDateRangeView : dateRangeView}
+                          نوع المساعدة: ${person.aidType}
+                          مقدار المساعدة: ${person.aidAmount} ريال
+                          مدة المساعدة: ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}
+                          ملاحظات: ${person.notes.isNotEmpty ? person.notes : 'لا توجد'}
+                                    """);
                     },
                     title: const Text("مشاركة هذه المساعدة"),
                     subtitle: const Text("مشاركة"),
@@ -364,13 +347,14 @@ class _DetailsPageState extends State<DetailsPage> {
         ));
   }
 
-  IconButton editButton(BuildContext context) {
+  IconButton editButton(
+      BuildContext context, HiveServiceProvider hiveProvider) {
     return IconButton(
       icon: const Icon(Icons.edit_outlined),
       onPressed: () {
-        // showDialog(
-        //     context: context,
-        //     builder: (context) => RegisterPage(id: widget.id));
+        showDialog(
+            context: context,
+            builder: (context) => RegisterPage(person: widget.person));
       },
     );
   }
@@ -414,9 +398,10 @@ class _DetailsPageState extends State<DetailsPage> {
                   OutlinedButton(
                       child: const Text("نعم"),
                       onPressed: () {
-                        // hiveProvider.updateSelectedIndex(i);
-                        // hiveProvider.deleteFromHive();
-                        setState(() {});
+                        hiveProvider
+                            .deleteItem(hiveProvider.selectedPersonIndex);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
                       })
                 ],
               ),

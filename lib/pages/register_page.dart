@@ -10,9 +10,9 @@ import '../main.dart';
 import '../person.dart';
 
 class RegisterPage extends StatefulWidget {
-  final int? id;
+  final Person? person;
 
-  const RegisterPage({super.key, this.id});
+  const RegisterPage({super.key, this.person});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -44,7 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   List<DateTime> dateRange = [];
 
-  // make a focusnode for every field
+  // make a focusNode for every field
   FocusNode firstNameFocus = FocusNode();
   FocusNode lastNameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
@@ -62,9 +62,11 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-
-    Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
-    loadData(loadPerson);
+    if (widget.person != null) {
+      Person? loadPerson = widget.person;
+      loadData(loadPerson);
+      debugPrint(loadPerson.toString());
+    }
 
     // Add listeners to the focus nodes
     firstNameFocus.addListener(() {
@@ -143,12 +145,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
+    Person? loadPerson = widget.person;
 
-    if (widget.id != null && loadPerson!.isInBox) {
+    if (widget.person != null && loadPerson!.isInBox) {
       return Directionality(
-          textDirection: TextDirection.rtl,
-          child: createPageScaffold(context, id: widget.id));
+          textDirection: TextDirection.rtl, child: createPageScaffold(context));
     }
     return Directionality(
         textDirection: TextDirection.rtl, child: createPageScaffold(context));
@@ -159,11 +160,11 @@ class _RegisterPageState extends State<RegisterPage> {
         icon: const Icon(Icons.clear), onPressed: () => controller.text = '');
   }
 
-  Scaffold createPageScaffold(BuildContext context, {int? id}) {
+  Scaffold createPageScaffold(BuildContext context) {
     final hiveProvider = Provider.of<HiveServiceProvider>(context);
 
-    bool savedPersonId = id != null;
-    Person? loadPerson = savedPersonId ? box.getAt(id) : null;
+    Person? loadPerson = widget.person;
+    bool savedPersonId = loadPerson != null && loadPerson.isInBox;
     return Scaffold(
         appBar: AppBar(
             title:
@@ -172,37 +173,37 @@ class _RegisterPageState extends State<RegisterPage> {
             actions: [
               IconButton(
                   icon: const Icon(Icons.check),
-                  onPressed: () {
+                  onPressed: () async {
                     if (savedPersonId) {
-                      hiveProvider.updateItem(
-                          id,
-                          Person(
-                              name:
-                                  "${_firstNameController.text} ${_lastNameController.text}",
-                              idNumber: _idNumberController.text,
-                              phoneNumber: _phoneController.text,
-                              aidDates: dateRange,
-                              aidType: aidType == aidTypes.last
-                                  ? _typeController.text
-                                  : aidType ?? aidTypes.last,
-                              aidAmount: aidType != 'عينية' &&
-                                      aidType != 'رمضانية' &&
-                                      _amountController.text.isNotEmpty
-                                  ? double.parse(_amountController.text)
-                                  : 0.0,
-                              aidTypeDetails:
-                                  aidType == 'عينية' || aidType == 'رمضانية'
-                                      ? _typeDetailsController.text
-                                      : 'غير مسجل',
-                              isContinuousAid:
-                                  _duration == AidDuration.continuous
-                                      ? true
-                                      : false,
-                              notes: _notesController.text));
+                      var myPerson = Person(
+                          name:
+                              "${_firstNameController.text} ${_lastNameController.text}",
+                          idNumber: _idNumberController.text,
+                          phoneNumber: _phoneController.text,
+                          aidDates: dateRange,
+                          aidType: aidType == aidTypes.last
+                              ? _typeController.text
+                              : aidType ?? aidTypes.last,
+                          aidAmount: aidType != 'عينية' &&
+                                  aidType != 'رمضانية' &&
+                                  _amountController.text.isNotEmpty
+                              ? double.parse(_amountController.text)
+                              : 0.0,
+                          aidTypeDetails:
+                              aidType == 'عينية' || aidType == 'رمضانية'
+                                  ? _typeDetailsController.text
+                                  : 'غير مسجل',
+                          isContinuousAid: _duration == AidDuration.continuous
+                              ? true
+                              : false,
+                          notes: _notesController.text);
                       debugPrint(
-                          "${loadPerson!.name} is now ${_firstNameController.text}");
+                          "${loadPerson.name} is now ${_firstNameController.text}");
+                      hiveProvider.updateItem(
+                          index: hiveProvider.selectedPersonIndex,
+                          person: myPerson);
                     } else {
-                      hiveProvider.createItem(Person(
+                      var newPerson = Person(
                           name:
                               "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
                           idNumber: _idNumberController.text.trim(),
@@ -223,7 +224,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           isContinuousAid: _duration == AidDuration.continuous
                               ? true
                               : false,
-                          notes: _notesController.text));
+                          notes: _notesController.text);
+                      hiveProvider.createItem(newPerson);
                     }
 
                     Navigator.pop(context);
