@@ -1,5 +1,5 @@
 import 'package:aidapp/person.dart';
-import 'package:aidapp/themes.dart';
+import 'package:aidapp/prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -74,12 +74,9 @@ class ChartPageState extends State<ChartPage> {
         centerTitle: true,
       ),
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height / 1.5,
-              width: 1000,
+          Expanded(
               child: SfCartesianChart(
                   zoomPanBehavior: _zoomPanBehavior,
                   title: const ChartTitle(
@@ -92,45 +89,29 @@ class ChartPageState extends State<ChartPage> {
                   primaryXAxis:
                       const CategoryAxis(labelStyle: TextStyle(fontSize: 20)),
                   series: <CartesianSeries<ChartAidData, String>>[
-                    // Renders column chart
-                    ColumnSeries<ChartAidData, String>(
-                        dataSource: peopleDataList,
-                        xValueMapper: (ChartAidData data, _) => data.type,
-                        yValueMapper: (ChartAidData data, _) => data.amount,
-                        dataLabelMapper: (ChartAidData data, _) =>
-                            formatAmount(data.amount),
-                        dataLabelSettings: const DataLabelSettings(
-                            isVisible: true,
-                            textStyle: TextStyle(
-                                fontSize: 20, fontFamily: 'ibmPlexSansArabic')),
-                        color: Theme.of(context).colorScheme.primary),
-                  ]),
-            ),
-          ),
+                // Renders column chart
+
+                ColumnSeries<ChartAidData, String>(
+                  dataSource: peopleDataList,
+                  xValueMapper: (ChartAidData data, _) => data.type,
+                  yValueMapper: (ChartAidData data, _) => data.amount,
+                  dataLabelMapper: (ChartAidData data, _) =>
+                      formatAmount(data.amount),
+                  dataLabelSettings: const DataLabelSettings(
+                      isVisible: true,
+                      textStyle: TextStyle(
+                          fontSize: 20, fontFamily: 'ibmPlexSansArabic')),
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+              ])),
           const SizedBox(height: 10),
           Divider(height: 2, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 10),
-          rowOfDetails(context, hiveServiceProivder)
+          rowOfDetails(context, hiveServiceProivder),
+          const SizedBox(height: 10),
         ],
       ),
     );
-
-    // return Scaffold(
-    //     body: CustomScrollView(slivers: <Widget>[
-    //   const SliverAppBar.large(
-    //     pinned: true,
-    //     snap: true,
-    //     floating: true,
-    //     expandedHeight: 160.0,
-    //     title: Text("الرسم البياني"),
-    //   ),
-    //   SliverList(
-    //       delegate: SliverChildListDelegate([
-    //         // chart
-    //     const SizedBox(height: 10),
-    //     rowOfDetails(context, hiveServiceProivder),
-    //   ]))
-    // ]));
   }
 
   Row rowOfDetails(
@@ -151,7 +132,7 @@ class ChartPageState extends State<ChartPage> {
               text: TextSpan(
                   style: TextStyle(
                       color: Theme.of(context).textTheme.displayLarge!.color,
-                      fontSize: 30,
+                      fontSize: 20,
                       fontFamily: 'ibmPlexSansArabic'),
                   children: [
                     TextSpan(
@@ -176,7 +157,7 @@ class ChartPageState extends State<ChartPage> {
               hiveServiceProivder.people.length.toString(),
               style: TextStyle(
                   color: Theme.of(context).textTheme.displayLarge!.color,
-                  fontSize: 30,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'ibmPlexSansArabic'),
             ))

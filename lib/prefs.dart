@@ -100,6 +100,8 @@ class HiveServiceProvider extends ChangeNotifier {
   UnmodifiableListView<Person> get people => UnmodifiableListView(_people);
   final String personHiveBox = 'personList';
 
+  // TODO: How about making a "selectedContact" Variable to store the selected Contact
+
   // Create new record for person.
   Future<void> createItem(Person person) async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
@@ -134,12 +136,13 @@ class HiveServiceProvider extends ChangeNotifier {
   Future<void> updateItem(int id, Person person) async {
     Box<Person> box = await Hive.openBox<Person>(personHiveBox);
     await box.putAt(id, person);
-    _people = box.values.toList().reversed.toList();
+    _people = box.values.toList();
     notifyListeners();
   }
 }
 
 // shown Date
+// TODO: why did you do this?
 
 class TheSelectedDate {
   // ignore: constant_identifier_names

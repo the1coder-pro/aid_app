@@ -9,7 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-// import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,12 +19,15 @@ import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
+import 'package:syncfusion_flutter_core/core.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xcel;
+import 'package:url_launcher/url_launcher.dart';
 import 'pages/details_page.dart';
 import 'pages/register_page.dart';
 import 'person.dart';
 import 'search_widget.dart';
-import 'themes.dart';
+import 'prefs.dart';
 import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
 
@@ -192,7 +195,24 @@ class _MyHomePageState extends State<MyHomePage> {
     return isSelected;
   }
 
+  void getDates(Person person) {
+    if (person.aidDates.length >= 2) {
+      dateRangeView =
+          "${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[0])} - ${intl.DateFormat('yyyy/MM/dd').format(person.aidDates[1])}";
+      hijriDateRangeView =
+          "${HijriDateTime.fromDateTime(person.aidDates[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(person.aidDates[1]).toString().replaceAll('-', '/')}";
+    } else {
+      dateRangeView = "لا يوجد";
+      hijriDateRangeView = "لا يوجد";
+    }
+  }
+
   bool isLoading = false;
+
+  Person? selectedPerson;
+  String dateRangeView = '';
+  String hijriDateRangeView = '';
+  bool isDateHijri = false;
 
   @override
   Widget build(BuildContext context) {
@@ -208,32 +228,28 @@ class _MyHomePageState extends State<MyHomePage> {
           appBar: AppBar(
             title: const Text(
               'المساعدات',
-              style: TextStyle(fontFamily: "ScheherazadeNew"),
-              // style: GoogleFonts.ibmPlexSansArabic(),
+              style: TextStyle(fontFamily: "ScheherazadeNew", fontSize: 25),
             ),
             centerTitle: true,
-            actions: hiveProvider.people.isEmpty
-                ? [
-                    IconButton(
-                        icon: const Icon(Icons.settings_outlined),
-                        onPressed: () async {
-                          return await settingsPage(
-                              context, themeChange, colorChangeProvider);
-                        })
-                  ]
-                : [
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: SearchWidget(),
-                        );
-                      },
-                    ),
-                  ],
+            actions: [
+              if (hiveProvider.people.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: SearchWidget(),
+                    );
+                  },
+                ),
+            ],
             leading: hiveProvider.people.isEmpty
-                ? Container()
+                ? IconButton(
+                    icon: const Icon(Icons.settings_outlined),
+                    onPressed: () async {
+                      return await settingsPage(
+                          context, themeChange, colorChangeProvider);
+                    })
                 : PopupMenuButton<PopupMenuItemsEnum>(
                     tooltip: 'صفحات اضافية',
                     // Callback that sets the selected popup menu item.
@@ -325,27 +341,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         flex: 2,
                         child: Center(
-                          child: Consumer<HiveServiceProvider>(
-                            builder: (context, hiveService, _) =>
+                          child: Consumer2<HiveServiceProvider,
+                              SelectedIdProvider>(
+                            builder: (context, hiveService, selectedIdProvider,
+                                    _) =>
                                 ListView.builder(
-                                    // reverse: true,
-                                    itemCount: hiveProvider.people.length,
+                                    itemCount: hiveService.people.length,
                                     itemBuilder: (context, i) {
-                                      // var person = hiveService.people[i];
-                                      var person = hiveProvider.getItem(i);
+                                      var person = hiveService.getItem(i);
+
                                       return Slidable(
-                                        // Specify a key if the Slidable is dismissible.
                                         key: const ValueKey(0),
-
-                                        // The start action pane is the one at the left or the top side.
                                         startActionPane: ActionPane(
-                                          // A motion is a widget used to control how the pane animates.
                                           motion: const ScrollMotion(),
-
-                                          // All actions are defined in the children parameter.
                                           children: [
-                                            // A SlidableAction can have an icon and/or a label.
-
                                             SlidableAction(
                                               onPressed: (context) =>
                                                   showDialog(
@@ -371,16 +380,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                                       selectedIdProvider),
                                               backgroundColor: Theme.of(context)
                                                   .colorScheme
-                                                  .errorContainer,
+                                                  .error,
                                               foregroundColor: Theme.of(context)
                                                   .colorScheme
-                                                  .onErrorContainer,
+                                                  .onError,
                                               icon: Icons.delete,
                                               label: 'حذف',
                                             ),
                                           ],
                                         ),
-
                                         child: ListTile(
                                           leading: CircleAvatar(
                                             backgroundColor: colorChangeProvider
@@ -397,19 +405,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 : Theme.of(context)
                                                     .colorScheme
                                                     .onPrimary,
-                                            child: Text(
-                                              (person.name)
-                                                  .toString()
-                                                  .substring(0, 1),
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  const TextStyle(fontSize: 20),
+                                            child: Align(
+                                              alignment: Alignment.topCenter,
+                                              child: Text(
+                                                (person.name)
+                                                    .toString()
+                                                    .substring(0, 1),
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontFamily:
+                                                        "ScheherazadeNew"),
+                                              ),
                                             ),
                                           ),
                                           title: Text(
-                                            person.name.split(' ').length > 3
-                                                ? "${person.name.split(' ')[0]} ${person.name.split(' ')[1]} ${person.name.split(' ').last}"
-                                                : person.name,
+                                            person.name,
                                             textDirection: TextDirection.rtl,
                                             style: const TextStyle(
                                                 fontFamily: "ibmPlexSansArabic",
@@ -446,7 +457,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 TextSpan(
                                                     text: person.aidType.isEmpty
                                                         ? 'لا يوجد'
-                                                        : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة' : ''} ${person.aidType}",
+                                                        : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة ' : ''}${person.aidType}",
                                                     style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold)),
@@ -462,18 +473,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                           isThreeLine: true,
                                           onTap: () {
                                             if (isLargeScreen) {
-                                              // selectedId = (box.length > i ? i : -1);
                                               selectedIdProvider.selectedId = i;
+                                              selectedPerson = person;
+                                              getDates(selectedPerson!);
+
                                               setState(() {});
                                             } else {
                                               selectedIdProvider.selectedId = i;
+                                              selectedPerson = person;
+                                              getDates(selectedPerson!);
+
                                               setState(() {});
                                               Navigator.push(
                                                   context,
                                                   PageTransition(
-                                                      child: DetailsPage(
-                                                          id: selectedIdProvider
-                                                              .selectedId),
+                                                      child:
+                                                          DetailsPage(person),
                                                       type: PageTransitionType
                                                           .bottomToTop,
                                                       duration: const Duration(
@@ -487,87 +502,419 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                       if (isLargeScreen &&
-                          box.values.isNotEmpty &&
-                          selectedIdProvider.selectedId != -1 &&
-                          box.getAt(selectedIdProvider.selectedId)!.isInBox)
-                        Expanded(
-                            flex: 3,
-                            child:
-                                DetailsPage(id: selectedIdProvider.selectedId))
-                      else
-                        Container(),
+                          selectedPerson != null &&
+                          selectedIdProvider.selectedId != -1)
+                        largeScreenDetailsPage(selectedIdProvider, context)
                     ]),
               );
             } else {
-              return Padding(
-                padding: const EdgeInsets.only(top: 100, right: 20, left: 20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                          height: 250, width: 250, child: SvgPicture.string('''
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1080px" height="1080px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M -0.5,-0.5 C 359.5,-0.5 719.5,-0.5 1079.5,-0.5C 1079.5,359.5 1079.5,719.5 1079.5,1079.5C 719.5,1079.5 359.5,1079.5 -0.5,1079.5C -0.5,719.5 -0.5,359.5 -0.5,-0.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 954.5,579.5 C 955.492,587.316 955.826,595.316 955.5,603.5C 840.184,669.826 724.851,736.159 609.5,802.5C 423.707,695.435 238.041,588.102 52.5,480.5C 51.1667,472.5 51.1667,464.5 52.5,456.5C 56.0608,458.779 59.7274,460.779 63.5,462.5C 63.56,463.043 63.8933,463.376 64.5,463.5C 65.4909,459.555 65.8242,455.555 65.5,451.5C 180.24,385.379 295.074,319.379 410,253.5C 444.698,268.733 480.531,280.566 517.5,289C 561.181,302.506 601.181,322.839 637.5,350C 653.058,362.39 666.724,376.557 678.5,392.5C 724.36,403.263 767.694,420.429 808.5,444C 821.729,452.561 834.396,461.895 846.5,472C 865.5,492.333 884.5,512.667 903.5,533C 918.059,545.556 933.726,556.556 950.5,566C 950,566.5 949.5,567 949,567.5C 948.171,572.533 948.338,577.533 949.5,582.5C 951.36,581.74 953.027,580.74 954.5,579.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 408.5,258.5 C 437.662,270.832 467.662,280.665 498.5,288C 552.283,302.057 600.616,326.39 643.5,361C 654.067,370.897 663.9,381.397 673,392.5C 673.667,393.167 673.667,393.833 673,394.5C 561,459.167 449,523.833 337,588.5C 307.649,551.897 271.483,524.064 228.5,505C 193.577,489.803 157.577,477.803 120.5,469C 105.189,464.119 90.1889,458.452 75.5,452C 186.563,387.473 297.563,322.973 408.5,258.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 676.5,397.5 C 727.147,407.987 774.147,427.153 817.5,455C 840.584,470.75 860.418,489.917 877,512.5C 895.825,533.668 917.325,551.501 941.5,566C 829.749,630.96 717.915,695.793 606,760.5C 573.011,741.486 545.344,716.486 523,685.5C 486.451,648.958 443.618,622.124 394.5,605C 378.17,599.67 361.837,594.504 345.5,589.5C 456.06,525.726 566.393,461.726 676.5,397.5 Z"/></g>
-                  <g><path style="opacity:1" fill="#9d9d9d" d="M 65.5,451.5 C 65.8242,455.555 65.4909,459.555 64.5,463.5C 63.8933,463.376 63.56,463.043 63.5,462.5C 64.1667,458.833 64.8333,455.167 65.5,451.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 69.5,454.5 C 102.449,468.74 136.449,479.907 171.5,488C 222.501,502.823 267.834,527.49 307.5,562C 316.747,571.243 325.247,581.076 333,591.5C 333.667,600.5 333.667,609.5 333,618.5C 245.582,567.874 158.082,517.374 70.5,467C 69.5363,462.934 69.203,458.767 69.5,454.5 Z"/></g>
-                  <g><path style="opacity:1" fill="#8b8b8b" d="M 942.5,571.5 C 942.56,570.957 942.893,570.624 943.5,570.5C 944.814,575.652 944.814,580.652 943.5,585.5C 943.819,580.637 943.486,575.97 942.5,571.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.background).toHex}" d="M 942.5,571.5 C 943.486,575.97 943.819,580.637 943.5,585.5C 832.625,650.192 721.459,714.526 610,778.5C 519.208,726.526 428.708,674.192 338.5,621.5C 338.173,611.985 338.506,602.652 339.5,593.5C 399.747,606.794 453.747,632.628 501.5,671C 515.147,683.306 527.314,696.806 538,711.5C 557.788,733.306 580.454,751.306 606,765.5C 717.977,700.431 830.143,635.764 942.5,571.5 Z"/></g>
-                  <g><path style="opacity:1" fill="#969696" d="M 954.5,579.5 C 954.56,578.957 954.893,578.624 955.5,578.5C 956.821,586.991 956.821,595.324 955.5,603.5C 955.826,595.316 955.492,587.316 954.5,579.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 339.5,593.5 C 338.506,602.652 338.173,611.985 338.5,621.5C 337.177,611.992 337.177,602.325 338.5,592.5C 339.107,592.624 339.44,592.957 339.5,593.5 Z"/></g>
-                  <g><path style="opacity:1" fill="${ColorToHex(Theme.of(context).colorScheme.primary).toHex}" d="M 1008.5,654.5 C 1014.18,654.334 1019.84,654.501 1025.5,655C 1026.02,655.561 1026.36,656.228 1026.5,657C 1019.95,669.555 1010.61,679.555 998.5,687C 921.167,731.667 843.833,776.333 766.5,821C 757.216,826.987 750.049,825.153 745,815.5C 742.72,807.565 745.22,801.731 752.5,798C 829.833,753.333 907.167,708.667 984.5,664C 992.186,659.722 1000.19,656.556 1008.5,654.5 Z"/></g>
-                  </svg>
-                      ''')),
-                      const Center(
-                        child: Text("لا توجد مساعدات مسجلة",
-                            style:
-                                TextStyle(fontSize: 25, fontFamily: "Amiri")),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: FilledButton.icon(
-                          style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(
-                                  Theme.of(context).colorScheme.primary)),
-                          icon: Icon(Icons.add,
-                              color: Theme.of(context).colorScheme.onPrimary),
-                          label: Text("إضافة مساعدة",
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary)),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => RegisterPage());
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              );
+              return noRecordsPage(context);
             }
           }),
-          floatingActionButton: hiveProvider.people.isEmpty
-              ? Container()
-              : FloatingActionButton(
-                  child: const Icon(Icons.add),
+          floatingActionButton: FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    PageTransition(
+                        child: const RegisterPage(),
+                        type: PageTransitionType.bottomToTop,
+                        duration: const Duration(milliseconds: 300))
+                    // MaterialPageRoute(builder: (context) => RegisterPage())
+                    );
+              }),
+        ));
+  }
+
+  Padding noRecordsPage(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 100, right: 20, left: 20),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 250, width: 250, child: SvgPicture.string('''
+              <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1080px" height="1080px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.background.toHex}" d="M -0.5,-0.5 C 359.5,-0.5 719.5,-0.5 1079.5,-0.5C 1079.5,359.5 1079.5,719.5 1079.5,1079.5C 719.5,1079.5 359.5,1079.5 -0.5,1079.5C -0.5,719.5 -0.5,359.5 -0.5,-0.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.primary.toHex}" d="M 954.5,579.5 C 955.492,587.316 955.826,595.316 955.5,603.5C 840.184,669.826 724.851,736.159 609.5,802.5C 423.707,695.435 238.041,588.102 52.5,480.5C 51.1667,472.5 51.1667,464.5 52.5,456.5C 56.0608,458.779 59.7274,460.779 63.5,462.5C 63.56,463.043 63.8933,463.376 64.5,463.5C 65.4909,459.555 65.8242,455.555 65.5,451.5C 180.24,385.379 295.074,319.379 410,253.5C 444.698,268.733 480.531,280.566 517.5,289C 561.181,302.506 601.181,322.839 637.5,350C 653.058,362.39 666.724,376.557 678.5,392.5C 724.36,403.263 767.694,420.429 808.5,444C 821.729,452.561 834.396,461.895 846.5,472C 865.5,492.333 884.5,512.667 903.5,533C 918.059,545.556 933.726,556.556 950.5,566C 950,566.5 949.5,567 949,567.5C 948.171,572.533 948.338,577.533 949.5,582.5C 951.36,581.74 953.027,580.74 954.5,579.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.background.toHex}" d="M 408.5,258.5 C 437.662,270.832 467.662,280.665 498.5,288C 552.283,302.057 600.616,326.39 643.5,361C 654.067,370.897 663.9,381.397 673,392.5C 673.667,393.167 673.667,393.833 673,394.5C 561,459.167 449,523.833 337,588.5C 307.649,551.897 271.483,524.064 228.5,505C 193.577,489.803 157.577,477.803 120.5,469C 105.189,464.119 90.1889,458.452 75.5,452C 186.563,387.473 297.563,322.973 408.5,258.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.background.toHex}" d="M 676.5,397.5 C 727.147,407.987 774.147,427.153 817.5,455C 840.584,470.75 860.418,489.917 877,512.5C 895.825,533.668 917.325,551.501 941.5,566C 829.749,630.96 717.915,695.793 606,760.5C 573.011,741.486 545.344,716.486 523,685.5C 486.451,648.958 443.618,622.124 394.5,605C 378.17,599.67 361.837,594.504 345.5,589.5C 456.06,525.726 566.393,461.726 676.5,397.5 Z"/></g>
+                <g><path style="opacity:1" fill="#9d9d9d" d="M 65.5,451.5 C 65.8242,455.555 65.4909,459.555 64.5,463.5C 63.8933,463.376 63.56,463.043 63.5,462.5C 64.1667,458.833 64.8333,455.167 65.5,451.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.background.toHex}" d="M 69.5,454.5 C 102.449,468.74 136.449,479.907 171.5,488C 222.501,502.823 267.834,527.49 307.5,562C 316.747,571.243 325.247,581.076 333,591.5C 333.667,600.5 333.667,609.5 333,618.5C 245.582,567.874 158.082,517.374 70.5,467C 69.5363,462.934 69.203,458.767 69.5,454.5 Z"/></g>
+                <g><path style="opacity:1" fill="#8b8b8b" d="M 942.5,571.5 C 942.56,570.957 942.893,570.624 943.5,570.5C 944.814,575.652 944.814,580.652 943.5,585.5C 943.819,580.637 943.486,575.97 942.5,571.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.background.toHex}" d="M 942.5,571.5 C 943.486,575.97 943.819,580.637 943.5,585.5C 832.625,650.192 721.459,714.526 610,778.5C 519.208,726.526 428.708,674.192 338.5,621.5C 338.173,611.985 338.506,602.652 339.5,593.5C 399.747,606.794 453.747,632.628 501.5,671C 515.147,683.306 527.314,696.806 538,711.5C 557.788,733.306 580.454,751.306 606,765.5C 717.977,700.431 830.143,635.764 942.5,571.5 Z"/></g>
+                <g><path style="opacity:1" fill="#969696" d="M 954.5,579.5 C 954.56,578.957 954.893,578.624 955.5,578.5C 956.821,586.991 956.821,595.324 955.5,603.5C 955.826,595.316 955.492,587.316 954.5,579.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.primary.toHex}" d="M 339.5,593.5 C 338.506,602.652 338.173,611.985 338.5,621.5C 337.177,611.992 337.177,602.325 338.5,592.5C 339.107,592.624 339.44,592.957 339.5,593.5 Z"/></g>
+                <g><path style="opacity:1" fill="${Theme.of(context).colorScheme.primary.toHex}" d="M 1008.5,654.5 C 1014.18,654.334 1019.84,654.501 1025.5,655C 1026.02,655.561 1026.36,656.228 1026.5,657C 1019.95,669.555 1010.61,679.555 998.5,687C 921.167,731.667 843.833,776.333 766.5,821C 757.216,826.987 750.049,825.153 745,815.5C 742.72,807.565 745.22,801.731 752.5,798C 829.833,753.333 907.167,708.667 984.5,664C 992.186,659.722 1000.19,656.556 1008.5,654.5 Z"/></g>
+                </svg>
+                    ''')),
+            const Center(
+              child: Text("لا توجد مساعدات مسجلة",
+                  style: TextStyle(
+                      fontSize: 25,
+                      letterSpacing: 0,
+                      fontFamily: "ScheherazadeNew")),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Expanded largeScreenDetailsPage(
+      SelectedIdProvider selectedIdProvider, BuildContext context) {
+    return Expanded(
+      flex: 3,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_drop_down),
+                onPressed: () {
+                  setState(() {
+                    selectedPerson = null;
+                    selectedIdProvider.selectedId = -1;
+                  });
+                },
+              ),
+              actions: [
+                IconButton(
+                    icon: const Icon(Icons.contact_page_outlined),
+                    onPressed: () async {
+                      // print record pdf
+                      final pdf =
+                          await generatePersonRecordPdf(selectedPerson!);
+
+                      await Printing.sharePdf(
+                          bytes: await pdf.save(),
+                          filename: 'file_${selectedPerson!.name}.pdf');
+                    }),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () {
+                    deleteDialog(context, selectedPerson!, box,
+                        selectedIdProvider.selectedId, selectedIdProvider);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        PageTransition(
-                            child: RegisterPage(),
-                            type: PageTransitionType.bottomToTop,
-                            duration: const Duration(milliseconds: 300))
-                        // MaterialPageRoute(builder: (context) => RegisterPage())
-                        );
-                  }),
-        ));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RegisterPage(
+                                    id: selectedIdProvider.selectedId)))
+                        .then((value) {
+                      if (value) {
+                        setState(() {
+                          selectedPerson =
+                              box.getAt(selectedIdProvider.selectedId)!;
+                        });
+                        debugPrint(value.toString());
+                      }
+                    });
+                  },
+                )
+              ]),
+          body: Padding(
+            padding: const EdgeInsets.all(15),
+            child: ListView(children: [
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    selectedPerson!.name.split(' ').length > 3
+                        ? "${selectedPerson!.name.split(' ')[0]} ${selectedPerson!.name.split(' ')[1]} ${selectedPerson!.name.split(' ').last}"
+                        : selectedPerson!.name,
+                    softWrap: true,
+                    overflow: TextOverflow.fade,
+                    style: const TextStyle(
+                        letterSpacing: 0,
+                        fontFamily: "ScheherazadeNew",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.perm_identity_outlined),
+                title: Text(selectedPerson!.name, softWrap: true),
+                subtitle: const Text("الإسم كامل"),
+                onLongPress: () async {
+                  if (selectedPerson!.name.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 1000),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        content: const Text("لا توجد بيانات للنسخ",
+                            style: TextStyle(fontSize: 15))));
+                  } else {
+                    await Clipboard.setData(
+                            ClipboardData(text: selectedPerson!.name))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ الإسم الكامل",
+                                    style: TextStyle(fontSize: 15)))));
+                  }
+                },
+              )),
+              Card(
+                  child: ListTile(
+                onLongPress: () async {
+                  if (selectedPerson!.phoneNumber.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 1000),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        content: const Text("لا توجد بيانات للنسخ",
+                            style: TextStyle(fontSize: 15))));
+                  } else {
+                    await Clipboard.setData(ClipboardData(
+                            text: selectedPerson!.phoneNumber.toString()))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ رقم الهاتف",
+                                    style: TextStyle(fontSize: 15)))));
+                  }
+                },
+                leading: IconButton(
+                    icon: const Icon(Icons.phone_outlined),
+                    onPressed: () async {
+                      if (selectedPerson!.phoneNumber.isNotEmpty) {
+                        var url =
+                            Uri.parse('tel:${selectedPerson!.phoneNumber}');
+                        if (!await launchUrl(url)) {
+                          throw Exception('Could not launch $url');
+                        }
+                      }
+                    }),
+                trailing: IconButton(
+                    icon: const Icon(Icons.message_outlined),
+                    onPressed: () async {
+                      if (selectedPerson!.phoneNumber.isNotEmpty) {
+                        var url =
+                            Uri.parse('sms:${selectedPerson!.phoneNumber}');
+                        if (!await launchUrl(url)) {
+                          throw Exception('Could not launch $url');
+                        }
+                      }
+                    }),
+                title: Text(selectedPerson!.phoneNumber.isEmpty
+                    ? "لا يوجد"
+                    : selectedPerson!.phoneNumber),
+                subtitle: const Text("رقم الهاتف"),
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: Text(selectedPerson!.idNumber == "0" ||
+                        selectedPerson!.idNumber.isEmpty
+                    ? "لا يوجد"
+                    : selectedPerson!.idNumber),
+                subtitle: const Text("رقم الهوية"),
+                onLongPress: () async {
+                  if (selectedPerson!.idNumber.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 1000),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        content: const Text("لا توجد بيانات للنسخ",
+                            style: TextStyle(fontSize: 15))));
+                  } else {
+                    await Clipboard.setData(
+                            ClipboardData(text: selectedPerson!.idNumber))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ رقم الهوية",
+                                    style: TextStyle(fontSize: 15)))));
+                  }
+                },
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.date_range_outlined),
+                title: Text(isDateHijri ? hijriDateRangeView : dateRangeView),
+                onTap: () {
+                  setState(() {
+                    if (dateRangeView != "لا يوجد") {
+                      setState(() {
+                        isDateHijri = !isDateHijri;
+                      });
+                    }
+                  });
+                },
+                subtitle: const Text("تاريخ المساعدة"),
+                onLongPress: () async {
+                  if (isDateHijri
+                      ? hijriDateRangeView.isEmpty
+                      : dateRangeView.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 1000),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        content: const Text("لا توجد بيانات للنسخ",
+                            style: TextStyle(fontSize: 15))));
+                  } else {
+                    await Clipboard.setData(ClipboardData(
+                            text: isDateHijri
+                                ? hijriDateRangeView
+                                : dateRangeView))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: Text(
+                                    "تم نسخ تاريخ المساعدة (${isDateHijri ? 'الهجري' : 'الميلادي'})",
+                                    style: const TextStyle(fontSize: 15)))));
+                  }
+                },
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.request_quote_outlined),
+                title: Text(selectedPerson!.aidType.isEmpty
+                    ? 'لا يوجد'
+                    : selectedPerson!.aidType),
+                subtitle: const Text("نوع المساعدة"),
+                onLongPress: () async {
+                  if (selectedPerson!.aidType.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 1000),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        content: const Text("لا توجد بيانات للنسخ",
+                            style: TextStyle(fontSize: 15))));
+                  } else {
+                    await Clipboard.setData(
+                            ClipboardData(text: selectedPerson!.aidType))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ نوع المساعدة",
+                                    style: TextStyle(fontSize: 15)))));
+                  }
+                },
+              )),
+              selectedPerson!.aidType != 'عينية' &&
+                      selectedPerson!.aidType != 'رمضانية'
+                  ? Card(
+                      child: ListTile(
+                      leading: const Icon(Icons.attach_money_outlined),
+                      title: Text("${selectedPerson!.aidAmount} ريال"),
+                      subtitle: const Text("مقدار المساعدة"),
+                      onLongPress: () async {
+                        await Clipboard.setData(ClipboardData(
+                                text: selectedPerson!.aidAmount.toString()))
+                            .then((value) => ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(
+                                    duration:
+                                        const Duration(milliseconds: 1000),
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    content: const Text("تم نسخ مقدار المساعدة",
+                                        style: TextStyle(fontSize: 15)))));
+                      },
+                    ))
+                  : Card(
+                      child: ListTile(
+                      leading: const Icon(Icons.kitchen_outlined),
+                      title: Text(selectedPerson!.aidTypeDetails!),
+                      subtitle: const Text("تفاصيل المساعدة"),
+                      onLongPress: () async {
+                        await Clipboard.setData(ClipboardData(
+                                text: selectedPerson!.aidTypeDetails!))
+                            .then((value) => ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(
+                                    duration:
+                                        const Duration(milliseconds: 1000),
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    content: const Text(
+                                        "تم نسخ تفاصيل المساعدة",
+                                        style: TextStyle(fontSize: 15)))));
+                      },
+                    )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.update_outlined),
+                title:
+                    Text(selectedPerson!.isContinuousAid ? "مستمرة" : "منقطعة"),
+                subtitle: const Text("مدة المساعدة"),
+                onLongPress: () async {
+                  await Clipboard.setData(ClipboardData(
+                          text: selectedPerson!.isContinuousAid
+                              ? 'مستمرة'
+                              : 'منقطعة'))
+                      .then((value) => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(
+                              duration: const Duration(milliseconds: 1000),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              content: const Text("تم نسخ مدة المساعدة",
+                                  style: TextStyle(fontSize: 15)))));
+                },
+              )),
+              Card(
+                  child: ListTile(
+                subtitle: const Text("الملاحظات"),
+                trailing: IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () async {
+                      await Clipboard.setData(
+                              ClipboardData(text: selectedPerson!.notes))
+                          .then((value) => ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(
+                                  duration: const Duration(milliseconds: 1000),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  content: const Text("تم نسخ الملاحظات",
+                                      style: TextStyle(fontSize: 15)))));
+                    }),
+                title: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(selectedPerson!.notes.isNotEmpty
+                      ? selectedPerson!.notes
+                      : 'لا يوجد'),
+                ),
+              )),
+              Card(
+                child: ListTile(
+                  onTap: () {
+                    Share.share("""
+                                الاسم: ${selectedPerson!.name}
+          رقم الهوية: ${selectedPerson!.idNumber}
+          رقم الهاتف: ${selectedPerson!.phoneNumber}
+          تاريخ المساعدة: ${isDateHijri ? hijriDateRangeView : dateRangeView}
+          نوع المساعدة: ${selectedPerson!.aidType}
+          مقدار المساعدة: ${selectedPerson!.aidAmount} ريال
+          مدة المساعدة: ${selectedPerson!.isContinuousAid ? 'مستمرة' : 'منقطعة'}
+          ملاحظات: ${selectedPerson!.notes.isNotEmpty ? selectedPerson!.notes : 'لا توجد'}
+                              """);
+                  },
+                  title: const Text("مشاركة هذه المساعدة"),
+                  subtitle: const Text("مشاركة"),
+                  leading: const Icon(Icons.share_outlined),
+                ),
+              )
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> settingsPage(BuildContext context, TheThemeProvider themeChange,
@@ -599,63 +946,67 @@ class _MyHomePageState extends State<MyHomePage> {
                       value: themeChange.darkTheme,
                       onChanged: (bool value) => themeChange.darkTheme = value),
                   const SizedBox(height: 10),
-                  const Center(
-                    child: Text('السمات',
-                        style: TextStyle(
-                            fontFamily: "ibmPlexSansArabic", fontSize: 20)),
-                  ),
-                  Center(
-                    child: ToggleButtons(
-                      isSelected: isSelected,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int buttonIndex = 0;
-                              buttonIndex < isSelected.length;
-                              buttonIndex++) {
-                            if (buttonIndex == index) {
-                              isSelected[buttonIndex] = true;
-                              colorChangeProvider.colorTheme = buttonIndex;
-                            } else {
-                              isSelected[buttonIndex] = false;
-                            }
-                          }
-                        });
-                      },
-                      selectedBorderColor:
-                          Theme.of(context).colorScheme.primary,
-                      borderWidth: 4,
-                      children: <Widget>[
-                        ThemeButton(
-                            darkColorScheme: greyDarkColorScheme,
-                            lightColorScheme: greyLightColorScheme,
-                            themeChange: themeChange),
-                        ThemeButton(
-                            darkColorScheme: blueDarkColorScheme,
-                            lightColorScheme: blueLightColorScheme,
-                            themeChange: themeChange),
-                        ThemeButton(
-                            darkColorScheme: redDarkColorScheme,
-                            lightColorScheme: redLightColorScheme,
-                            themeChange: themeChange),
-                        ThemeButton(
-                            darkColorScheme: yellowDarkColorScheme,
-                            lightColorScheme: yellowLightColorScheme,
-                            themeChange: themeChange),
-                        ThemeButton(
-                            darkColorScheme: greenDarkColorScheme,
-                            lightColorScheme: greenLightColorScheme,
-                            themeChange: themeChange),
-                        const Icon(Icons.phone_android),
-                      ],
-                    ),
-                  ),
+                  ExpansionTile(
+                      title: const Text("السمات",
+                          style: TextStyle(fontFamily: "ibmPlexSansArabic")),
+                      childrenPadding: const EdgeInsets.all(10),
+                      children: [
+                        const SizedBox(height: 10),
+                        Center(
+                          child: ToggleButtons(
+                            isSelected: isSelected,
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int buttonIndex = 0;
+                                    buttonIndex < isSelected.length;
+                                    buttonIndex++) {
+                                  if (buttonIndex == index) {
+                                    isSelected[buttonIndex] = true;
+                                    colorChangeProvider.colorTheme =
+                                        buttonIndex;
+                                  } else {
+                                    isSelected[buttonIndex] = false;
+                                  }
+                                }
+                              });
+                            },
+                            selectedBorderColor:
+                                Theme.of(context).colorScheme.primary,
+                            borderWidth: 4,
+                            children: <Widget>[
+                              ThemeButton(
+                                  darkColorScheme: greyDarkColorScheme,
+                                  lightColorScheme: greyLightColorScheme,
+                                  themeChange: themeChange),
+                              ThemeButton(
+                                  darkColorScheme: blueDarkColorScheme,
+                                  lightColorScheme: blueLightColorScheme,
+                                  themeChange: themeChange),
+                              ThemeButton(
+                                  darkColorScheme: redDarkColorScheme,
+                                  lightColorScheme: redLightColorScheme,
+                                  themeChange: themeChange),
+                              ThemeButton(
+                                  darkColorScheme: yellowDarkColorScheme,
+                                  lightColorScheme: yellowLightColorScheme,
+                                  themeChange: themeChange),
+                              ThemeButton(
+                                  darkColorScheme: greenDarkColorScheme,
+                                  lightColorScheme: greenLightColorScheme,
+                                  themeChange: themeChange),
+                              const Icon(Icons.phone_android),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ]),
                   const SizedBox(height: 10),
                   ExpansionTile(
                       title: const Text("اعدادات متقدمة",
                           style: TextStyle(fontFamily: "ibmPlexSansArabic")),
                       childrenPadding: const EdgeInsets.all(10),
                       children: [
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
                         const Text("استخراج البيانات"),
                         const SizedBox(height: 10),
                         Row(
