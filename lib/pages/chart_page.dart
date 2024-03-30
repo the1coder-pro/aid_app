@@ -1,5 +1,5 @@
-import 'package:aidapp/person.dart';
-import 'package:aidapp/prefs.dart';
+import '/person.dart';
+import '/prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -107,7 +107,7 @@ class ChartPageState extends State<ChartPage> {
           const SizedBox(height: 10),
           Divider(height: 2, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 10),
-          rowOfDetails(context, hiveServiceProivder),
+          Center(child: rowOfDetails(context, hiveServiceProivder)),
           const SizedBox(height: 10),
         ],
       ),
@@ -139,7 +139,7 @@ class ChartPageState extends State<ChartPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                         text: formatAmount(totalAmount)),
                     TextSpan(
-                        style: const TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 16),
                         text:
                             "${totalAmount.toString().replaceAllMapped(reg, mathFunc)} ريال"),
                   ]),

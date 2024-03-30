@@ -1,4 +1,4 @@
-import 'package:aidapp/prefs.dart';
+import '/prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';

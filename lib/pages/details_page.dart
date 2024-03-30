@@ -1,4 +1,4 @@
-import 'package:aidapp/prefs.dart';
+import '../prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -44,7 +44,6 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
-    final hiveServiceProvider = Provider.of<HiveServiceProvider>(context);
 
     if (person.aidDates.length >= 2) {
       dateRangeView =
@@ -118,7 +117,7 @@ class _DetailsPageState extends State<DetailsPage> {
               children: [
                 const SizedBox(height: 10),
                 Align(
-                  alignment: Alignment.centerRight,
+                  alignment: Alignment.center,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
@@ -135,7 +134,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 15),
                 Card(
                     child: ListTile(
                   leading: const Icon(Icons.perm_identity_outlined),

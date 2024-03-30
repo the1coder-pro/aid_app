@@ -1,5 +1,5 @@
-import 'package:aidapp/main.dart';
-import 'package:aidapp/prefs.dart';
+import 'main.dart';
+import 'prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -140,7 +140,6 @@ class SearchFinderResults extends StatelessWidget {
   const SearchFinderResults({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
-    final hiveProvider = Provider.of<HiveServiceProvider>(context);
     final selectedIdProvider = Provider.of<SelectedIdProvider>(context);
     final colorChangeProvider = Provider.of<ThemeColorProvider>(context);
 

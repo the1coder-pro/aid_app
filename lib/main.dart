@@ -1,10 +1,8 @@
 import 'dart:convert' show base64, jsonDecode, utf8;
 import 'dart:io';
-
-import 'package:aidapp/json_compiler.dart';
-import 'package:aidapp/pages/chart_page.dart';
-import 'package:aidapp/pages/print_page.dart';
-import 'package:community_material_icon/community_material_icon.dart';
+import 'json_compiler.dart';
+import 'pages/chart_page.dart';
+import 'pages/print_page.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +29,7 @@ import 'prefs.dart';
 import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
 
-// ignore: non_constant_identifier_names
-List<String> colorSchemes = [
+const List<String> colorSchemes = [
   "Default",
   "Blue",
   "Red",
@@ -178,13 +175,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // int currentPageIndex = 0;
   PopupMenuItemsEnum? selectedMenu;
   final box = Hive.box<Person>('personList');
 
   bool isLargeScreen = false;
-  // int selectedId = -1;
-
   List<bool> isSelected = [];
   List<bool> getIsSelected(ThemeColorProvider colorProvider) {
     isSelected = [];
@@ -252,7 +246,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     })
                 : PopupMenuButton<PopupMenuItemsEnum>(
                     tooltip: 'صفحات اضافية',
-                    // Callback that sets the selected popup menu item.
                     onSelected: (PopupMenuItemsEnum item) {
                       setState(() {
                         selectedMenu = item;
@@ -512,6 +505,7 @@ class _MyHomePageState extends State<MyHomePage> {
             }
           }),
           floatingActionButton: FloatingActionButton(
+              elevation: 2,
               child: const Icon(Icons.add),
               onPressed: () {
                 Navigator.push(
@@ -941,14 +935,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   SwitchListTile(
                       title: const Text(
                         "الوضع الداكن",
-                        style: TextStyle(fontFamily: "ibmPlexSansArabic"),
+                        style: TextStyle(
+                            fontFamily: "ibmPlexSansArabic", fontSize: 18),
                       ),
                       value: themeChange.darkTheme,
                       onChanged: (bool value) => themeChange.darkTheme = value),
                   const SizedBox(height: 10),
                   ExpansionTile(
                       title: const Text("السمات",
-                          style: TextStyle(fontFamily: "ibmPlexSansArabic")),
+                          style: TextStyle(
+                              fontFamily: "ibmPlexSansArabic", fontSize: 18)),
                       childrenPadding: const EdgeInsets.all(10),
                       children: [
                         const SizedBox(height: 10),
@@ -994,7 +990,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   darkColorScheme: greenDarkColorScheme,
                                   lightColorScheme: greenLightColorScheme,
                                   themeChange: themeChange),
-                              const Icon(Icons.phone_android),
+                              const Icon(Icons.smartphone_outlined),
                             ],
                           ),
                         ),
@@ -1003,7 +999,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(height: 10),
                   ExpansionTile(
                       title: const Text("اعدادات متقدمة",
-                          style: TextStyle(fontFamily: "ibmPlexSansArabic")),
+                          style: TextStyle(
+                              fontFamily: "ibmPlexSansArabic", fontSize: 18)),
                       childrenPadding: const EdgeInsets.all(10),
                       children: [
                         const SizedBox(height: 10),
@@ -1107,8 +1104,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     }
                                   }
                                 },
-                                child: const Icon(CommunityMaterialIcons
-                                    .file_pdf_box_outline),
+                                child:
+                                    const Icon(Icons.picture_as_pdf_outlined),
                               ),
                               OutlinedButton(
                                   onPressed: () async {
@@ -1213,11 +1210,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       }
                                     }
                                   },
-                                  child: const Icon(CommunityMaterialIcons
-                                      .file_export_outline)),
+                                  child: const Icon(Icons.download_outlined)),
                               OutlinedButton(
-                                child: const Icon(CommunityMaterialIcons
-                                    .file_excel_box_outline),
+                                child: const Icon(Icons.backup_table_outlined),
                                 onPressed: () async {
                                   // excel
                                   final xcel.Workbook workbook =
@@ -1450,15 +1445,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                             );
                                           });
                                     }
-
-                                    // debugPrint(records[0].name);
                                   }
-                                  // } else {
-                                  //   // User canceled the picker
-                                  // }
                                 },
-                                child: const Icon(
-                                    CommunityMaterialIcons.file_import_outline))
+                                child: const Icon(Icons.upload_outlined))
                           ],
                         )
                       ]),
@@ -1740,18 +1729,5 @@ class ThemeButton extends StatelessWidget {
               : lightColorScheme.primaryContainer,
           child: const Icon(Icons.add),
         ));
-  }
-}
-
-class NoSelectedRecord extends StatelessWidget {
-  const NoSelectedRecord({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text("لا توجد مساعدة محددة")));
   }
 }
