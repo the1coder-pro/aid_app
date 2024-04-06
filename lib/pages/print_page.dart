@@ -51,14 +51,16 @@ class _PrintPageState extends State<PrintPage> {
                   textDirection: TextDirection.rtl,
                   children: [
                     TableRow(children: [
-                      const Text("الميلادي"),
+                      const Text("الميلادي", style: TextStyle(fontSize: 15)),
                       Text(
-                          "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+                          "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
+                          style: const TextStyle(fontSize: 15))
                     ]),
                     TableRow(children: [
-                      const Text("الهجري"),
+                      const Text("الهجري", style: TextStyle(fontSize: 15)),
                       Text(
-                          "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+                          "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
+                          style: const TextStyle(fontSize: 15))
                     ]),
                   ],
                 ),
@@ -71,7 +73,6 @@ class _PrintPageState extends State<PrintPage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 dateButton(context),
-                // const SizedBox(width: 10),
                 hijriDateButton(context),
               ]),
           if (dateRangeIncludedPersonList.isNotEmpty)
@@ -88,35 +89,48 @@ class _PrintPageState extends State<PrintPage> {
                                             .indexOf(record) +
                                         1)
                                     .toString())),
-                                DataCell(Text(record.name)),
+                                DataCell(Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Text(record.name),
+                                    IconButton(
+                                      icon:
+                                          const Icon(Icons.visibility_outlined),
+                                      onPressed: () {
+                                        var selectedContactIndex =
+                                            Provider.of<HiveServiceProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .people
+                                                .indexOf(record);
+                                        selectedIdProvider.selectedId =
+                                            selectedContactIndex;
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return DetailsPage(record);
+                                        }));
+                                      },
+                                    )
+                                  ],
+                                )),
                                 DataCell(Text(intl.DateFormat('yyyy-MM-dd')
                                     .format(record.aidDates[0]))),
                                 DataCell(Text(intl.DateFormat('yyyy-MM-dd')
                                     .format(record.aidDates[1]))),
-                                DataCell(Text(record.idNumber)),
+                                DataCell(Text(record.idNumber.isNotEmpty
+                                    ? record.idNumber
+                                    : '-')),
                                 DataCell(Text(record.aidType)),
                                 DataCell(Text(record.aidAmount.toString())),
                                 DataCell(Text(record.isContinuousAid
                                     ? 'مستمرة'
                                     : 'منقطعة')),
-                                DataCell(Text(record.phoneNumber.toString())),
-                                DataCell(IconButton(
-                                  icon: const Icon(Icons.visibility_outlined),
-                                  onPressed: () {
-                                    var selectedContactIndex =
-                                        Provider.of<HiveServiceProvider>(
-                                                context,
-                                                listen: false)
-                                            .people
-                                            .indexOf(record);
-                                    selectedIdProvider.selectedId =
-                                        selectedContactIndex;
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                      return DetailsPage(record);
-                                    }));
-                                  },
-                                )),
+                                DataCell(Text(
+                                    record.phoneNumber.toString().isNotEmpty
+                                        ? record.phoneNumber.toString()
+                                        : '-')),
                               ]))
                           .toList(),
                       columns: [
@@ -129,7 +143,6 @@ class _PrintPageState extends State<PrintPage> {
                         'المقدار',
                         'المدة',
                         'رقم الهاتف',
-                        'عرض'
                       ]
                           .map((label) => DataColumn(label: Text(label)))
                           .toList()),
@@ -165,6 +178,10 @@ class _PrintPageState extends State<PrintPage> {
                         width: 800,
                         height: 400,
                         child: SfDateRangePicker(
+                            headerStyle: const DateRangePickerHeaderStyle(
+                                textStyle: TextStyle(
+                                    fontFamily: 'ibmPlexSansArabic',
+                                    fontSize: 20)),
                             initialSelectedRange: dateRange.isNotEmpty
                                 ? PickerDateRange(dateRange[0], dateRange[1])
                                 : null,
@@ -188,7 +205,12 @@ class _PrintPageState extends State<PrintPage> {
                               if (value is PickerDateRange) {
                                 dateRange.clear();
                                 dateRange.add(value.startDate!);
-                                dateRange.add(value.endDate!);
+                                if (value.endDate == null) {
+                                  dateRange.add(value.startDate!
+                                      .add(const Duration(days: 10)));
+                                } else if (value.endDate != null) {
+                                  dateRange.add(value.endDate!);
+                                }
                                 setState(() {});
 
                                 debugPrint(
@@ -209,14 +231,13 @@ class _PrintPageState extends State<PrintPage> {
                                             person.aidDates[0];
                                         DateTime personEndDate =
                                             person.aidDates[1];
-
                                         if (personStartDate
                                                 .isSameOrAfter(startDate) &&
                                             personEndDate
-                                                .isSameOrBefore(endDate)) {
+                                                .isSameOrBefore(endDate) &&
+                                            person.aidDates.isNotEmpty) {
                                           dateRangeIncludedPersonList
                                               .add(person);
-                                          //
                                         }
                                       }
                                     }
@@ -255,6 +276,10 @@ class _PrintPageState extends State<PrintPage> {
                         width: 800,
                         height: 400,
                         child: SfHijriDateRangePicker(
+                            headerStyle: const DateRangePickerHeaderStyle(
+                                textStyle: TextStyle(
+                                    fontFamily: 'ibmPlexSansArabic',
+                                    fontSize: 20)),
                             initialSelectedRange: dateRange.isNotEmpty
                                 ? HijriDateRange(
                                     HijriDateTime.fromDateTime(dateRange[0]),
@@ -280,7 +305,13 @@ class _PrintPageState extends State<PrintPage> {
                               if (value is HijriDateRange) {
                                 dateRange.clear();
                                 dateRange.add(value.startDate!.toDateTime());
-                                dateRange.add(value.endDate!.toDateTime());
+                                if (value.endDate == null) {
+                                  dateRange.add(value.startDate!
+                                      .toDateTime()
+                                      .add(const Duration(days: 10)));
+                                } else if (value.endDate != null) {
+                                  dateRange.add(value.endDate!.toDateTime());
+                                }
                                 setState(() {});
 
                                 debugPrint(
@@ -304,10 +335,10 @@ class _PrintPageState extends State<PrintPage> {
                                         if (personStartDate
                                                 .isSameOrAfter(startDate) &&
                                             personEndDate
-                                                .isSameOrBefore(endDate)) {
+                                                .isSameOrBefore(endDate) &&
+                                            person.aidDates.isNotEmpty) {
                                           dateRangeIncludedPersonList
                                               .add(person);
-                                          //
                                         }
                                       }
                                     }

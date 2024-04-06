@@ -239,7 +239,10 @@ class SearchFinderResults extends StatelessWidget {
                             TextSpan(
                                 text: personListItem.aidType.isEmpty
                                     ? 'لا يوجد'
-                                    : "${personListItem.aidType == 'عينية' || personListItem.aidType == 'رمضانية' ? 'مساعدة' : ''}${personListItem.aidType}",
+                                    : personListItem.aidType == 'عينية' ||
+                                            personListItem.aidType == 'رمضانية'
+                                        ? 'مساعدة ${personListItem.aidType}'
+                                        : personListItem.aidType,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             const TextSpan(text: " لفترة "),

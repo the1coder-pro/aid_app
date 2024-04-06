@@ -450,7 +450,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 TextSpan(
                                                     text: person.aidType.isEmpty
                                                         ? 'لا يوجد'
-                                                        : "${person.aidType == 'عينية' || person.aidType == 'رمضانية' ? 'مساعدة ' : ''}${person.aidType}",
+                                                        : person.aidType ==
+                                                                    'عينية' ||
+                                                                person.aidType ==
+                                                                    'رمضانية'
+                                                            ? 'مساعدة ${person.aidType}'
+                                                            : person.aidType,
                                                     style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold)),
@@ -607,6 +612,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           selectedPerson =
                               box.getAt(selectedIdProvider.selectedId)!;
                         });
+                        setState(() {});
                         debugPrint(value.toString());
                       }
                     });
@@ -825,7 +831,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ))
                   : Card(
                       child: ListTile(
-                      leading: const Icon(Icons.kitchen_outlined),
+                      leading: const Icon(Icons.local_laundry_service_outlined),
                       title: Text(selectedPerson!.aidTypeDetails!),
                       subtitle: const Text("تفاصيل المساعدة"),
                       onLongPress: () async {
@@ -1451,6 +1457,21 @@ class _MyHomePageState extends State<MyHomePage> {
                           ],
                         )
                       ]),
+                  const SizedBox(height: 20),
+                  // make a button to open play store to update the app
+                  ListTile(
+                    leading: const Icon(Icons.open_in_new),
+                    title: const Text("الذهاب الى المتجر"),
+                    onTap: () async {
+                      // open play store
+                      Uri url = Uri.parse(
+                          'https://play.google.com/store/apps/details?id=com.orange.aidapp');
+
+                      if (!await launchUrl(url)) {
+                        throw Exception('Could not launch $url');
+                      }
+                    },
+                  ),
                 ],
               )),
             ),

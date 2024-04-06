@@ -238,14 +238,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     textDirection: TextDirection.rtl,
                     children: [
                       TableRow(children: [
-                        const Text("الميلادي"),
+                        const Text("الميلادي", style: TextStyle(fontSize: 15)),
                         Text(
-                            "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}")
+                            "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
+                            style: const TextStyle(fontSize: 15))
                       ]),
                       TableRow(children: [
-                        const Text("الهجري"),
+                        const Text("الهجري", style: TextStyle(fontSize: 15)),
                         Text(
-                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}")
+                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
+                            style: const TextStyle(fontSize: 15))
                       ]),
                     ],
                   ),
@@ -271,6 +273,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                       width: 800,
                                       height: 400,
                                       child: SfDateRangePicker(
+                                          headerStyle:
+                                              const DateRangePickerHeaderStyle(
+                                                  textStyle: TextStyle(
+                                                      fontFamily:
+                                                          'ibmPlexSansArabic',
+                                                      fontSize: 20)),
                                           initialSelectedRange: dateRange
                                                   .isNotEmpty
                                               ? PickerDateRange(
@@ -303,7 +311,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                             if (value is PickerDateRange) {
                                               dateRange.clear();
                                               dateRange.add(value.startDate!);
-                                              dateRange.add(value.endDate!);
+                                              if (value.endDate == null) {
+                                                dateRange.add(value.startDate!
+                                                    .add(const Duration(
+                                                        days: 10)));
+                                              } else if (value.endDate !=
+                                                  null) {
+                                                dateRange.add(value.endDate!);
+                                              }
+                                              print(dateRange);
                                               setState(() {});
 
                                               Navigator.pop(context);
@@ -330,6 +346,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                       width: 800,
                                       height: 400,
                                       child: SfHijriDateRangePicker(
+                                          headerStyle:
+                                              const DateRangePickerHeaderStyle(
+                                                  textStyle: TextStyle(
+                                                      fontFamily:
+                                                          'ibmPlexSansArabic',
+                                                      fontSize: 20)),
                                           initialSelectedRange: dateRange
                                                   .isNotEmpty
                                               ? HijriDateRange(
@@ -366,8 +388,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                               dateRange.clear();
                                               dateRange.add(value.startDate!
                                                   .toDateTime());
-                                              dateRange.add(
-                                                  value.endDate!.toDateTime());
+                                              if (value.endDate == null) {
+                                                dateRange.add(value.startDate!
+                                                    .toDateTime()
+                                                    .add(const Duration(
+                                                        days: 10)));
+                                              } else if (value.endDate !=
+                                                  null) {
+                                                dateRange.add(value.endDate!
+                                                    .toDateTime());
+                                              }
                                               setState(() {});
 
                                               debugPrint(

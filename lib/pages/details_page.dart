@@ -324,7 +324,8 @@ class _DetailsPageState extends State<DetailsPage> {
                       ))
                     : Card(
                         child: ListTile(
-                        leading: const Icon(Icons.kitchen_outlined),
+                        leading:
+                            const Icon(Icons.local_laundry_service_outlined),
                         title: Text(person.aidTypeDetails!),
                         subtitle: const Text("تفاصيل المساعدة"),
                         onLongPress: () async {
