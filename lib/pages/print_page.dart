@@ -51,16 +51,16 @@ class _PrintPageState extends State<PrintPage> {
                   textDirection: TextDirection.rtl,
                   children: [
                     TableRow(children: [
-                      const Text("الميلادي", style: TextStyle(fontSize: 15)),
+                      const Text("الميلادي", style: TextStyle(fontSize: 10)),
                       Text(
                           "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
-                          style: const TextStyle(fontSize: 15))
+                          style: const TextStyle(fontSize: 10))
                     ]),
                     TableRow(children: [
-                      const Text("الهجري", style: TextStyle(fontSize: 15)),
+                      const Text("الهجري", style: TextStyle(fontSize: 10)),
                       Text(
                           "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
-                          style: const TextStyle(fontSize: 15))
+                          style: const TextStyle(fontSize: 10))
                     ]),
                   ],
                 ),
@@ -247,6 +247,8 @@ class _PrintPageState extends State<PrintPage> {
                                 if (dateRangeIncludedPersonList.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
                                           backgroundColor: Theme.of(context)
                                               .colorScheme
                                               .primary,
@@ -348,6 +350,8 @@ class _PrintPageState extends State<PrintPage> {
                                 if (dateRangeIncludedPersonList.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
+                                          duration: const Duration(
+                                              milliseconds: 1000),
                                           backgroundColor: Theme.of(context)
                                               .colorScheme
                                               .primary,

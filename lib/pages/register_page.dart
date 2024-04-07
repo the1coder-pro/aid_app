@@ -48,6 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
   FocusNode amountFocusNode = FocusNode();
   FocusNode typeFocusNode = FocusNode();
   FocusNode typeDetailsFocusNode = FocusNode();
+  FocusNode otherTypeFocusNode = FocusNode();
   FocusNode notesFocusNode = FocusNode();
 
   @override
@@ -76,6 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
     amountFocusNode.dispose();
     typeFocusNode.dispose();
     typeDetailsFocusNode.dispose();
+    otherTypeFocusNode.dispose();
     notesFocusNode.dispose();
 
     super.dispose();
@@ -102,9 +104,9 @@ class _RegisterPageState extends State<RegisterPage> {
         if (loadPerson.aidTypeDetails != null) {
           _typeDetailsController.text = loadPerson.aidTypeDetails!;
         }
-      } else {
-        _amountController.text = loadPerson.aidAmount.toString();
       }
+      _amountController.text = loadPerson.aidAmount.toString();
+
       _duration = loadPerson.isContinuousAid
           ? AidDuration.continuous
           : AidDuration.interrupted;
@@ -238,16 +240,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     textDirection: TextDirection.rtl,
                     children: [
                       TableRow(children: [
-                        const Text("الميلادي", style: TextStyle(fontSize: 15)),
+                        const Text("الميلادي", style: TextStyle(fontSize: 10)),
                         Text(
                             "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
-                            style: const TextStyle(fontSize: 15))
+                            style: const TextStyle(fontSize: 10))
                       ]),
                       TableRow(children: [
-                        const Text("الهجري", style: TextStyle(fontSize: 15)),
+                        const Text("الهجري", style: TextStyle(fontSize: 10)),
                         Text(
                             "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
-                            style: const TextStyle(fontSize: 15))
+                            style: const TextStyle(fontSize: 10))
                       ]),
                     ],
                   ),
@@ -435,6 +437,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 onChanged: (value) {
                   setState(() => aidType = value);
                   if (aidType == aidTypes.last) {
+                    FocusScope.of(context).requestFocus(otherTypeFocusNode);
+                  } else if (aidType == 'عينية' || aidType == 'رمضانية') {
                     FocusScope.of(context).requestFocus(typeDetailsFocusNode);
                   } else {
                     FocusScope.of(context).requestFocus(amountFocusNode);
@@ -448,9 +452,9 @@ class _RegisterPageState extends State<RegisterPage> {
               visible: aidType == aidTypes.last,
               child: ListTile(
                 title: TextFormField(
-                  focusNode: typeDetailsFocusNode,
+                  focusNode: otherTypeFocusNode,
                   onFieldSubmitted: (value) {
-                    typeDetailsFocusNode.unfocus();
+                    otherTypeFocusNode.unfocus();
                     FocusScope.of(context).requestFocus(amountFocusNode);
                   },
                   decoration: InputDecoration(
@@ -468,13 +472,13 @@ class _RegisterPageState extends State<RegisterPage> {
               visible: aidType == 'عينية' || aidType == 'رمضانية',
               child: ListTile(
                 title: TextFormField(
-                  focusNode: amountFocusNode,
+                  focusNode: typeDetailsFocusNode,
                   onFieldSubmitted: (value) {
-                    amountFocusNode.unfocus();
-                    FocusScope.of(context).requestFocus(notesFocusNode);
+                    typeDetailsFocusNode.unfocus();
+                    FocusScope.of(context).requestFocus(amountFocusNode);
                   },
                   decoration: InputDecoration(
-                      suffixIcon: clearButton(_typeController),
+                      suffixIcon: clearButton(_typeDetailsController),
                       label: const Text("تفاصيل"),
                       border: const OutlineInputBorder(),
                       isDense: true),
@@ -484,25 +488,24 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 2),
-            Visibility(
-              visible: aidType != 'عينية' && aidType != 'رمضانية',
-              child: ListTile(
-                title: TextFormField(
-                  focusNode: amountFocusNode,
-                  onFieldSubmitted: (value) {
-                    amountFocusNode.unfocus();
-                    FocusScope.of(context).requestFocus(notesFocusNode);
-                  },
-                  decoration: InputDecoration(
-                      suffixIcon: clearButton(_amountController),
-                      label: const Text("مقدار المساعدة"),
-                      border: const OutlineInputBorder(),
-                      isDense: true),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                ),
+            ListTile(
+              title: TextFormField(
+                focusNode: amountFocusNode,
+                onFieldSubmitted: (value) {
+                  amountFocusNode.unfocus();
+                  FocusScope.of(context).requestFocus(notesFocusNode);
+                },
+                decoration: InputDecoration(
+                    suffixIcon: clearButton(_amountController),
+                    label: const Text("مقدار المساعدة"),
+                    border: const OutlineInputBorder(),
+                    isDense: true),
+                controller: _amountController,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                ],
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
               ),
             ),
             const SizedBox(height: 5),
@@ -532,14 +535,21 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 10),
             ListTile(
               title: TextFormField(
+                textAlign: TextAlign.right,
+                textDirection:
+                    intl.Bidi.detectRtlDirectionality(_notesController.text)
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
                 focusNode: notesFocusNode,
-                textDirection: TextDirection.rtl,
                 maxLines: null,
                 minLines: 5,
                 keyboardType: TextInputType.multiline,
                 controller: _notesController,
+                onChanged: (value) {
+                  setState(() {});
+                },
                 decoration: InputDecoration(
-                    suffixIcon: clearButton(_amountController),
+                    suffixIcon: clearButton(_notesController),
                     label: const Text("الملاحظات"),
                     border: const OutlineInputBorder(),
                     isDense: true),
@@ -559,6 +569,51 @@ class _RegisterPageState extends State<RegisterPage> {
         icon: const Icon(Icons.check),
         onPressed: () {
           if (savedPersonId) {
+            if ("${_firstNameController.text} ${_lastNameController.text}"
+                .trim()
+                .isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  duration: const Duration(milliseconds: 1000),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  content: const Text('الرجاء إدخال الاسم',
+                      style: TextStyle(fontSize: 15))));
+              return;
+            } else {
+              if (box.values
+                      .toList()
+                      .map((element) => element.name)
+                      .toList()
+                      .contains(
+                          "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
+                              .trim()) &&
+                  "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
+                          .trim() !=
+                      loadPerson!.name) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    duration: const Duration(milliseconds: 1000),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    content: const Text('الاسم موجود بالفعل في قاعدة البيانات',
+                        style: TextStyle(fontSize: 15))));
+                return;
+              }
+            }
+            if (_idNumberController.text.isNotEmpty) {
+              if (box.values
+                      .toList()
+                      .map((element) => element.idNumber)
+                      .toList()
+                      .contains(_idNumberController.text.trim()) &&
+                  _idNumberController.text.trim() != loadPerson!.idNumber) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    duration: const Duration(milliseconds: 1000),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    content: const Text(
+                        'رقم الهوية موجود بالفعل في قاعدة البيانات',
+                        style: TextStyle(fontSize: 15))));
+                return;
+              }
+            }
+
             hiveProvider.updateItem(
                 selectedIdProvider.selectedId,
                 Person(
@@ -570,9 +625,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     aidType: aidType == aidTypes.last
                         ? _typeController.text
                         : aidType ?? aidTypes.last,
-                    aidAmount: aidType != 'عينية' &&
-                            aidType != 'رمضانية' &&
-                            _amountController.text.isNotEmpty
+                    aidAmount: _amountController.text.isNotEmpty
                         ? double.parse(_amountController.text)
                         : 0.0,
                     aidTypeDetails: aidType == 'عينية' || aidType == 'رمضانية'
@@ -584,6 +637,46 @@ class _RegisterPageState extends State<RegisterPage> {
             debugPrint(
                 "${loadPerson!.name} is now ${_firstNameController.text}");
           } else {
+            if ("${_firstNameController.text} ${_lastNameController.text}"
+                .trim()
+                .isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  duration: const Duration(milliseconds: 1000),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  content: const Text('الرجاء إدخال الاسم',
+                      style: TextStyle(fontSize: 15))));
+              return;
+            } else {
+              if (box.values
+                  .toList()
+                  .map((element) => element.name)
+                  .toList()
+                  .contains(
+                      "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
+                          .trim())) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    duration: const Duration(milliseconds: 1000),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    content: const Text('الاسم موجود بالفعل في قاعدة البيانات',
+                        style: TextStyle(fontSize: 15))));
+                return;
+              } // check if id is already in the box
+            }
+            if (_idNumberController.text.isNotEmpty) {
+              if (box.values
+                  .toList()
+                  .map((element) => element.idNumber)
+                  .toList()
+                  .contains(_idNumberController.text.trim())) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    duration: const Duration(milliseconds: 1000),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    content: const Text(
+                        'رقم الهوية موجود بالفعل في قاعدة البيانات',
+                        style: TextStyle(fontSize: 15))));
+                return;
+              }
+            }
             hiveProvider.createItem(Person(
                 name:
                     "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
@@ -593,9 +686,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 aidType: aidType == aidTypes.last
                     ? _typeController.text.trim()
                     : (aidType ?? aidTypes[5]),
-                aidAmount: aidType != 'عينية' &&
-                        aidType != 'رمضانية' &&
-                        _amountController.text.trim().isNotEmpty
+                aidAmount: _amountController.text.trim().isNotEmpty
                     ? double.parse(_amountController.text.trim())
                     : 0.0,
                 aidTypeDetails: aidType == 'عينية' || aidType == 'رمضانية'

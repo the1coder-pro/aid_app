@@ -29,6 +29,16 @@ import 'prefs.dart';
 import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
 
+extension RemoveZero on double {
+  String removeZeroDecimal() {
+    if (this % 1 == 0) {
+      return toStringAsFixed(0);
+    } else {
+      return toString();
+    }
+  }
+}
+
 const List<String> colorSchemes = [
   "Default",
   "Blue",
@@ -349,11 +359,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                           motion: const ScrollMotion(),
                                           children: [
                                             SlidableAction(
-                                              onPressed: (context) =>
-                                                  showDialog(
-                                                      context: context,
-                                                      builder: (context) =>
-                                                          RegisterPage(id: i)),
+                                              onPressed: (context) {
+                                                selectedIdProvider.selectedId =
+                                                    i;
+                                                showDialog(
+                                                    context: context,
+                                                    builder: (context) =>
+                                                        RegisterPage(id: i));
+                                              },
                                               backgroundColor: Theme.of(context)
                                                   .colorScheme
                                                   .tertiary,
@@ -437,12 +450,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 else
                                                   const TextSpan(),
                                                 TextSpan(
-                                                    text: person.aidType !=
-                                                                'عينية' &&
-                                                            person.aidType !=
-                                                                'رمضانية'
-                                                        ? "${person.aidAmount} ريال"
-                                                        : person.aidTypeDetails,
+                                                    text:
+                                                        "${person.aidAmount.removeZeroDecimal()} ريال",
                                                     style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold)),
@@ -607,13 +616,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                 builder: (context) => RegisterPage(
                                     id: selectedIdProvider.selectedId)))
                         .then((value) {
-                      if (value) {
-                        setState(() {
-                          selectedPerson =
-                              box.getAt(selectedIdProvider.selectedId)!;
-                        });
-                        setState(() {});
-                        debugPrint(value.toString());
+                      if (value != null) {
+                        if (value) {
+                          setState(() {
+                            selectedPerson =
+                                box.getAt(selectedIdProvider.selectedId)!;
+                          });
+                          setState(() {});
+                          debugPrint(value.toString());
+                        }
                       }
                     });
                   },
@@ -809,45 +820,43 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
               )),
-              selectedPerson!.aidType != 'عينية' &&
-                      selectedPerson!.aidType != 'رمضانية'
-                  ? Card(
-                      child: ListTile(
-                      leading: const Icon(Icons.attach_money_outlined),
-                      title: Text("${selectedPerson!.aidAmount} ريال"),
-                      subtitle: const Text("مقدار المساعدة"),
-                      onLongPress: () async {
-                        await Clipboard.setData(ClipboardData(
-                                text: selectedPerson!.aidAmount.toString()))
-                            .then((value) => ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(
-                                    duration:
-                                        const Duration(milliseconds: 1000),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    content: const Text("تم نسخ مقدار المساعدة",
-                                        style: TextStyle(fontSize: 15)))));
-                      },
-                    ))
-                  : Card(
-                      child: ListTile(
-                      leading: const Icon(Icons.local_laundry_service_outlined),
-                      title: Text(selectedPerson!.aidTypeDetails!),
-                      subtitle: const Text("تفاصيل المساعدة"),
-                      onLongPress: () async {
-                        await Clipboard.setData(ClipboardData(
-                                text: selectedPerson!.aidTypeDetails!))
-                            .then((value) => ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(
-                                    duration:
-                                        const Duration(milliseconds: 1000),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    content: const Text(
-                                        "تم نسخ تفاصيل المساعدة",
-                                        style: TextStyle(fontSize: 15)))));
-                      },
-                    )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.attach_money_outlined),
+                title: Text(
+                    "${selectedPerson!.aidAmount.removeZeroDecimal()} ريال"),
+                subtitle: const Text("مقدار المساعدة"),
+                onLongPress: () async {
+                  await Clipboard.setData(ClipboardData(
+                          text: selectedPerson!.aidAmount.toString()))
+                      .then((value) => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(
+                              duration: const Duration(milliseconds: 1000),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              content: const Text("تم نسخ مقدار المساعدة",
+                                  style: TextStyle(fontSize: 15)))));
+                },
+              )),
+              if (selectedPerson!.aidType == 'عينية' ||
+                  selectedPerson!.aidType == 'رمضانية')
+                Card(
+                    child: ListTile(
+                  leading: const Icon(Icons.local_laundry_service_outlined),
+                  title: Text(selectedPerson!.aidTypeDetails!),
+                  subtitle: const Text("تفاصيل المساعدة"),
+                  onLongPress: () async {
+                    await Clipboard.setData(ClipboardData(
+                            text: selectedPerson!.aidTypeDetails!))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ تفاصيل المساعدة",
+                                    style: TextStyle(fontSize: 15)))));
+                  },
+                )),
               Card(
                   child: ListTile(
                 leading: const Icon(Icons.update_outlined),

@@ -229,10 +229,8 @@ class SearchFinderResults extends StatelessWidget {
                             else
                               const TextSpan(),
                             TextSpan(
-                                text: personListItem.aidType != 'عينية' &&
-                                        personListItem.aidType != 'رمضانية'
-                                    ? "${personListItem.aidAmount} ريال"
-                                    : personListItem.aidTypeDetails,
+                                text:
+                                    "${personListItem.aidAmount.removeZeroDecimal()} ريال",
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             const TextSpan(text: " لأجل "),

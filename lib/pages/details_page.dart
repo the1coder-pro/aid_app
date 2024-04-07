@@ -302,46 +302,41 @@ class _DetailsPageState extends State<DetailsPage> {
                     }
                   },
                 )),
-                person.aidType != 'عينية' && person.aidType != 'رمضانية'
-                    ? Card(
-                        child: ListTile(
-                        leading: const Icon(Icons.attach_money_outlined),
-                        title: Text("${person.aidAmount} ريال"),
-                        subtitle: const Text("مقدار المساعدة"),
-                        onLongPress: () async {
-                          await Clipboard.setData(ClipboardData(
-                                  text: person.aidAmount.toString()))
-                              .then((value) => ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                      duration:
-                                          const Duration(milliseconds: 1000),
-                                      backgroundColor:
-                                          Theme.of(context).colorScheme.primary,
-                                      content: const Text(
-                                          "تم نسخ مقدار المساعدة",
-                                          style: TextStyle(fontSize: 15)))));
-                        },
-                      ))
-                    : Card(
-                        child: ListTile(
-                        leading:
-                            const Icon(Icons.local_laundry_service_outlined),
-                        title: Text(person.aidTypeDetails!),
-                        subtitle: const Text("تفاصيل المساعدة"),
-                        onLongPress: () async {
-                          await Clipboard.setData(
-                                  ClipboardData(text: person.aidTypeDetails!))
-                              .then((value) => ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                      duration:
-                                          const Duration(milliseconds: 1000),
-                                      backgroundColor:
-                                          Theme.of(context).colorScheme.primary,
-                                      content: const Text(
-                                          "تم نسخ تفاصيل المساعدة",
-                                          style: TextStyle(fontSize: 15)))));
-                        },
-                      )),
+                Card(
+                    child: ListTile(
+                  leading: const Icon(Icons.attach_money_outlined),
+                  title: Text("${person.aidAmount} ريال"),
+                  subtitle: const Text("مقدار المساعدة"),
+                  onLongPress: () async {
+                    await Clipboard.setData(
+                            ClipboardData(text: person.aidAmount.toString()))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ مقدار المساعدة",
+                                    style: TextStyle(fontSize: 15)))));
+                  },
+                )),
+                if (person.aidType == 'عينية' || person.aidType == 'رمضانية')
+                  Card(
+                      child: ListTile(
+                    leading: const Icon(Icons.local_laundry_service_outlined),
+                    title: Text(person.aidTypeDetails!),
+                    subtitle: const Text("تفاصيل المساعدة"),
+                    onLongPress: () async {
+                      await Clipboard.setData(
+                              ClipboardData(text: person.aidTypeDetails!))
+                          .then((value) => ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(
+                                  duration: const Duration(milliseconds: 1000),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  content: const Text("تم نسخ تفاصيل المساعدة",
+                                      style: TextStyle(fontSize: 15)))));
+                    },
+                  )),
                 Card(
                     child: ListTile(
                   leading: const Icon(Icons.update_outlined),
