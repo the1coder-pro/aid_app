@@ -1,4 +1,3 @@
-import '../prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -10,8 +9,18 @@ import 'package:intl/intl.dart' as intl;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'package:aidapp/main.dart';
+import 'package:aidapp/pages/register_page.dart';
+
+import '../prefs.dart';
 import '../person.dart';
-import 'register_page.dart';
+
+extension RemoveString on String {
+  String showBeautiful() {
+    return replaceAll(r'\n', '\n').replaceAll(r'"', '');
+  }
+}
 
 class DetailsPage extends StatefulWidget {
   final Person person;
@@ -302,23 +311,6 @@ class _DetailsPageState extends State<DetailsPage> {
                     }
                   },
                 )),
-                Card(
-                    child: ListTile(
-                  leading: const Icon(Icons.attach_money_outlined),
-                  title: Text("${person.aidAmount} ريال"),
-                  subtitle: const Text("مقدار المساعدة"),
-                  onLongPress: () async {
-                    await Clipboard.setData(
-                            ClipboardData(text: person.aidAmount.toString()))
-                        .then((value) => ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(
-                                duration: const Duration(milliseconds: 1000),
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                content: const Text("تم نسخ مقدار المساعدة",
-                                    style: TextStyle(fontSize: 15)))));
-                  },
-                )),
                 if (person.aidType == 'عينية' || person.aidType == 'رمضانية')
                   Card(
                       child: ListTile(
@@ -337,6 +329,23 @@ class _DetailsPageState extends State<DetailsPage> {
                                       style: TextStyle(fontSize: 15)))));
                     },
                   )),
+                Card(
+                    child: ListTile(
+                  leading: const Icon(Icons.attach_money_outlined),
+                  title: Text("${person.aidAmount.removeZeroDecimal()} ريال"),
+                  subtitle: const Text("مقدار المساعدة"),
+                  onLongPress: () async {
+                    await Clipboard.setData(
+                            ClipboardData(text: person.aidAmount.toString()))
+                        .then((value) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(
+                                duration: const Duration(milliseconds: 1000),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                content: const Text("تم نسخ مقدار المساعدة",
+                                    style: TextStyle(fontSize: 15)))));
+                  },
+                )),
                 Card(
                     child: ListTile(
                   leading: const Icon(Icons.update_outlined),
@@ -361,7 +370,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       icon: const Icon(Icons.copy),
                       onPressed: () async {
                         await Clipboard.setData(
-                                ClipboardData(text: person.notes))
+                                ClipboardData(text: person.notes.showBeautiful()))
                             .then((value) => ScaffoldMessenger.of(context)
                                 .showSnackBar(SnackBar(
                                     duration:
@@ -373,8 +382,9 @@ class _DetailsPageState extends State<DetailsPage> {
                       }),
                   title: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                        person.notes.isNotEmpty ? person.notes : 'لا يوجد'),
+                    child: Text(person.notes.isNotEmpty
+                        ? person.notes.showBeautiful()
+                        : 'لا يوجد'),
                   ),
                 )),
                 Card(
@@ -388,7 +398,7 @@ class _DetailsPageState extends State<DetailsPage> {
             نوع المساعدة: ${person.aidType}
             مقدار المساعدة: ${person.aidAmount} ريال
             مدة المساعدة: ${person.isContinuousAid ? 'مستمرة' : 'منقطعة'}
-            ملاحظات: ${person.notes.isNotEmpty ? person.notes : 'لا توجد'}
+            ملاحظات: ${person.notes.isNotEmpty ? person.notes.showBeautiful() : 'لا توجد'}
                                 """);
                     },
                     title: const Text("مشاركة هذه المساعدة"),
@@ -592,7 +602,7 @@ Future<pw.Document> generatePersonRecordPdf(Person personRecord) async {
               alignment: pw.Alignment.centerRight,
               child: pw.Text(
                   personRecord.notes.isNotEmpty
-                      ? personRecord.notes
+                      ? personRecord.notes.showBeautiful()
                       : 'لا توجد',
                   style: pw.TextStyle(font: font, fontSize: 15)))
         ]); // Center

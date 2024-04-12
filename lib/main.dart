@@ -1,8 +1,6 @@
 import 'dart:convert' show base64, jsonDecode, utf8;
 import 'dart:io';
-import 'json_compiler.dart';
-import 'pages/chart_page.dart';
-import 'pages/print_page.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +18,19 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xcel;
-import 'package:url_launcher/url_launcher.dart';
-import 'pages/details_page.dart';
-import 'pages/register_page.dart';
-import 'person.dart';
-import 'search_widget.dart';
-import 'prefs.dart';
-import 'color_schemes.g.dart';
 import "package:universal_html/html.dart" as html;
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:aidapp/pages/details_page.dart';
+import 'package:aidapp/pages/register_page.dart';
+import 'package:aidapp/search_widget.dart';
+import 'package:aidapp/pages/chart_page.dart';
+import 'package:aidapp/pages/print_page.dart';
+
+import 'color_schemes.g.dart';
+import 'json_compiler.dart';
+import 'prefs.dart';
+import 'person.dart';
 
 extension RemoveZero on double {
   String removeZeroDecimal() {
@@ -265,7 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Navigator.push(
                                 context,
                                 PageTransition(
-                                    child: Directionality(
+                                    child: const Directionality(
                                         textDirection: TextDirection.rtl,
                                         child: ChartPage()),
                                     type: PageTransitionType.rightToLeft));
@@ -820,24 +823,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
               )),
-              Card(
-                  child: ListTile(
-                leading: const Icon(Icons.attach_money_outlined),
-                title: Text(
-                    "${selectedPerson!.aidAmount.removeZeroDecimal()} ريال"),
-                subtitle: const Text("مقدار المساعدة"),
-                onLongPress: () async {
-                  await Clipboard.setData(ClipboardData(
-                          text: selectedPerson!.aidAmount.toString()))
-                      .then((value) => ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(
-                              duration: const Duration(milliseconds: 1000),
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              content: const Text("تم نسخ مقدار المساعدة",
-                                  style: TextStyle(fontSize: 15)))));
-                },
-              )),
               if (selectedPerson!.aidType == 'عينية' ||
                   selectedPerson!.aidType == 'رمضانية')
                 Card(
@@ -857,6 +842,24 @@ class _MyHomePageState extends State<MyHomePage> {
                                     style: TextStyle(fontSize: 15)))));
                   },
                 )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.attach_money_outlined),
+                title: Text(
+                    "${selectedPerson!.aidAmount.removeZeroDecimal()} ريال"),
+                subtitle: const Text("مقدار المساعدة"),
+                onLongPress: () async {
+                  await Clipboard.setData(ClipboardData(
+                          text: selectedPerson!.aidAmount.toString()))
+                      .then((value) => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(
+                              duration: const Duration(milliseconds: 1000),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              content: const Text("تم نسخ مقدار المساعدة",
+                                  style: TextStyle(fontSize: 15)))));
+                },
+              )),
               Card(
                   child: ListTile(
                 leading: const Icon(Icons.update_outlined),
@@ -884,7 +887,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: const Icon(Icons.copy),
                     onPressed: () async {
                       await Clipboard.setData(
-                              ClipboardData(text: selectedPerson!.notes))
+                              ClipboardData(text: selectedPerson!.notes.showBeautiful()))
                           .then((value) => ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(
                                   duration: const Duration(milliseconds: 1000),
@@ -896,7 +899,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 title: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(selectedPerson!.notes.isNotEmpty
-                      ? selectedPerson!.notes
+                      ? selectedPerson!.notes.showBeautiful()
                       : 'لا يوجد'),
                 ),
               )),
@@ -911,7 +914,7 @@ class _MyHomePageState extends State<MyHomePage> {
           نوع المساعدة: ${selectedPerson!.aidType}
           مقدار المساعدة: ${selectedPerson!.aidAmount} ريال
           مدة المساعدة: ${selectedPerson!.isContinuousAid ? 'مستمرة' : 'منقطعة'}
-          ملاحظات: ${selectedPerson!.notes.isNotEmpty ? selectedPerson!.notes : 'لا توجد'}
+          ملاحظات: ${selectedPerson!.notes.isNotEmpty ? selectedPerson!.notes.showBeautiful() : 'لا توجد'}
                               """);
                   },
                   title: const Text("مشاركة هذه المساعدة"),

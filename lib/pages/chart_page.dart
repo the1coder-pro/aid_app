@@ -1,14 +1,14 @@
-import '/person.dart';
-import '/prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:numeral/numeral.dart';
 
+import '/person.dart';
+import '/prefs.dart';
+
 class ChartPage extends StatefulWidget {
-  // ignore: prefer_const_constructors_in_immutables
-  ChartPage({super.key});
+  const ChartPage({super.key});
 
   @override
   ChartPageState createState() => ChartPageState();

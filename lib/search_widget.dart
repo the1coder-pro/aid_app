@@ -1,12 +1,14 @@
-import 'main.dart';
-import 'prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import 'pages/details_page.dart';
+
+import 'package:aidapp/main.dart';
+import 'package:aidapp/pages/details_page.dart';
+
 import 'person.dart';
+import 'prefs.dart';
 
 class SearchWidget extends SearchDelegate<Person> {
   @override

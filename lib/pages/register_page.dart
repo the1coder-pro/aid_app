@@ -1,4 +1,5 @@
-import '/prefs.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -6,8 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
-import '../main.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+import 'package:aidapp/main.dart';
+import 'package:aidapp/pages/details_page.dart';
+
 import '../person.dart';
+import '/prefs.dart';
 
 class RegisterPage extends StatefulWidget {
   final int? id;
@@ -28,9 +34,42 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _typeDetailsController = TextEditingController();
 
   final TextEditingController _notesController = TextEditingController();
+  WebViewController webViewcontroller = WebViewController();
+
+  void loadNotesTextField(WebViewController controller, {Person? loadPerson}) {
+    controller
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.transparent)
+      ..loadHtmlString('''
+      <html>
+        <head>
+          <style>
+            textarea {
+              padding-top: -10px;
+              padding-right: 10px;
+              text-align: right;
+              direction: rtl;
+              font-size: 50px;
+              width: 100%;
+              height: 100%;
+              border: 5px solid ${Theme.of(context).colorScheme.onBackground.toHex};
+              border-radius: 10px;
+              outline: none;
+              background-color: transparent;
+              color: ${Theme.of(context).colorScheme.onBackground.toHex};
+              caret-color: ${Theme.of(context).colorScheme.onBackground.toHex};
+            }
+          </style>
+        </head>
+        <body>
+          <textarea id="inputd" placeholder="الملاحظات">${loadPerson != null ? loadPerson.notes.showBeautiful() : ''}</textarea>
+         
+        </body>
+      </html>
+''');
+  }
 
   String description = '';
-
   final box = Hive.box<Person>('personList');
 
   AidDuration? _duration = AidDuration.continuous;
@@ -69,7 +108,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    // Clean up the focus node when the Form is disposed.
     firstNameFocusNode.dispose();
     lastNameFocusNode.dispose();
     phoneFocusNode.dispose();
@@ -79,6 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
     typeDetailsFocusNode.dispose();
     otherTypeFocusNode.dispose();
     notesFocusNode.dispose();
+    dateFocusNode.dispose();
 
     super.dispose();
   }
@@ -118,6 +157,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
+    loadNotesTextField(webViewcontroller, loadPerson: loadPerson);
 
     if (widget.id != null && loadPerson!.isInBox) {
       return Directionality(
@@ -226,9 +266,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 5),
-            const Center(
-                child: Text("تاريخ المساعدة",
-                    style: TextStyle(fontWeight: FontWeight.bold))),
+            const DividerWithTitle("تاريخ المساعدة"),
             const SizedBox(height: 5),
             if (dateRange.isNotEmpty)
               Padding(
@@ -237,19 +275,35 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: SizedBox(
                   width: 400,
                   child: Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(1),
+                      1: FlexColumnWidth(2)
+                    },
                     textDirection: TextDirection.rtl,
                     children: [
                       TableRow(children: [
-                        const Text("الميلادي", style: TextStyle(fontSize: 10)),
-                        Text(
-                            "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
-                            style: const TextStyle(fontSize: 10))
+                        const Align(
+                            alignment: Alignment.center,
+                            child: Text("الميلادي",
+                                style: TextStyle(fontSize: 14))),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                              "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
+                              style: const TextStyle(fontSize: 14)),
+                        )
                       ]),
                       TableRow(children: [
-                        const Text("الهجري", style: TextStyle(fontSize: 10)),
-                        Text(
-                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
-                            style: const TextStyle(fontSize: 10))
+                        const Align(
+                            alignment: Alignment.center,
+                            child:
+                                Text("الهجري", style: TextStyle(fontSize: 14))),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                              "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
+                              style: const TextStyle(fontSize: 14)),
+                        )
                       ]),
                     ],
                   ),
@@ -321,7 +375,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                                   null) {
                                                 dateRange.add(value.endDate!);
                                               }
-                                              print(dateRange);
+                                              debugPrint(dateRange.toString());
                                               setState(() {});
 
                                               Navigator.pop(context);
@@ -509,9 +563,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 5),
-            const Center(
-                child: Text("مدة المساعدة",
-                    style: TextStyle(fontWeight: FontWeight.bold))),
+            const DividerWithTitle("مدة المساعدة"),
             RadioListTile<AidDuration>(
               title: const Text('مستمرة'),
               value: AidDuration.continuous,
@@ -533,28 +585,41 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
             const SizedBox(height: 10),
+            const DividerWithTitle("الملاحظات"),
+            const SizedBox(height: 10),
+
             ListTile(
-              title: TextFormField(
-                textAlign: TextAlign.right,
-                textDirection:
-                    intl.Bidi.detectRtlDirectionality(_notesController.text)
-                        ? TextDirection.rtl
-                        : TextDirection.ltr,
-                focusNode: notesFocusNode,
-                maxLines: null,
-                minLines: 5,
-                keyboardType: TextInputType.multiline,
-                controller: _notesController,
-                onChanged: (value) {
-                  setState(() {});
-                },
-                decoration: InputDecoration(
-                    suffixIcon: clearButton(_notesController),
-                    label: const Text("الملاحظات"),
-                    border: const OutlineInputBorder(),
-                    isDense: true),
-              ),
-            )
+              title: SizedBox(
+                  height: 200,
+                  child: WebViewWidget(
+                    key: UniqueKey(),
+                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                      Factory<EagerGestureRecognizer>(
+                          () => EagerGestureRecognizer()),
+                    },
+                    controller: webViewcontroller,
+                  )),
+            ),
+
+            // ListTile(
+            //   title: TextField(
+            //     focusNode: notesFocusNode,
+            //     maxLines: null,
+            //     minLines: 5,
+            //     keyboardType: TextInputType.multiline,
+            //     controller: _notesController,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         _notesController.text = value;
+            //       });
+            //     },
+            //     decoration: InputDecoration(
+            //         suffixIcon: clearButton(_notesController),
+            //         label: const Text("الملاحظات"),
+            //         border: const OutlineInputBorder(),
+            //         isDense: true),
+            //   ),
+            // )
           ]),
         ));
   }
@@ -567,7 +632,16 @@ class _RegisterPageState extends State<RegisterPage> {
       BuildContext context) {
     return IconButton(
         icon: const Icon(Icons.check),
-        onPressed: () {
+        onPressed: () async {
+          _notesController.text = await webViewcontroller
+              .runJavaScriptReturningResult(
+                  'document.getElementById("inputd").value')
+              .then((value) {
+            _notesController.text = value.toString().showBeautiful();
+            debugPrint(value.toString().showBeautiful());
+            return value.toString();
+          });
+
           if (savedPersonId) {
             if ("${_firstNameController.text} ${_lastNameController.text}"
                 .trim()
@@ -579,31 +653,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(fontSize: 15))));
               return;
             } else {
-              if (box.values
-                      .toList()
-                      .map((element) => element.name)
-                      .toList()
-                      .contains(
-                          "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
-                              .trim()) &&
-                  "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
-                          .trim() !=
-                      loadPerson!.name) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    duration: const Duration(milliseconds: 1000),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    content: const Text('الاسم موجود بالفعل في قاعدة البيانات',
-                        style: TextStyle(fontSize: 15))));
-                return;
-              }
-            }
-            if (_idNumberController.text.isNotEmpty) {
-              if (box.values
+              // check if id number is unique
+              if (_idNumberController.text.isNotEmpty &&
+                  box.values
                       .toList()
                       .map((element) => element.idNumber)
                       .toList()
                       .contains(_idNumberController.text.trim()) &&
-                  _idNumberController.text.trim() != loadPerson!.idNumber) {
+                  box.values
+                          .toList()
+                          .map((element) => element.idNumber)
+                          .toList()
+                          .indexOf(_idNumberController.text.trim()) !=
+                      selectedIdProvider.selectedId) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     duration: const Duration(milliseconds: 1000),
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -647,27 +709,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(fontSize: 15))));
               return;
             } else {
-              if (box.values
-                  .toList()
-                  .map((element) => element.name)
-                  .toList()
-                  .contains(
-                      "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}"
-                          .trim())) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    duration: const Duration(milliseconds: 1000),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    content: const Text('الاسم موجود بالفعل في قاعدة البيانات',
-                        style: TextStyle(fontSize: 15))));
-                return;
-              } // check if id is already in the box
-            }
-            if (_idNumberController.text.isNotEmpty) {
-              if (box.values
-                  .toList()
-                  .map((element) => element.idNumber)
-                  .toList()
-                  .contains(_idNumberController.text.trim())) {
+              // check if id number is unique
+              if (_idNumberController.text.isNotEmpty &&
+                  box.values
+                      .toList()
+                      .map((element) => element.idNumber)
+                      .toList()
+                      .contains(_idNumberController.text.trim())) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     duration: const Duration(milliseconds: 1000),
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -677,6 +725,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 return;
               }
             }
+
             hiveProvider.createItem(Person(
                 name:
                     "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
@@ -705,5 +754,25 @@ class _RegisterPageState extends State<RegisterPage> {
                   'تم حفظ "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}" بنجاح',
                   style: const TextStyle(fontSize: 15))));
         });
+  }
+}
+
+class DividerWithTitle extends StatelessWidget {
+  final String title;
+  const DividerWithTitle(
+    this.title, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: <Widget>[
+      const Expanded(child: Divider()),
+      Padding(
+        padding: const EdgeInsets.only(right: 8, left: 8),
+        child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      const Expanded(child: Divider()),
+    ]);
   }
 }

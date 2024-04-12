@@ -1,10 +1,8 @@
 import 'dart:convert';
-import '/pages/details_page.dart';
-import '/prefs.dart';
+import 'dart:io';
+
 import 'package:provider/provider.dart';
 import "package:universal_html/html.dart" as html;
-import 'dart:io';
-import '/person.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -15,6 +13,12 @@ import 'package:dart_date/dart_date.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
+import 'package:aidapp/main.dart';
+import 'package:aidapp/pages/details_page.dart';
+
+import '/prefs.dart';
+import '/person.dart';
 
 class PrintPage extends StatefulWidget {
   const PrintPage({super.key});
@@ -48,19 +52,36 @@ class _PrintPageState extends State<PrintPage> {
                   child: SizedBox(
                 width: 400,
                 child: Table(
+                  columnWidths: const {
+                    0: FlexColumnWidth(1),
+                    1: FlexColumnWidth(2),
+                  },
                   textDirection: TextDirection.rtl,
                   children: [
                     TableRow(children: [
-                      const Text("الميلادي", style: TextStyle(fontSize: 10)),
-                      Text(
-                          "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
-                          style: const TextStyle(fontSize: 10))
+                      // change the font size to 14
+                      const Align(
+                          alignment: Alignment.center,
+                          child:
+                              Text("الميلادي", style: TextStyle(fontSize: 14))),
+                      Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                            "${intl.DateFormat('yyyy/MM/dd').format(dateRange[0])} - ${intl.DateFormat('yyyy/MM/dd').format(dateRange[1])}",
+                            style: const TextStyle(fontSize: 14)),
+                      )
                     ]),
                     TableRow(children: [
-                      const Text("الهجري", style: TextStyle(fontSize: 10)),
-                      Text(
-                          "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
-                          style: const TextStyle(fontSize: 10))
+                      const Align(
+                          alignment: Alignment.center,
+                          child:
+                              Text("الهجري", style: TextStyle(fontSize: 14))),
+                      Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                            "${HijriDateTime.fromDateTime(dateRange[0]).toString().replaceAll('-', '/')} - ${HijriDateTime.fromDateTime(dateRange[1]).toString().replaceAll('-', '/')}",
+                            style: const TextStyle(fontSize: 14)),
+                      )
                     ]),
                   ],
                 ),
@@ -123,7 +144,9 @@ class _PrintPageState extends State<PrintPage> {
                                     ? record.idNumber
                                     : '-')),
                                 DataCell(Text(record.aidType)),
-                                DataCell(Text(record.aidAmount.toString())),
+                                DataCell(Text(record.aidAmount
+                                    .removeZeroDecimal()
+                                    .toString())),
                                 DataCell(Text(record.isContinuousAid
                                     ? 'مستمرة'
                                     : 'منقطعة')),
@@ -464,6 +487,13 @@ class _PrintPageState extends State<PrintPage> {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
+                  pw.Center(
+                      child: pw.Text("فترة المساعدات",
+                          textDirection: pw.TextDirection.rtl,
+                          style: pw.TextStyle(
+                              font: font,
+                              fontSize: 25,
+                              fontWeight: pw.FontWeight.bold))),
                   pw.Column(children: [
                     pw.Center(
                         child: pw.Text(
@@ -476,13 +506,6 @@ class _PrintPageState extends State<PrintPage> {
                             textDirection: pw.TextDirection.rtl,
                             style: pw.TextStyle(font: font))),
                   ]),
-                  pw.Center(
-                      child: pw.Text("فترة المساعدات",
-                          textDirection: pw.TextDirection.rtl,
-                          style: pw.TextStyle(
-                              font: font,
-                              fontSize: 25,
-                              fontWeight: pw.FontWeight.bold))),
                 ]),
             pw.SizedBox(height: 5),
             pw.Directionality(
@@ -536,6 +559,11 @@ class _PrintPageState extends State<PrintPage> {
                       pw.Column(children: [
                         pw.Padding(
                             child: pw.Text('الاسم', style: tableHeaderStyle),
+                            padding: const pw.EdgeInsets.all(4))
+                      ]),
+                      pw.Column(children: [
+                        pw.Padding(
+                            child: pw.Text('#', style: tableHeaderStyle),
                             padding: const pw.EdgeInsets.all(4))
                       ]),
                     ]),
@@ -597,6 +625,16 @@ class _PrintPageState extends State<PrintPage> {
                               child: pw.Text(person.name,
                                   style: tableStyle.copyWith(fontSize: 10)))
                         ]),
+                        pw.Column(children: [
+                          pw.Padding(
+                              padding: const pw.EdgeInsets.all(2),
+                              // number of the row
+                              child: pw.Text(
+                                  (dateRangeIncludedPersonList.indexOf(person) +
+                                          1)
+                                      .toString(),
+                                  style: tableStyle.copyWith(fontSize: 10)))
+                        ])
                       ]),
                   ],
                 )),

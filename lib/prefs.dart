@@ -1,8 +1,8 @@
 import 'dart:collection';
-import 'person.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'person.dart';
 
 // Dark/Light Theme
 
