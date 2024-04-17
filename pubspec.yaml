@@ -55,7 +55,6 @@ dependencies:
   syncfusion_flutter_xlsio: ^24.2.8
   numeral: ^3.0.0
   change_app_package_name: ^1.1.0
-  webview_flutter: ^4.7.0
 
 dev_dependencies:
   flutter_test:

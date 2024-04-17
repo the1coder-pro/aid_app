@@ -1,16 +1,14 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
+import 'package:aidapp/pages/custom_additions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:syncfusion_flutter_core/core.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:aidapp/main.dart';
-import 'package:aidapp/pages/details_page.dart';
 
 import '../person.dart';
 import '/prefs.dart';
@@ -34,42 +32,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _typeDetailsController = TextEditingController();
 
   final TextEditingController _notesController = TextEditingController();
-  WebViewController webViewcontroller = WebViewController();
 
-  void loadNotesTextField(WebViewController controller, {Person? loadPerson}) {
-    controller
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.transparent)
-      ..loadHtmlString('''
-      <html>
-        <head>
-          <style>
-            textarea {
-              padding-top: -10px;
-              padding-right: 10px;
-              text-align: right;
-              direction: rtl;
-              font-size: 50px;
-              width: 100%;
-              height: 100%;
-              border: 5px solid ${Theme.of(context).colorScheme.onBackground.toHex};
-              border-radius: 10px;
-              outline: none;
-              background-color: transparent;
-              color: ${Theme.of(context).colorScheme.onBackground.toHex};
-              caret-color: ${Theme.of(context).colorScheme.onBackground.toHex};
-            }
-          </style>
-        </head>
-        <body>
-          <textarea id="inputd" placeholder="الملاحظات">${loadPerson != null ? loadPerson.notes.showBeautiful() : ''}</textarea>
-         
-        </body>
-      </html>
-''');
-  }
-
-  String description = '';
   final box = Hive.box<Person>('personList');
 
   AidDuration? _duration = AidDuration.continuous;
@@ -118,6 +81,14 @@ class _RegisterPageState extends State<RegisterPage> {
     otherTypeFocusNode.dispose();
     notesFocusNode.dispose();
     dateFocusNode.dispose();
+    _notesController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _idNumberController.dispose();
+    _amountController.dispose();
+    _typeController.dispose();
+    _typeDetailsController.dispose();
 
     super.dispose();
   }
@@ -150,14 +121,12 @@ class _RegisterPageState extends State<RegisterPage> {
           ? AidDuration.continuous
           : AidDuration.interrupted;
       _notesController.text = loadPerson.notes;
-      description = _notesController.text;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     Person? loadPerson = widget.id != null ? box.getAt(widget.id!) : null;
-    loadNotesTextField(webViewcontroller, loadPerson: loadPerson);
 
     if (widget.id != null && loadPerson!.isInBox) {
       return Directionality(
@@ -194,7 +163,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ListTile(
               title: TextFormField(
                 focusNode: firstNameFocusNode,
-                autofocus: true,
                 onFieldSubmitted: (value) {
                   firstNameFocusNode.unfocus();
                   FocusScope.of(context).requestFocus(lastNameFocusNode);
@@ -545,7 +513,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ListTile(
               title: TextFormField(
                 focusNode: amountFocusNode,
-                onFieldSubmitted: (value) {
+                onFieldSubmitted: (value) async {
                   amountFocusNode.unfocus();
                   FocusScope.of(context).requestFocus(notesFocusNode);
                 },
@@ -584,42 +552,109 @@ class _RegisterPageState extends State<RegisterPage> {
                 });
               },
             ),
-            const SizedBox(height: 10),
-            const DividerWithTitle("الملاحظات"),
-            const SizedBox(height: 10),
 
             ListTile(
-              title: SizedBox(
-                  height: 200,
-                  child: WebViewWidget(
-                    key: UniqueKey(),
-                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                      Factory<EagerGestureRecognizer>(
-                          () => EagerGestureRecognizer()),
-                    },
-                    controller: webViewcontroller,
-                  )),
+              title: TextField(
+                controller: _notesController,
+                showCursor: true,
+                focusNode: notesFocusNode,
+                textDirection: TextDirection.rtl,
+                minLines: 4,
+                textAlign: TextAlign.right,
+
+                decoration: InputDecoration(
+                    suffixIcon: clearButton(_notesController),
+                    labelText: "الملاحظات",
+                    border: const OutlineInputBorder(),
+                    isDense: true),
+                // reverse the cursor direction of movement
+                inputFormatters: [EndSpaceFormatter()],
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                cursorColor: Theme.of(context).colorScheme.onBackground,
+              ),
             ),
+
+            // Directionality(
+            //   textDirection: TextDirection.rtl,
+            //   child: NativeTextInput(
+            //     controller: _notesController,
+            //     onChanged: (value) {},
+            //     textAlign: TextAlign.right,
+
+            //     minLines: 3,
+            //     focusNode: notesFocusNode,
+            //     returnKeyType: ReturnKeyType.next,
+
+            //     style: TextStyle(
+            //         color: Theme.of(context).colorScheme.onBackground,
+            //         fontSize: 20),
+            //     placeholderColor: Theme.of(context).colorScheme.onBackground,
+            //     decoration: BoxDecoration(
+            //         color: Theme.of(context).colorScheme.background,
+            //         border: Border.all(
+            //             color: Theme.of(context).colorScheme.onBackground)),
+            //     // get the number of lines from _notesController
+            //     maxLines: 5,
+            //   ),
+            // ),
+
+            // NativeTextInput(
+            //   controller: myController,
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _notesController.text = value;
+            //     });
+            //   },
+            //   minLines: 3,
+            //   focusNode: notesFocusNode,
+            //   returnKeyType: ReturnKeyType.next,
+
+            //   style: TextStyle(
+            //       color: Theme.of(context).colorScheme.onBackground,
+            //       fontSize: 20),
+            //   placeholderColor: Theme.of(context).colorScheme.onBackground,
+            //   decoration: BoxDecoration(
+            //       color: Theme.of(context).colorScheme.background,
+            //       border: Border.all(
+            //           color: Theme.of(context).colorScheme.onBackground)),
+            //   // get the number of lines from _notesController
+            //   maxLines: 5,
+            // ),
+
+            // ListTile(
+            //   title: SizedBox(
+            //       height: 200,
+            //       child: WebViewWidget(
+            //         key: UniqueKey(),
+            //         gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+            //           Factory<EagerGestureRecognizer>(
+            //               () => EagerGestureRecognizer()),
+            //         },
+            //         controller: webViewcontroller,
+            //       )),
+            // ),
 
             // ListTile(
             //   title: TextField(
             //     focusNode: notesFocusNode,
             //     maxLines: null,
             //     minLines: 5,
+            //     // don't change cursor position when language changes
+            //     textDirection: TextDirection.rtl,
+            //     textAlign: TextAlign.left,
+            //     //cursor
+
             //     keyboardType: TextInputType.multiline,
             //     controller: _notesController,
-            //     onChanged: (value) {
-            //       setState(() {
-            //         _notesController.text = value;
-            //       });
-            //     },
+
             //     decoration: InputDecoration(
             //         suffixIcon: clearButton(_notesController),
             //         label: const Text("الملاحظات"),
             //         border: const OutlineInputBorder(),
             //         isDense: true),
             //   ),
-            // )
+            // ),
           ]),
         ));
   }
@@ -633,15 +668,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return IconButton(
         icon: const Icon(Icons.check),
         onPressed: () async {
-          _notesController.text = await webViewcontroller
-              .runJavaScriptReturningResult(
-                  'document.getElementById("inputd").value')
-              .then((value) {
-            _notesController.text = value.toString().showBeautiful();
-            debugPrint(value.toString().showBeautiful());
-            return value.toString();
-          });
-
           if (savedPersonId) {
             if ("${_firstNameController.text} ${_lastNameController.text}"
                 .trim()
